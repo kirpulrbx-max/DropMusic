@@ -1,0 +1,38 @@
+# DropMusic
+
+DropMusic is a Windows-first desktop music hub built with Tauri 2, Rust, React, TypeScript, and Tailwind CSS.
+
+## Requirements
+
+- Windows 10 or 11
+- Node.js and npm
+- Rust stable and the MSVC C++ build tools
+- WebView2 Runtime
+- An internet connection for Spotify and Jamendo catalogs and playback
+
+## Start developing
+
+```powershell
+npm install
+npm run tauri:dev
+```
+
+Run `npm run tauri:build` to create the Windows installers, `npm run build` to build the frontend, and `npm run lint` to check the code.
+
+## Included
+
+- Responsive library with Explore, Collection, Favorites, and Settings sections
+- Spotify personalized suggestions and full-track in-app playback for Premium accounts
+- Searchable Jamendo catalog with full-track streaming and official track links
+- Rotating Listen-page feature card with one-click in-app playback of available tracks
+- Favorites and audio preferences stored on this device
+- Five-band Web Audio equalizer, sound presets, player volume, repeat, shuffle, and queue controls
+- Tauri 2 desktop shell with a restricted content security policy for the catalog media
+
+## Account connections
+
+Spotify and Google account authorization use OAuth Authorization Code with PKCE in the system browser and a temporary loopback callback. Configure the public client IDs in an ignored `.env.local` file (see `.env.example`) before running or building the desktop app. In Spotify Developer Dashboard, register `http://127.0.0.1/callback` (without a port); the app supplies its temporary port at sign-in. The Google OAuth client must be of type **Desktop app**, which supports a temporary `http://127.0.0.1:<port>` redirect.
+
+Spotify access and refresh tokens are stored in the Windows Credential Manager and refreshed automatically; DropMusic checks the saved access token against Spotify's `/v1/me` endpoint at startup and retries once after a 401. Passwords are never stored. Search sends Spotify's `q` query parameter, `type=track`, `limit=10`, and `offset`; search results are paged by 10. Spotify suggestions come from the user's medium-term top tracks and require the `user-top-read` permission. Selecting Spotify tracks starts playback on DropMusic's in-app Spotify Web Playback SDK device; pause, skip, seek, progress, and volume use the embedded player rather than opening Spotify. This requires Spotify Premium, the `streaming` and `user-modify-playback-state` scopes, and Web Playback SDK access enabled for the app in Spotify Developer Dashboard. Existing users must select **Actualizar permisos Spotify** in Settings and accept the additional permissions; Spotify may require reconnecting the account. The SDK is loaded from Spotify's official `sdk.scdn.co` domain. Use **Desvincular cuenta** in Settings to remove saved tokens. Google OAuth only confirms the Google account: YouTube Music does not offer a public playback SDK/API, and that Google session is not persisted. Apple Music still requires a separate MusicKit integration and developer credentials.
+
+Jamendo catalog search and playback use the official Jamendo API. Create a free application Client ID at [Jamendo Developer Portal](https://devportal.jamendo.com/) and enter it in **Ajustes** (or set `VITE_JAMENDO_CLIENT_ID` in `.env.local`). The public Client ID is stored only in this device's DropMusic settings. Jamendo results stream from their API and link back to each track's official page. DropMusic does not preload sample songs; the rotating feature card uses tracks returned by Spotify suggestions, Spotify search, or Jamendo search.
