@@ -1,3 +1,5 @@
+mod visualizer;
+
 use keyring::{Entry, Error as KeyringError};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -1965,9 +1967,19 @@ pub fn run() {
             lyrics_get,
             spotify_build_radio,
             jamendo_search_tracks,
-            spotify_disconnect
+            spotify_disconnect,
+            visualizer::visualizer_start,
+            visualizer::visualizer_stop
         ])
+        .manage(visualizer::Visualizer::default())
         .setup(|app| {
+            // Actualizaciones automáticas: la app busca versiones nuevas firmadas en GitHub.
+            #[cfg(desktop)]
+            {
+                app.handle()
+                    .plugin(tauri_plugin_updater::Builder::new().build())?;
+                app.handle().plugin(tauri_plugin_process::init())?;
+            }
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()

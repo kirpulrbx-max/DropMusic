@@ -429,9 +429,9 @@
 }
 
 /* ---------- Mega transparente ----------
-   La ventana de la app es transparente (tauri.conf.json) y este tema quita todos los fondos:
-   se ve el escritorio de Windows detrás. Los paneles llevan un velo oscuro mínimo y el texto
-   una sombra para que se pueda leer sobre cualquier fondo de pantalla. */
+   La ventana es transparente (tauri.conf.json) y, con este tema, Windows le pone su efecto de
+   cristal acrílico: el escritorio se ve detrás, difuminado. Encima, cada parte de la app es una
+   lámina de cristal ahumado con borde brillante, para que el texto no se pierda en ningún fondo. */
 :root.see-through,
 :root.see-through body,
 :root.see-through #root {
@@ -439,44 +439,61 @@
 }
 
 .app-shell[data-theme="transparente"] {
-  --t-bg: transparent;
-  --t-chrome: rgba(10, 10, 14, 0.28);
-  --t-surface: rgba(14, 14, 20, 0.34);
-  --t-dialog: rgba(18, 18, 24, 0.92);
-  --t-hover: rgba(255, 255, 255, 0.12);
+  --t-bg: rgba(12, 12, 18, 0.18);
+  --t-chrome: rgba(16, 16, 24, 0.5);
+  --t-surface: rgba(255, 255, 255, 0.1);
+  --t-dialog: rgba(24, 24, 32, 0.94);
+  --t-hover: rgba(255, 255, 255, 0.14);
   --t-input: rgba(0, 0, 0, 0.35);
-  --t-muted: #f0f0f4;
+  --t-muted: #e9e9f1;
   --t-label: #ffffff;
   --t-accent: #ffffff;
   --t-accent-ink: #111111;
-  --t-accent-soft: rgba(255, 255, 255, 0.16);
-  --t-border: rgba(255, 255, 255, 0.4);
+  --t-accent-soft: rgba(255, 255, 255, 0.18);
+  --t-border: rgba(255, 255, 255, 0.26);
   --t-track: rgba(255, 255, 255, 0.3);
-  --t-radius: 14px;
-  --t-shadow: none;
+  --t-radius: 16px;
+  --t-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   --t-font: "Segoe UI", sans-serif;
   --t-head-font: "Segoe UI", sans-serif;
   --t-lyric: #ffffff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75), 0 0 1px rgba(0, 0, 0, 0.9);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
 }
 
-.app-shell[data-theme="transparente"] :is(.sidebar, .topbar, .player-bar, .main-content) {
-  background: transparent;
-  backdrop-filter: none;
+/* Láminas de cristal: tinte oscuro, brillo arriba y borde de luz */
+.app-shell[data-theme="transparente"] :is(.sidebar, .topbar, .player-bar) {
+  border-color: rgba(255, 255, 255, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 40%),
+    rgba(14, 14, 22, 0.52);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(20px) saturate(1.5);
 }
 
-.app-shell[data-theme="transparente"] :is(.now-playing-card, .settings-panel, .top-result-card, .theme-card, .personalization-hero, .featured-card, .track-row:hover, .personalization-tabs button) {
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(14, 14, 20, 0.34);
-  backdrop-filter: none;
+.app-shell[data-theme="transparente"] .main-content {
+  background: rgba(10, 10, 16, 0.22);
+}
+
+.app-shell[data-theme="transparente"] :is(.now-playing-card, .settings-panel, .top-result-card, .theme-card, .layout-card, .personalization-hero, .featured-card, .track-row:hover, .personalization-tabs button, .album-card, .personalization-options) {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04) 45%),
+    rgba(18, 18, 26, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 10px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(16px) saturate(1.4);
 }
 
 .app-shell[data-theme="transparente"] .big-picture {
-  background: rgba(8, 8, 12, 0.25);
+  background: rgba(8, 8, 12, 0.35);
 }
 
 .app-shell[data-theme="transparente"] .big-picture-backdrop {
   display: none;
+}
+
+.app-shell[data-theme="transparente"] :is(.big-picture-card, .big-picture-controls) {
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(18, 18, 26, 0.5);
 }
 
 /* =========================================================
@@ -907,7 +924,7 @@
 /* ---------- Ladrillos de juguete ---------- */
 .app-shell[data-theme="ladrillos"] {
   --t-bg: #e4e4e4;
-  --t-bg-image: radial-gradient(circle at 12px 12px, #eeeeee 0 7px, #cdcdcd 7.5px 8.5px, transparent 9px) 0 0 / 24px 24px, #e4e4e4;
+  --t-bg-image: radial-gradient(circle at 12px 12px, #e9e9e9 0 7px, #dddddd 7.5px 8.5px, transparent 9px) 0 0 / 24px 24px, #e4e4e4;
   --t-chrome: #ffd500;
   --t-surface: #ffffff;
   --t-dialog: #ffffff;
@@ -946,12 +963,27 @@
   pointer-events: none;
 }
 
+/* Tetones solo en el borde de cada pieza; donde va el texto el color es liso */
 .app-shell[data-theme="ladrillos"] .sidebar {
-  background: radial-gradient(circle at 12px 12px, #ffe24d 0 7px, #e6bf00 7.5px 8.5px, transparent 9px) 0 0 / 24px 24px, #ffd500;
+  background: radial-gradient(circle at 12px 12px, #ffe24d 0 7px, #e6bf00 7.5px 8.5px, transparent 9px) 0 0 / 24px 24px repeat-x, #ffd500;
+  padding-top: 40px;
+}
+
+.app-shell[data-theme="ladrillos"] .main-content {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.app-shell[data-theme="ladrillos"] .sidebar .nav-item {
+  color: #1a1a1a;
+}
+
+.app-shell[data-theme="ladrillos"] .sidebar .nav-item.active {
+  background: #ffffff;
+  color: #0055bf;
 }
 
 .app-shell[data-theme="ladrillos"] .player-bar {
-  background: radial-gradient(circle at 12px 12px, #e3222b 0 7px, #b30c14 7.5px 8.5px, transparent 9px) 0 0 / 24px 24px, #c90f18;
+  background: radial-gradient(circle at 12px 0, #e3222b 0 7px, #b30c14 7.5px 8.5px, transparent 9px) 0 0 / 24px 9px repeat-x, #b80d15;
 }
 
 .app-shell[data-theme="ladrillos"] .player-bar :is(span, strong, small, button) {

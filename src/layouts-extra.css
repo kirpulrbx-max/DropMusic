@@ -349,7 +349,7 @@
   gap: 18px;
 }
 
-.app-shell[data-layout="cabina"] .player-track > img,
+.app-shell[data-layout="cabina"] .player-track-open > img,
 .app-shell[data-layout="cabina"] .player-art-placeholder {
   width: 100%;
   height: auto;
@@ -659,7 +659,7 @@
     align-items: center;
   }
 
-  .app-shell[data-layout="cabina"] .player-track > img,
+  .app-shell[data-layout="cabina"] .player-track-open > img,
   .app-shell[data-layout="cabina"] .player-art-placeholder {
     width: 43px;
   }

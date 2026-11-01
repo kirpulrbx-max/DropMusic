@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Términos y Transparencia Legal — DropMusic</title>
+  <meta name="description" content="Cómo funciona DropMusic con Spotify, Apple Music y YouTube Music, qué se cobra y por qué no almacena ni distribuye música." />
+  <meta name="theme-color" content="#08080a" />
+  <link rel="icon" type="image/svg+xml" href="logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="site-nav" aria-label="Principal">
+    <div class="container">
+      <a class="brand" href="index.html"><img alt="" src="logo.svg" /><span>drop<span>music</span></span></a>
+      <div class="nav-links">
+        <a href="index.html#funciones">Funciones</a>
+        <a href="index.html#pantalla-completa">Pantalla completa</a>
+        <a href="index.html#temas">Temas</a>
+        <a href="index.html#preguntas">Preguntas</a>
+        <a aria-current="page" href="legal.html">Legal</a>
+      </div>
+      <a class="button button-primary button-small" data-download href="index.html#descargar">Descargar</a>
+    </div>
+  </nav>
+
+  <main class="container legal">
+    <p class="eyebrow">Compromiso legal</p>
+    <h1>Términos y Transparencia Legal de <span class="gradient-text">DropMusic</span></h1>
+    <p class="intro">En DropMusic, nos tomamos muy en serio la propiedad intelectual, los derechos de autor y las normativas de las plataformas de streaming. Queremos que sepas exactamente cómo funciona nuestra arquitectura para garantizar una experiencia 100% transparente, segura y conforme a las reglas de la industria.</p>
+
+    <section id="conexion">
+      <h2><span>1.</span> ¿Cómo se conecta DropMusic con Spotify, Apple Music y YouTube Music?</h2>
+      <p>DropMusic <strong>no almacena, aloja, distribuye, ni transmite ningún archivo de audio, canción o álbum</strong> en sus servidores ni en los dispositivos de los usuarios.</p>
+      <p>Nuestra aplicación funciona exclusivamente como un cliente de control y interfaz de usuario (UI/UX) de código abierto y arquitectura modular. Para reproducir música, DropMusic utiliza estrictamente las APIs oficiales y protocolos de autorización estándar (OAuth) provistos por cada plataforma (como Spotify Connect / Web Playback SDK).</p>
+    </section>
+
+    <section id="cuentas">
+      <h2><span>2.</span> El Requisito Indispensable: Cuentas Oficiales y Activas</h2>
+      <ul>
+        <li><strong>Sin piratería ni saltos de restricciones:</strong> DropMusic no ofrece música gratis ni salta los muros de pago de los servicios de streaming.</li>
+        <li>Para poder reproducir contenido a través de nuestra interfaz, es un requisito obligatorio que el usuario inicie sesión con su propia cuenta oficial (requiriendo suscripción Premium activa en los servicios que lo apliquen, exactamente igual que un altavoz inteligente, un sistema de audio externo o una Smart TV).</li>
+        <li>La licencia del contenido, los derechos de autor y las regalías son gestionados y cobrados directamente por los proveedores oficiales (Spotify, Apple, Google/YouTube) al usuario final. DropMusic jamás interviene en la monetización de la música.</li>
+      </ul>
+    </section>
+
+    <section id="freemium">
+      <h2><span>3.</span> Modelo Freemium: ¿Por qué es gratis y qué es lo que se cobra?</h2>
+      <ul>
+        <li><strong>La Aplicación Base es 100% Gratuita:</strong> El núcleo del reproductor, la conexión segura mediante OAuth y las funciones esenciales de control se ofrecen de manera libre para su descarga.</li>
+        <li><strong>Monetización de Diseño y Personalización:</strong> Lo único sujeto a cobro dentro del modelo comercial de DropMusic son los paquetes estéticos opcionales, temas avanzados de personalización visual (como nuestra interfaz inspirada en Apple Music), layouts exclusivos y complementos cosméticos de interfaz.</li>
+        <li>Estás pagando exclusivamente por el trabajo de desarrollo de software, diseño de experiencia de usuario (UI/UX) y personalización visual, nunca por el acceso a la música.</li>
+      </ul>
+    </section>
+
+    <section id="marcas">
+      <h2><span>4.</span> Marcas Registradas y Descargo de Responsabilidad</h2>
+      <p>DropMusic es un proyecto de software independiente desarrollado bajo la marca personal <strong>Kirpul</strong>.</p>
+      <ul>
+        <li>Las marcas comerciales, logotipos y nombres de Spotify, Apple Music y YouTube Music pertenecen única y exclusivamente a sus respectivos propietarios legales.</li>
+        <li>Su mención en este sitio web y en la aplicación se realiza únicamente con fines de compatibilidad técnica e interoperabilidad de software, sin que esto implique afiliación, patrocinio o respaldo oficial por parte de dichas compañías.</li>
+      </ul>
+    </section>
+
+    <p class="legal-updated">Última actualización: 1 de noviembre de 2026.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <a class="brand" href="index.html"><img alt="" src="logo.svg" /><span>drop<span>music</span></span></a>
+      <div class="footer-links">
+        <a href="index.html">Inicio</a>
+        <a href="https://github.com/kirpulrbx-max/DropMusic">GitHub</a>
+      </div>
+      <p class="footer-note">© <span id="year">2026</span> DropMusic · Un proyecto de Kirpul.</p>
+    </div>
+  </footer>
+
+  <script src="site.js"></script>
+</body>
+</html>

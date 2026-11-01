@@ -1439,7 +1439,7 @@ button:disabled {
   min-width: 0;
 }
 
-.player-track > img {
+.player-track-open > img {
   width: 43px;
   height: 43px;
   flex: 0 0 auto;
@@ -2204,7 +2204,7 @@ button:disabled {
     grid-row: 1;
   }
 
-  .player-track > img {
+  .player-track-open > img {
     width: 36px;
     height: 36px;
   }
@@ -5161,4 +5161,107 @@ button.album-art-large:disabled {
   .pulse-next {
     display: none;
   }
+}
+
+/* Barra de actualización disponible */
+.update-bar {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(560px, calc(100vw - 32px));
+  padding: 10px 10px 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--t-accent, #c7a6ff) 45%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--t-chrome, #17161c) 92%, transparent);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  color: var(--t-text, #f4f3f6);
+  backdrop-filter: blur(20px);
+  translate: -50% 0;
+  animation: update-in 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes update-in {
+  from { opacity: 0; translate: -50% -24px; }
+}
+
+.update-bar-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--t-accent, #c7a6ff);
+  color: var(--t-accent-ink, #17121f);
+}
+
+.update-bar-copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.update-bar-copy strong {
+  font-size: 13px;
+}
+
+.update-bar-copy small {
+  overflow: hidden;
+  color: var(--t-muted, #a19ca8);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.update-progress {
+  position: absolute;
+  right: 12px;
+  bottom: 5px;
+  left: 56px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--t-accent, #c7a6ff) 20%, transparent);
+}
+
+.update-progress i {
+  display: block;
+  height: 100%;
+  background: var(--t-accent, #c7a6ff);
+  transition: width 200ms linear;
+}
+
+.update-install {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--t-accent, #c7a6ff);
+  color: var(--t-accent-ink, #17121f);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.update-later {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--t-muted, #a19ca8);
+  cursor: pointer;
+}
+
+.update-later:hover {
+  background: var(--t-hover, rgba(255, 255, 255, 0.08));
 }

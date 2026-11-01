@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#26262b"/>
+      <stop offset="1" stop-color="#0b0b0d"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.14"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- Fondo: cuadrado negro redondeado con un brillo suave arriba -->
+  <rect x="48" y="48" width="928" height="928" rx="216" fill="url(#tile)"/>
+  <rect x="48" y="48" width="928" height="928" rx="216" fill="url(#shine)"/>
+  <rect x="62" y="62" width="900" height="900" rx="202" fill="none" stroke="#ffffff" stroke-opacity="0.09" stroke-width="6"/>
+  <!-- Nota con cuernos, centrada en el cuadro -->
+  <g fill="#f5f5f7" transform="translate(-14 -26)">
+    <!-- Cuernos (debajo de la cabeza, que los separa con su borde oscuro) -->
+    <path d="M318 588 C276 522 276 444 320 380 C328 450 356 508 404 542 Z"/>
+    <path d="M480 544 C514 506 532 460 524 398 C562 446 572 504 546 566 Z"/>
+    <!-- Cabeza -->
+    <circle cx="442" cy="676" r="170" stroke="#141417" stroke-width="22"/>
+    <!-- Plica y bandera, encima de la cabeza para que la nota quede unida -->
+    <rect x="570" y="236" width="62" height="470" rx="10"/>
+    <path d="M632 236 C660 318 756 352 786 448 C808 520 786 586 748 632 C766 562 756 482 632 452 Z"/>
+  </g>
+</svg>

@@ -14,6 +14,8 @@ import './themes-more.css'
 import './themes-aesthetic.css'
 import './layouts.css'
 import './layouts-extra.css'
+import './pulse-auras.css'
+import './devices.css'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(

@@ -2,6 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { invoke, isTauri } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import { Effect, getCurrentWindow } from '@tauri-apps/api/window'
+import { getVersion } from '@tauri-apps/api/app'
+import { relaunch } from '@tauri-apps/plugin-process'
+import { check, type Update } from '@tauri-apps/plugin-updater'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -12,6 +16,7 @@ import {
   ChevronDown,
   Clock3,
   Disc3,
+  Download,
   Headphones,
   Heart,
   LayoutDashboard,
@@ -26,12 +31,14 @@ import {
   Play,
   Plus,
   Radio,
+  RefreshCw,
   Repeat2,
   Search,
   Settings2,
   Shuffle,
   SkipBack,
   SkipForward,
+  Tv,
   SlidersHorizontal,
   Sparkles,
   Volume2,
@@ -277,6 +284,62 @@ type LayoutId =
   | 'clasica' | 'espejo' | 'superior' | 'escenario' | 'minimal'
   | 'cabecera' | 'dock' | 'panorama' | 'cabina' | 'dividida' | 'ventanas' | 'cine'
 
+type PulseAuraId = 'anillo' | 'halo' | 'llamas' | 'neon' | 'particulas' | 'liquido'
+
+// Cómo se ve el movimiento alrededor de la portada en Big Picture > Pulso.
+const pulseAuras: { id: PulseAuraId; name: string; description: string }[] = [
+  { id: 'anillo', name: 'Anillo', description: 'Barras de ecualizador en círculo alrededor de la portada.' },
+  { id: 'halo', name: 'Halo', description: 'Un resplandor con los colores de la portada que se infla con los bajos.' },
+  { id: 'llamas', name: 'Llamas', description: 'Lenguas de fuego que suben con cada frecuencia.' },
+  { id: 'neon', name: 'Neón', description: 'Anillos de luz que vibran y se expanden con la música.' },
+  { id: 'particulas', name: 'Partículas', description: 'Puntos de luz que salen disparados con el ritmo.' },
+  { id: 'liquido', name: 'Líquido', description: 'Una mancha de color que se deforma al ritmo de la canción.' },
+]
+
+// Televisores inteligentes y cajas de TV: activan el modo TV solos.
+const isTvDevice = typeof navigator !== 'undefined' && /Android TV|GoogleTV|SmartTV|SMART-TV|Tizen|Web0S|webOS|BRAVIA|AFT[A-Z]|CrKey/i.test(navigator.userAgent)
+
+// Navegación con las flechas del control remoto: enfoca el elemento más cercano en esa dirección.
+function moveFocusSpatially(direction: [number, number]) {
+  const scope = document.querySelector<HTMLElement>('.big-picture, [role="dialog"][aria-modal="true"]') ?? document.querySelector<HTMLElement>('.app-shell')
+  if (!scope) return false
+  const candidates = [...scope.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled)')]
+    .filter((element) => element.getClientRects().length > 0 && getComputedStyle(element).visibility !== 'hidden')
+  const active = document.activeElement instanceof HTMLElement && scope.contains(document.activeElement) ? document.activeElement : null
+  if (!active) {
+    candidates[0]?.focus()
+    return candidates.length > 0
+  }
+  const from = active.getBoundingClientRect()
+  const fromX = from.left + from.width / 2
+  const fromY = from.top + from.height / 2
+  let best: HTMLElement | null = null
+  let bestScore = Infinity
+  for (const element of candidates) {
+    if (element === active) continue
+    const rect = element.getBoundingClientRect()
+    const dx = rect.left + rect.width / 2 - fromX
+    const dy = rect.top + rect.height / 2 - fromY
+    const along = dx * direction[0] + dy * direction[1]
+    if (along <= 2) continue
+    // Prefiere lo que está alineado en esa dirección antes que lo que está cerca pero de lado.
+    const score = along + Math.abs(dx * direction[1] + dy * direction[0]) * 2.5
+    if (score < bestScore) {
+      best = element
+      bestScore = score
+    }
+  }
+  if (!best) return false
+  best.focus()
+  best.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
+  return true
+}
+
+type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'installing' | 'none' | 'error'
+type UpdateState = { status: UpdateStatus; version?: string; notes?: string; progress?: number; error?: string }
+
+type VisualizerLevels = { bands: number[]; level: number; bass: number; beat: boolean }
+
 const layouts: { id: LayoutId; name: string; description: string }[] = [
   { id: 'clasica', name: 'Clásica', description: 'Menú a la izquierda y lo que suena a la derecha. En la letra, la portada a la izquierda.' },
   { id: 'espejo', name: 'Espejo', description: 'Todo al revés: menú a la derecha y lo que suena a la izquierda. En la letra, la portada a la derecha.' },
@@ -319,6 +382,8 @@ type AppSettings = {
   animatedCovers: boolean
   layout: LayoutId
   theme: ThemeId
+  pulseAura: PulseAuraId
+  tvMode: boolean
   preferredService: Provider
   jamendoClientId: string
 }
@@ -368,6 +433,8 @@ const defaults: AppSettings = {
   animations: true,
   animatedCovers: false,
   layout: 'clasica',
+  pulseAura: 'anillo',
+  tvMode: false,
   theme: 'original',
   preferredService: 'Spotify',
   jamendoClientId: defaultJamendoClientId,
@@ -480,6 +547,8 @@ function readSettings(): AppSettings {
       animations: typeof saved.animations === 'boolean' ? saved.animations : defaults.animations,
       animatedCovers: typeof saved.animatedCovers === 'boolean' ? saved.animatedCovers : defaults.animatedCovers,
       layout: layouts.some(({ id }) => id === saved.layout) ? saved.layout! : defaults.layout,
+      pulseAura: pulseAuras.some(({ id }) => id === saved.pulseAura) ? saved.pulseAura! : defaults.pulseAura,
+      tvMode: typeof saved.tvMode === 'boolean' ? saved.tvMode : defaults.tvMode,
       theme: themes.some(({ id }) => id === saved.theme) ? saved.theme! : defaults.theme,
       bandGains: Array.isArray(saved.bandGains) && saved.bandGains.length === bandFrequencies.length
         ? saved.bandGains.map((gain) => Math.min(12, Math.max(-12, Number(gain) || 0)))
@@ -905,6 +974,7 @@ function BigPicturePlayer({
   onToggleShuffle,
   onToggleRepeat,
   onVolume,
+  pulseAura,
 }: {
   track: Track
   previousTracks: Track[]
@@ -925,7 +995,45 @@ function BigPicturePlayer({
   onToggleShuffle: () => void
   onToggleRepeat: () => void
   onVolume: (volume: number) => void
+  pulseAura: PulseAuraId
 }) {
+  const orbRef = useRef<HTMLDivElement>(null)
+  const [liveAudio, setLiveAudio] = useState(false)
+
+  // Pulso escucha lo que suena en la PC (Rust lo analiza) y mueve cada barra con su banda.
+  useEffect(() => {
+    if (mode !== 'pulso' || !isTauri()) return
+    let active = true
+    let receivedSound = false
+    let stopListening: (() => void) | undefined
+    void listen<VisualizerLevels>('visualizer-levels', ({ payload }) => {
+      const orb = orbRef.current
+      if (!active || !orb) return
+      // Un solo cambio de estilo por cuadro: las barras leen su banda con var(--bN).
+      let vars = `--bass:${payload.bass.toFixed(3)};--level:${payload.level.toFixed(3)}`
+      payload.bands.forEach((value, band) => { vars += `;--b${band}:${value.toFixed(3)}` })
+      orb.style.cssText = vars
+      if (payload.beat) {
+        orb.classList.remove('pulse-beat')
+        void orb.offsetWidth
+        orb.classList.add('pulse-beat')
+      }
+      if (!receivedSound && payload.level > 0.02) {
+        receivedSound = true
+        setLiveAudio(true)
+      }
+    }).then((unlisten) => {
+      if (active) stopListening = unlisten
+      else unlisten()
+    })
+    void invoke('visualizer_start').catch((error: unknown) => console.error('No se pudo iniciar el visualizador.', error))
+    return () => {
+      active = false
+      stopListening?.()
+      void invoke('visualizer_stop').catch(() => {})
+    }
+  }, [mode])
+
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
       if (event.target instanceof HTMLInputElement) return
@@ -969,10 +1077,12 @@ function BigPicturePlayer({
 
       {mode === 'pulso' ? (
         <div className="pulse-layout">
-          <div className="pulse-orb">
+          <div className={`pulse-orb${liveAudio ? ' pulse-live' : ''}`} data-aura={pulseAura} ref={orbRef}>
+            {track.artwork && <span aria-hidden="true" className="pulse-glow"><img alt="" src={track.artwork} /></span>}
             <span aria-hidden="true" className="pulse-ripples"><i /><i /><i /></span>
             <span aria-hidden="true" className="pulse-ring">
-              {Array.from({ length: 64 }, (_, index) => <i key={index} style={{ '--bar': index } as CSSProperties} />)}
+              {/* 64 barras con las 32 bandas en espejo: graves arriba, agudos abajo */}
+              {Array.from({ length: 64 }, (_, index) => <i key={index} style={{ '--bar': index, '--lv': `var(--b${index < 32 ? index : 63 - index}, 0)` } as CSSProperties} />)}
             </span>
             <button aria-label={isPlaying ? 'Pausar' : 'Reproducir'} className="pulse-cover" key={track.id} onClick={onTogglePlayback} type="button">
               {track.artwork ? <img alt={`Portada de ${track.album}`} src={track.artwork} /> : <Music2 size={64} />}
@@ -1329,6 +1439,10 @@ function App() {
   const [lyrics, setLyrics] = useState<LyricsState | null>(null)
   const [themeFilter, setThemeFilter] = useState<ThemeCategory | 'Todos'>('Todos')
   const [personalizationTab, setPersonalizationTab] = useState<'temas' | 'disposiciones'>('temas')
+  const [appVersion, setAppVersion] = useState('')
+  const [updateState, setUpdateState] = useState<UpdateState>({ status: 'idle' })
+  const [updateDismissed, setUpdateDismissed] = useState(false)
+  const pendingUpdateRef = useRef<Update | null>(null)
   const lyricsCacheRef = useRef(new Map<string, LyricsState>())
   const [topArtists, setTopArtists] = useState<Artist[]>([])
   const [newReleases, setNewReleases] = useState<Album[]>([])
@@ -1655,8 +1769,104 @@ function App() {
   }, [bigPictureMode, activeTrack.id, activeTrack.title, activeTrack.artist, activeTrack.artists, activeTrack.album, activeTrack.duration])
 
   useEffect(() => {
-    document.documentElement.classList.toggle('see-through', settings.theme === 'transparente')
+    const seeThrough = settings.theme === 'transparente'
+    document.documentElement.classList.toggle('see-through', seeThrough)
+    if (!isTauri()) return
+    // Cristal acrílico de Windows: difumina el escritorio detrás de la ventana transparente.
+    try {
+      const appWindow = getCurrentWindow()
+      const change = seeThrough
+        ? appWindow.setEffects({ effects: [Effect.Acrylic], color: [16, 16, 24, 70] })
+        : appWindow.clearEffects()
+      void change.catch((error: unknown) => console.error('No se pudo cambiar el efecto de cristal de la ventana.', error))
+    } catch (error) {
+      console.error('No se pudo acceder a la ventana.', error)
+    }
   }, [settings.theme])
+
+  async function checkForUpdates(manual: boolean) {
+    if (!isTauri()) return
+    setUpdateState({ status: 'checking' })
+    try {
+      const update = await check()
+      pendingUpdateRef.current = update
+      if (update) {
+        setUpdateState({ status: 'available', version: update.version, notes: update.body })
+        setUpdateDismissed(false)
+      } else {
+        setUpdateState({ status: manual ? 'none' : 'idle' })
+      }
+    } catch (error) {
+      console.error('No se pudo buscar actualizaciones.', error)
+      setUpdateState({ status: manual ? 'error' : 'idle', error: error instanceof Error ? error.message : String(error) })
+    }
+  }
+
+  async function installUpdate() {
+    const update = pendingUpdateRef.current
+    if (!update) return
+    let total = 0
+    let received = 0
+    setUpdateState((current) => ({ ...current, status: 'downloading', progress: 0 }))
+    try {
+      await update.downloadAndInstall((event) => {
+        if (event.event === 'Started') total = event.data.contentLength ?? 0
+        else if (event.event === 'Progress') {
+          received += event.data.chunkLength
+          setUpdateState((current) => ({ ...current, progress: total ? received / total : 0 }))
+        } else setUpdateState((current) => ({ ...current, status: 'installing', progress: 1 }))
+      })
+      // En Windows el instalador cierra la app; en otros sistemas hay que reabrirla.
+      await relaunch()
+    } catch (error) {
+      console.error('No se pudo instalar la actualización.', error)
+      setUpdateState((current) => ({ ...current, status: 'error', error: error instanceof Error ? error.message : String(error) }))
+    }
+  }
+
+  const checkForUpdatesRef = useRef(checkForUpdates)
+  useEffect(() => {
+    checkForUpdatesRef.current = checkForUpdates
+  })
+
+  useEffect(() => {
+    if (!isTauri()) return
+    void getVersion().then(setAppVersion).catch(() => {})
+    const first = window.setTimeout(() => void checkForUpdatesRef.current(false), 4000)
+    const timer = window.setInterval(() => void checkForUpdatesRef.current(false), 6 * 60 * 60 * 1000)
+    return () => {
+      window.clearTimeout(first)
+      window.clearInterval(timer)
+    }
+  }, [])
+
+  const tvMode = settings.tvMode || isTvDevice
+
+  useEffect(() => {
+    if (!tvMode) return
+    const directions: Record<string, [number, number]> = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }
+    function handleRemote(event: KeyboardEvent) {
+      const target = event.target instanceof HTMLElement ? event.target : null
+      const typing = target?.matches('input:not([type="range"]), textarea, select') ?? false
+      // Botón "Atrás" del control: cierra la pantalla completa o vuelve de un artista/álbum.
+      if (['GoBack', 'BrowserBack', 'XF86Back'].includes(event.key) || (event.key === 'Backspace' && !typing)) {
+        event.preventDefault()
+        if (document.querySelector('.big-picture')) setBigPictureMode(null)
+        else setDetailStack((current) => current.slice(0, -1))
+        return
+      }
+      const direction = directions[event.key]
+      if (!direction || typing) return
+      // En las barras de progreso y volumen, izquierda y derecha cambian el valor.
+      if (target?.matches('input[type="range"]') && direction[0] !== 0) return
+      if (moveFocusSpatially(direction)) {
+        event.preventDefault()
+        event.stopImmediatePropagation()
+      }
+    }
+    window.addEventListener('keydown', handleRemote, true)
+    return () => window.removeEventListener('keydown', handleRemote, true)
+  }, [tvMode])
 
   // Reproductores externos (el panel multimedia de Windows, widgets, teclas multimedia):
   // sin estos datos mostraban el título de la ventana y ninguna portada.
@@ -2717,7 +2927,7 @@ function App() {
 
   return (
     <div
-      className={`app-shell min-h-screen${settings.ambientGlow ? '' : ' no-ambient'}${settings.animations ? '' : ' reduce-motion'}${activeTheme.ink ? ' theme-ink' : ''}${activeTheme.scene ? ' has-scene' : ''}${isPlaying ? ' is-playing' : ''}${settings.animatedCovers ? ' animated-covers' : ''}`}
+      className={`app-shell min-h-screen${settings.ambientGlow ? '' : ' no-ambient'}${settings.animations ? '' : ' reduce-motion'}${activeTheme.ink ? ' theme-ink' : ''}${activeTheme.scene ? ' has-scene' : ''}${isPlaying ? ' is-playing' : ''}${settings.animatedCovers ? ' animated-covers' : ''}${tvMode ? ' tv-mode' : ''}`}
       data-layout={settings.layout}
       data-theme={settings.theme}
       style={{ '--ambient-color': activeTrack.color } as CSSProperties}
@@ -2738,9 +2948,34 @@ function App() {
         src={activeTrack.audioUrl}
       />
 
+      {['available', 'downloading', 'installing'].includes(updateState.status) && !updateDismissed && (
+        <div className="update-bar" role="status">
+          <span className="update-bar-icon"><Download size={16} /></span>
+          <span className="update-bar-copy">
+            <strong>DropMusic {updateState.version} ya está disponible</strong>
+            <small>
+              {updateState.status === 'downloading'
+                ? `Descargando… ${Math.round((updateState.progress ?? 0) * 100)}%`
+                : updateState.status === 'installing'
+                  ? 'Instalando: DropMusic se cerrará y volverá a abrirse.'
+                  : updateState.notes?.split('\n')[0] || 'Se instala en segundos y la app se vuelve a abrir sola.'}
+            </small>
+          </span>
+          {updateState.status !== 'available' && (
+            <span aria-hidden="true" className="update-progress"><i style={{ width: `${Math.round((updateState.progress ?? 0) * 100)}%` }} /></span>
+          )}
+          {updateState.status === 'available' && (
+            <>
+              <button className="update-install" onClick={() => void installUpdate()} type="button">Actualizar ahora</button>
+              <button aria-label="Recordármelo más tarde" className="update-later" onClick={() => setUpdateDismissed(true)} type="button"><X size={15} /></button>
+            </>
+          )}
+        </div>
+      )}
+
       <aside className="sidebar">
         <a aria-label="DropMusic, inicio" className="brand" href="#inicio">
-          <span className="brand-mark"><AudioLines size={21} strokeWidth={2.2} /></span>
+          <span className="brand-mark brand-logo"><img alt="" src="/favicon.svg" /></span>
           <span>drop<span className="brand-light">music</span></span>
         </a>
         <div className="sidebar-section">
@@ -2911,6 +3146,47 @@ function App() {
                   <p className="eq-play-hint"><AudioLines size={13} /> El ecualizador se aplica a la reproducción de audio compatible.</p>
                 </section>
 
+                <section aria-labelledby="device-settings-heading" className="settings-panel">
+                  <div className="settings-panel-heading"><span className="settings-icon"><Tv size={17} /></span><div><h2 id="device-settings-heading">Pantalla</h2><p>DropMusic se adapta solo a celulares y tabletas.</p></div></div>
+                  <div className="setting-toggle-row">
+                    <span><strong>Modo TV</strong><small>{isTvDevice ? 'Activado porque estás en un televisor.' : 'Letra y botones grandes para verlos de lejos, y navegación con las flechas del control remoto o el teclado.'}</small></span>
+                    <label className="toggle-switch"><input aria-label="Modo TV" checked={tvMode} disabled={isTvDevice} onChange={(event) => updateSetting('tvMode', event.target.checked)} type="checkbox" /><span /></label>
+                  </div>
+                </section>
+
+                <section aria-labelledby="update-settings-heading" className="settings-panel">
+                  <div className="settings-panel-heading"><span className="settings-icon"><RefreshCw size={17} /></span><div><h2 id="update-settings-heading">Actualizaciones</h2><p>DropMusic busca versiones nuevas al abrirse y cada 6 horas.</p></div></div>
+                  <div className="setting-toggle-row">
+                    <span>
+                      <strong>Versión {appVersion || 'de desarrollo'}</strong>
+                      <small>
+                        {updateState.status === 'checking' ? 'Buscando actualizaciones…'
+                          : updateState.status === 'none' ? 'Tienes la versión más reciente.'
+                          : updateState.status === 'available' ? `Hay una versión nueva: ${updateState.version}.`
+                          : updateState.status === 'downloading' ? `Descargando la versión ${updateState.version}…`
+                          : updateState.status === 'installing' ? 'Instalando la actualización…'
+                          : updateState.status === 'error' ? `No se pudo comprobar: ${updateState.error ?? 'sin conexión'}`
+                          : 'Las actualizaciones se instalan solas cuando aceptas.'}
+                      </small>
+                    </span>
+                    {updateState.status === 'available'
+                      ? <button className="primary-button" onClick={() => void installUpdate()} type="button"><Download size={15} /> Actualizar</button>
+                      : <button className="secondary-button" disabled={!isTauri() || updateState.status === 'checking' || updateState.status === 'downloading'} onClick={() => void checkForUpdates(true)} type="button"><RefreshCw size={15} /> Buscar</button>}
+                  </div>
+                </section>
+
+                <section aria-labelledby="aura-settings-heading" className="settings-panel">
+                  <div className="settings-panel-heading"><span className="settings-icon"><Activity size={17} /></span><div><h2 id="aura-settings-heading">Aura de Pulso</h2><p>Cómo se mueve la luz alrededor de la portada en Big Picture &gt; Pulso. Sigue lo que suena en tu PC.</p></div></div>
+                  <div aria-label="Aura de Pulso" className="aura-grid" role="radiogroup">
+                    {pulseAuras.map((aura) => (
+                      <button aria-checked={settings.pulseAura === aura.id} className={`aura-card${settings.pulseAura === aura.id ? ' aura-card-active' : ''}`} key={aura.id} onClick={() => updateSetting('pulseAura', aura.id)} role="radio" type="button">
+                        <span aria-hidden="true" className="aura-preview" data-aura-preview={aura.id}><i /><i /><i /><i /><i /><i /><b /></span>
+                        <span><strong>{aura.name}</strong><small>{aura.description}</small></span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
                 <section aria-labelledby="playback-settings-heading" className="settings-panel">
                   <div className="settings-panel-heading"><span className="settings-icon"><ListMusic size={17} /></span><div><h2 id="playback-settings-heading">Reproducción</h2><p>Tus preferencias del reproductor.</p></div></div>
                   <label className="setting-select-row">
@@ -3026,10 +3302,12 @@ function App() {
 
       <footer aria-label="Controles del reproductor" className="player-bar">
         <div className="player-track">
-          {activeTrack.artwork
-            ? <img alt="" src={activeTrack.artwork} />
-            : <span aria-hidden="true" className="player-art-placeholder"><Music2 size={17} /></span>}
-          <div className="player-track-meta"><strong>{activeTrack.title}</strong><span>{activeTrack.artist}</span></div>
+          <button aria-label={activeTrack.source ? `Abrir ${activeTrack.title} en pantalla completa` : 'Nada sonando'} className="player-track-open" disabled={!activeTrack.source} onClick={() => setBigPictureMode('carousel')} type="button">
+            {activeTrack.artwork
+              ? <img alt="" src={activeTrack.artwork} />
+              : <span aria-hidden="true" className="player-art-placeholder"><Music2 size={17} /></span>}
+            <div className="player-track-meta"><strong>{activeTrack.title}</strong><span>{activeTrack.artist}</span></div>
+          </button>
           <button aria-label={favoriteIds.includes(activeTrack.id) ? 'Quitar de favoritos' : 'Añadir a favoritos'} aria-pressed={favoriteIds.includes(activeTrack.id)} className={`player-like icon-button${favoriteIds.includes(activeTrack.id) ? ' liked' : ''}`} disabled={!activeTrack.id} onClick={() => toggleFavorite(activeTrack.id)} type="button"><Heart fill={favoriteIds.includes(activeTrack.id) ? 'currentColor' : 'none'} size={17} /></button>
         </div>
         <div className="player-center">
@@ -3068,6 +3346,7 @@ function App() {
           onTogglePlayback={togglePlayback}
           onToggleRepeat={toggleRepeat}
           onVolume={(volume) => updateSetting('volume', volume)}
+          pulseAura={settings.pulseAura}
           previousTracks={activeTrack.source === 'Spotify' ? recentTracks : []}
           repeat={repeat}
           shuffle={shuffle}
