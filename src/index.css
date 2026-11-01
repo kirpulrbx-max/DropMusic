@@ -5344,3 +5344,114 @@ button.album-art-large:disabled {
   max-height: calc(100vh - 32px);
   overflow-y: auto;
 }
+
+/* Modo local: subir canciones propias */
+.local-library {
+  margin-bottom: 30px;
+  padding: 18px;
+  border: 1px solid var(--t-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--t-radius, 16px);
+  background: var(--t-surface, rgba(255, 255, 255, 0.025));
+  transition: border-color 200ms ease, background 200ms ease;
+}
+
+.local-dragging {
+  border-color: var(--t-accent, #c7a6ff);
+  border-style: dashed;
+  background: var(--t-accent-soft, rgba(199, 166, 255, 0.08));
+}
+
+.local-drop {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px dashed var(--t-border, rgba(255, 255, 255, 0.16));
+  border-radius: 14px;
+}
+
+.local-drop-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--t-accent-soft, rgba(199, 166, 255, 0.14));
+  color: var(--t-accent-text, var(--t-accent, #c7a6ff));
+}
+
+.local-drop > div:nth-child(2) {
+  display: grid;
+  gap: 3px;
+}
+
+.local-drop small {
+  color: var(--t-muted, #a19ca8);
+  font-size: 12px;
+}
+
+.local-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.local-progress {
+  height: 4px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--t-track, rgba(255, 255, 255, 0.1));
+}
+
+.local-progress i {
+  display: block;
+  height: 100%;
+  background: var(--t-accent, #c7a6ff);
+  transition: width 200ms ease;
+}
+
+.local-message {
+  margin: 10px 0 0;
+  color: var(--t-muted, #a19ca8);
+  font-size: 13px;
+}
+
+.local-library .track-list {
+  margin-top: 14px;
+}
+
+.track-source-local {
+  cursor: default;
+}
+
+.track-remove {
+  color: var(--t-muted, #8c8893);
+}
+
+.track-remove:hover {
+  color: #ff6b7d;
+}
+
+@media (max-width: 760px) {
+  .local-drop {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .local-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Las filas locales llevan un botón más (quitar) */
+.track-row:has(.track-remove) {
+  grid-template-columns: minmax(0, 1fr) 94px 35px 28px 28px;
+}
+
+@media (max-width: 620px) {
+  .track-row:has(.track-remove) {
+    grid-template-columns: minmax(0, 1fr) 35px 27px 27px;
+  }
+}

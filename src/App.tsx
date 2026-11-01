@@ -6,6 +6,17 @@ import { Effect, getCurrentWindow } from '@tauri-apps/api/window'
 import { getVersion } from '@tauri-apps/api/app'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { check, type Update } from '@tauri-apps/plugin-updater'
+import {
+  deleteLocalTrack,
+  formatBytes,
+  importLocalFile,
+  isLocalAudioFile,
+  listLocalTracks,
+  localAudioExtensions,
+  localAudioUrl,
+  localCoverUrl,
+  type LocalTrackRecord,
+} from './localLibrary'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -17,6 +28,7 @@ import {
   Clock3,
   Disc3,
   Download,
+  FolderOpen,
   Headphones,
   Heart,
   LayoutDashboard,
@@ -38,7 +50,9 @@ import {
   Shuffle,
   SkipBack,
   SkipForward,
+  Trash2,
   Tv,
+  Upload,
   SlidersHorizontal,
   Sparkles,
   Volume2,
@@ -62,7 +76,8 @@ type Track = {
   color: string
   mood: string
   genre: string
-  source?: 'Spotify' | 'Jamendo'
+  source?: 'Spotify' | 'Jamendo' | 'Local'
+  size?: number
   albumId?: string
   albumType?: string
   artists?: ArtistRef[]
@@ -632,6 +647,29 @@ function albumTypeLabel(album: Album) {
   return 'Álbum'
 }
 
+function localPlaceholderCover(seed: string) {
+  const hue = hueFromText(seed)
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${hue} 65% 52%)"/><stop offset="1" stop-color="hsl(${(hue + 50) % 360} 60% 22%)"/></linearGradient></defs><rect width="300" height="300" fill="url(#g)"/><path d="M128 92v92a26 26 0 1 1-14-23V112l76-16v66a26 26 0 1 1-14-23V78z" fill="rgba(255,255,255,0.85)"/></svg>`
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`
+}
+
+function toLocalTrack(record: LocalTrackRecord, cover: string): Track {
+  return {
+    id: record.id,
+    title: record.title,
+    artist: record.artist,
+    album: record.album,
+    duration: record.duration,
+    artwork: cover || localPlaceholderCover(record.title + record.artist),
+    collectionUrl: '',
+    color: `hsl(${hueFromText(record.album)} 45% 45%)`,
+    mood: 'Local',
+    genre: record.genre,
+    source: 'Local',
+    size: record.size,
+  }
+}
+
 function toJamendoTrack(track: JamendoTrackResult): Track {
   return {
     id: `jamendo:${track.id}`,
@@ -748,6 +786,7 @@ function TrackRows({
   favoriteIds,
   onPlay,
   onToggleFavorite,
+  onRemove,
   showIndex = false,
 }: {
   visibleTracks: Track[]
@@ -755,6 +794,7 @@ function TrackRows({
   favoriteIds: string[]
   onPlay: (id: string) => void
   onToggleFavorite: (id: string) => void
+  onRemove?: (id: string) => void
   showIndex?: boolean
 }) {
   if (visibleTracks.length === 0) {
@@ -768,7 +808,7 @@ function TrackRows({
         return (
           <div className={`track-row${track.id === activeTrackId ? ' track-active' : ''}`} key={track.id}>
             <button
-              aria-label={track.source === 'Spotify'
+              aria-label={track.source === 'Spotify' || track.source === 'Local'
                 ? `Reproducir ${track.title} en DropMusic`
                 : `Reproducir ${track.source === 'Jamendo' ? '' : 'vista previa de '}${track.title} por ${track.artist}`}
               className="track-play-button"
@@ -783,9 +823,13 @@ function TrackRows({
               </span>
               <span className="track-meta"><strong>{track.title}</strong><span>{track.artist} <i>·</i> {track.album}</span></span>
             </button>
-            <a className="track-source" href={track.collectionUrl} rel="noreferrer" target="_blank">
-              {(track.source ?? 'MÚSICA').toUpperCase()} <ArrowUpRight size={10} />
-            </a>
+            {track.source === 'Local'
+              ? <span className="track-source track-source-local">{track.size ? formatBytes(track.size) : 'LOCAL'}</span>
+              : (
+                <a className="track-source" href={track.collectionUrl} rel="noreferrer" target="_blank">
+                  {(track.source ?? 'MÚSICA').toUpperCase()} <ArrowUpRight size={10} />
+                </a>
+              )}
             <span className="track-duration">{formatTime(track.duration)}</span>
             <button
               aria-label={isFavorite ? `Quitar ${track.title} de favoritos` : `Añadir ${track.title} a favoritos`}
@@ -794,6 +838,9 @@ function TrackRows({
               onClick={() => onToggleFavorite(track.id)}
               type="button"
             ><Heart fill={isFavorite ? 'currentColor' : 'none'} size={15} /></button>
+            {onRemove && (
+              <button aria-label={`Quitar ${track.title} de tu música local`} className="track-remove icon-button" onClick={() => onRemove(track.id)} title="Quitar de la biblioteca" type="button"><Trash2 size={15} /></button>
+            )}
           </div>
         )
       })}
@@ -1482,6 +1529,12 @@ function App() {
   const [themeFilter, setThemeFilter] = useState<ThemeCategory | 'Todos'>('Todos')
   const [personalizationTab, setPersonalizationTab] = useState<'temas' | 'disposiciones'>('temas')
   const [appVersion, setAppVersion] = useState('')
+  const [localTracks, setLocalTracks] = useState<Track[]>([])
+  const [localImport, setLocalImport] = useState<{ done: number; total: number } | null>(null)
+  const [localMessage, setLocalMessage] = useState('')
+  const [localDragging, setLocalDragging] = useState(false)
+  const localFileInputRef = useRef<HTMLInputElement>(null)
+  const localFolderInputRef = useRef<HTMLInputElement>(null)
   const [updateState, setUpdateState] = useState<UpdateState>({ status: 'idle' })
   const [updateDismissed, setUpdateDismissed] = useState(false)
   const pendingUpdateRef = useRef<Update | null>(null)
@@ -1498,9 +1551,9 @@ function App() {
   const query = search.trim().toLowerCase()
   const isSearching = query.length >= 2
   const allTracks = useMemo(
-    () => [...tracks, ...spotifySuggestedTracks, ...spotifyTracks, ...jamendoTracks]
+    () => [...tracks, ...localTracks, ...spotifySuggestedTracks, ...spotifyTracks, ...jamendoTracks]
       .filter((track, index, list) => list.findIndex((item) => item.id === track.id) === index),
-    [spotifySuggestedTracks, spotifyTracks, jamendoTracks],
+    [localTracks, spotifySuggestedTracks, spotifyTracks, jamendoTracks],
   )
   const configuredJamendoClientId = settings.jamendoClientId.trim() || defaultJamendoClientId
   const spotifyClientId = settings.spotifyClientId || builtInSpotifyClientId
@@ -1514,9 +1567,9 @@ function App() {
     [allTracks],
   )
   const featuredTracks = useMemo(
-    () => [...spotifySuggestedTracks, ...spotifyTracks, ...jamendoTracks]
+    () => [...spotifySuggestedTracks, ...spotifyTracks, ...jamendoTracks, ...localTracks]
       .filter((track, index, list) => list.findIndex((item) => item.id === track.id) === index),
-    [spotifySuggestedTracks, spotifyTracks, jamendoTracks],
+    [spotifySuggestedTracks, spotifyTracks, jamendoTracks, localTracks],
   )
   const [featuredTrackIndex, setFeaturedTrackIndex] = useState(0)
   const featuredTrack = featuredTracks.length > 0
@@ -1826,6 +1879,60 @@ function App() {
       console.error('No se pudo acceder a la ventana.', error)
     }
   }, [settings.theme])
+
+  useEffect(() => {
+    let active = true
+    void listLocalTracks()
+      .then((records) => Promise.all(records.map(async (record) => toLocalTrack(record, record.hasCover ? await localCoverUrl(record.id) : ''))))
+      .then((loaded) => { if (active) setLocalTracks(loaded) })
+      .catch((error: unknown) => console.error('No se pudo abrir la biblioteca local.', error))
+    return () => { active = false }
+  }, [])
+
+  async function importLocalFiles(fileList: FileList | File[]) {
+    const files = [...fileList].filter(isLocalAudioFile)
+    const skipped = fileList.length - files.length
+    if (files.length === 0) {
+      setLocalMessage('No encontramos archivos de audio. Formatos admitidos: ' + localAudioExtensions.join(', ').replace(/\./g, '').toUpperCase() + '.')
+      return
+    }
+    setLocalMessage('')
+    setLocalImport({ done: 0, total: files.length })
+    const added: Track[] = []
+    let failed = 0
+    for (const [index, item] of files.entries()) {
+      try {
+        const record = await importLocalFile(item)
+        added.push(toLocalTrack(record, record.hasCover ? await localCoverUrl(record.id) : ''))
+      } catch (error) {
+        failed += 1
+        console.error(`No se pudo agregar ${item.name}.`, error)
+      }
+      setLocalImport({ done: index + 1, total: files.length })
+    }
+    setLocalTracks((current) => [...added, ...current])
+    setLocalImport(null)
+    const notes = [`${added.length} ${added.length === 1 ? 'canción agregada' : 'canciones agregadas'}`]
+    if (failed) notes.push(`${failed} no se pudieron leer`)
+    if (skipped) notes.push(skipped === 1 ? '1 archivo no era de audio' : `${skipped} archivos no eran de audio`)
+    setLocalMessage(notes.join(' · ') + '.')
+  }
+
+  async function removeLocalTrack(id: string) {
+    try {
+      await deleteLocalTrack(id)
+      setLocalTracks((current) => current.filter((track) => track.id !== id))
+      setFavoriteIds((current) => current.filter((item) => item !== id))
+      if (activeTrack.id === id) {
+        setIsPlaying(false)
+        setActiveCatalogTrack(null)
+        setActiveTrackId('')
+      }
+    } catch (error) {
+      console.error('No se pudo quitar la canción.', error)
+      setLocalMessage('No se pudo quitar la canción. Inténtalo de nuevo.')
+    }
+  }
 
   async function checkForUpdates(manual: boolean) {
     if (!isTauri()) return
@@ -2300,6 +2407,21 @@ function App() {
       void fillSpotifyRadio()
       return
     }
+    const localTrack = localTracks.find((track) => track.id === id)
+    if (localTrack) {
+      if (!prepareAudio()) return
+      setPlaybackError('')
+      void localAudioUrl(id).then((audioUrl) => {
+        setElapsedSeconds(0)
+        setActiveCatalogTrack({ ...localTrack, audioUrl })
+        setActiveTrackId(id)
+        setIsPlaying(true)
+      }).catch((error: unknown) => {
+        console.error('No se pudo abrir la canción local.', error)
+        setPlaybackError(error instanceof Error ? error.message : String(error))
+      })
+      return
+    }
     const jamendoTrack = jamendoTracks.find((track) => track.id === id)
     if (jamendoTrack) {
       if (!prepareAudio()) return
@@ -2366,7 +2488,9 @@ function App() {
       return
     }
 
-    const queue = activeTrack.source === 'Jamendo'
+    const queue = activeTrack.source === 'Local'
+      ? localTracks
+      : activeTrack.source === 'Jamendo'
       ? [activeTrack, ...jamendoTracks].filter((track, index, list) => list.findIndex((item) => item.id === track.id) === index)
       : []
     if (queue.length === 0) {
@@ -3092,6 +3216,51 @@ function App() {
 
             {activeSection === 'Tu colección' ? (
               <>
+                <section
+                  aria-labelledby="local-heading"
+                  className={`local-library${localDragging ? ' local-dragging' : ''}`}
+                  onDragLeave={(event) => { if (event.currentTarget === event.target) setLocalDragging(false) }}
+                  onDragOver={(event) => {
+                    if (!event.dataTransfer.types.includes('Files')) return
+                    event.preventDefault()
+                    setLocalDragging(true)
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault()
+                    setLocalDragging(false)
+                    void importLocalFiles(event.dataTransfer.files)
+                  }}
+                >
+                  <div className="section-heading">
+                    <div><p className="eyebrow">MODO LOCAL</p><h2 id="local-heading">Tu música en este equipo</h2></div>
+                    <span className="track-count">{localTracks.length} {localTracks.length === 1 ? 'canción' : 'canciones'}</span>
+                  </div>
+                  <div className="local-drop">
+                    <span className="local-drop-icon"><Upload size={22} /></span>
+                    <div>
+                      <strong>{localImport ? `Agregando ${localImport.done} de ${localImport.total}…` : 'Sube tus propias canciones'}</strong>
+                      <small>Arrástralas aquí o elígelas. MP3, FLAC, M4A, WAV, OGG y OPUS. Se guardan dentro de DropMusic y suenan sin cuenta ni internet.</small>
+                      {localImport && <span aria-hidden="true" className="local-progress"><i style={{ width: `${(localImport.done / localImport.total) * 100}%` }} /></span>}
+                    </div>
+                    <div className="local-actions">
+                      <button className="primary-button" disabled={Boolean(localImport)} onClick={() => localFileInputRef.current?.click()} type="button"><Upload size={15} /> Subir canciones</button>
+                      <button className="secondary-button" disabled={Boolean(localImport)} onClick={() => localFolderInputRef.current?.click()} type="button"><FolderOpen size={15} /> Subir carpeta</button>
+                    </div>
+                    <input accept={['audio/*', ...localAudioExtensions].join(',')} hidden multiple onChange={(event) => { if (event.target.files) void importLocalFiles(event.target.files); event.target.value = '' }} ref={localFileInputRef} type="file" />
+                    <input hidden multiple onChange={(event) => { if (event.target.files) void importLocalFiles(event.target.files); event.target.value = '' }} ref={(input) => { localFolderInputRef.current = input; input?.setAttribute('webkitdirectory', '') }} type="file" />
+                  </div>
+                  {localMessage && <p className="local-message" role="status">{localMessage}</p>}
+                  {localTracks.length > 0 && (
+                    <TrackRows
+                      activeTrackId={activeTrackId}
+                      favoriteIds={favoriteIds}
+                      onPlay={playTrack}
+                      onRemove={(id) => { void removeLocalTrack(id) }}
+                      onToggleFavorite={toggleFavorite}
+                      visibleTracks={localTracks.filter((track) => `${track.title} ${track.artist} ${track.album}`.toLowerCase().includes(query))}
+                    />
+                  )}
+                </section>
                 <section aria-label="Resumen de la colección" className="collection-summary">
                   <span className="collection-stat"><Disc3 size={18} /><strong>{albums.length}</strong><small>álbumes y EPs</small></span>
                   <span className="collection-stat"><Music2 size={18} /><strong>{allTracks.length}</strong><small>canciones cargadas</small></span>
