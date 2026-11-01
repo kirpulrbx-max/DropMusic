@@ -312,7 +312,12 @@ const pulseAuras: { id: PulseAuraId; name: string; description: string }[] = [
 ]
 
 // Televisores inteligentes y cajas de TV: activan el modo TV solos.
-const isTvDevice = typeof navigator !== 'undefined' && /Android TV|GoogleTV|SmartTV|SMART-TV|Tizen|Web0S|webOS|BRAVIA|AFT[A-Z]|CrKey/i.test(navigator.userAgent)
+// La variante de Android TV se compila con VITE_DEVICE=tv. Dentro de una app Android el navegador no
+// siempre dice "TV", así que también cuenta un Android sin pantalla táctil ni mouse.
+const isTvDevice = import.meta.env.VITE_DEVICE === 'tv' || (typeof navigator !== 'undefined' && (
+  /Android TV|GoogleTV|SmartTV|SMART-TV|Tizen|Web0S|webOS|BRAVIA|AFT[A-Z]|CrKey/i.test(navigator.userAgent)
+  || (/Android/i.test(navigator.userAgent) && window.matchMedia('(pointer: none)').matches)
+))
 
 // Navegación con las flechas del control remoto: enfoca el elemento más cercano en esa dirección.
 function moveFocusSpatially(direction: [number, number]) {

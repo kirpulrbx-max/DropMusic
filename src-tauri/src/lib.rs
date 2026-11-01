@@ -1,4 +1,20 @@
+#[cfg(desktop)]
 mod visualizer;
+
+// En celulares y TV no hay captura del audio del sistema: Pulso usa su animación propia.
+#[cfg(mobile)]
+mod visualizer {
+    #[derive(Default)]
+    pub struct Visualizer;
+
+    #[tauri::command]
+    pub fn visualizer_start() -> Result<(), String> {
+        Err("El visualizador con el audio real solo está en la versión de escritorio.".into())
+    }
+
+    #[tauri::command]
+    pub fn visualizer_stop() {}
+}
 
 use keyring::{Entry, Error as KeyringError};
 use serde::{Deserialize, Serialize};

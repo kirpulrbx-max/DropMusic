@@ -7,9 +7,6 @@
   ],
   "permissions": [
     "core:default",
-    "opener:default",
-    "core:window:allow-set-effects",
-    "updater:default",
-    "process:allow-restart"
+    "opener:default"
   ]
 }
