@@ -1,0 +1,68 @@
+# Compila DropMusic para macOS y Linux en las máquinas de GitHub y sube los instaladores al
+# release de la versión (vX.Y.Z). Windows se sigue publicando con scripts/publicar-version.ps1.
+#
+# Secretos que hay que crear en GitHub (Settings > Secrets and variables > Actions):
+#   TAURI_SIGNING_PRIVATE_KEY  contenido de ~/.tauri/dropmusic.key (firma de actualizaciones)
+#   VITE_SPOTIFY_CLIENT_ID     Client ID de Spotify incluido en la app (opcional)
+name: Escritorio macOS y Linux
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Versión a compilar (por ejemplo v0.1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: --target universal-apple-darwin --bundles dmg,app
+          - platform: ubuntu-22.04
+            args: --bundles appimage,deb
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+
+      - name: Dependencias de Linux
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libasound2-dev
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - run: npm ci
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
+        with:
+          tagName: ${{ github.event.release.tag_name || inputs.tag }}
+          releaseName: DropMusic __VERSION__
+          includeUpdaterJson: true
+          args: ${{ matrix.args }}

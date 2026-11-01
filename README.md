@@ -44,3 +44,9 @@ Spotify limits how many accounts can sign in through one developer app, so each 
 ## License
 
 DropMusic is open source under the [MIT License](LICENSE).
+
+## Other platforms
+
+- **Android TV and Android phones:** `powershell -ExecutionPolicy Bypass -File scripts\compilar-android.ps1 -Variante tv` (or `-Variante movil`). Needs the Android SDK and NDK 27, and signs with the key in `~/.android-keys`. The APK lands in `src-tauri/target/android/`. Spotify's Web Playback SDK does not run on Android, so there DropMusic plays local music and Jamendo.
+- **macOS and Linux:** built on GitHub's machines by `.github/workflows/escritorio-mac-linux.yml` whenever a release is published. It needs the `TAURI_SIGNING_PRIVATE_KEY` and `VITE_SPOTIFY_CLIENT_ID` repository secrets.
+- **iPhone/iPad:** requires a Mac with Xcode and an Apple Developer account to sign and distribute through TestFlight.
