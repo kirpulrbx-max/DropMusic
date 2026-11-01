@@ -1,0 +1,501 @@
+/*
+  Disposiciones (Personalización > Disposición) y portadas en movimiento.
+  Cada disposición cambia la arquitectura de la app y cómo se acomoda la pantalla de letra.
+*/
+
+/* ---------- Tarjetas de disposición en Personalización ---------- */
+.layout-heading {
+  margin-top: 26px;
+}
+
+.layout-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.layout-card {
+  display: grid;
+  gap: 10px;
+  padding: 10px 10px 14px;
+  border: 1px solid var(--t-border, var(--border-subtle));
+  border-radius: var(--t-radius, 14px);
+  background: var(--t-surface, var(--surface-soft));
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 200ms ease, box-shadow 260ms ease;
+}
+
+.layout-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Esquema en miniatura: menú, contenido, panel de lo que suena y reproductor */
+.layout-preview {
+  position: relative;
+  display: grid;
+  grid-template-areas: "nav main now" "bar bar bar";
+  grid-template-columns: 18% 1fr 26%;
+  grid-template-rows: 1fr 14%;
+  gap: 4px;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  padding: 6px;
+  border-radius: 8px;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+}
+
+.layout-preview i {
+  border-radius: 3px;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.layout-preview-nav { grid-area: nav; }
+.layout-preview-main { grid-area: main; }
+.layout-preview-now { grid-area: now; background: color-mix(in srgb, var(--t-accent, var(--accent)) 55%, transparent) !important; }
+.layout-preview-bar { grid-area: bar; }
+
+.layout-preview[data-layout-preview="espejo"] {
+  grid-template-areas: "now main nav" "bar bar bar";
+  grid-template-columns: 26% 1fr 18%;
+}
+
+.layout-preview[data-layout-preview="superior"] {
+  grid-template-areas: "nav nav" "main now" "bar bar";
+  grid-template-columns: 1fr 26%;
+  grid-template-rows: 14% 1fr 14%;
+}
+
+.layout-preview[data-layout-preview="escenario"] {
+  grid-template-areas: "nav now main" "bar bar bar";
+  grid-template-columns: 7% 42% 1fr;
+}
+
+.layout-preview[data-layout-preview="minimal"] {
+  grid-template-areas: "nav main main" "nav bar bar";
+  grid-template-columns: 7% 1fr 0;
+}
+
+.layout-preview[data-layout-preview="minimal"] .layout-preview-now {
+  display: none;
+}
+
+.layout-preview[data-layout-preview="minimal"] .layout-preview-bar {
+  margin: 0 14%;
+  border-radius: 99px;
+}
+
+/* ---------- Barra lateral solo con iconos (Escenario y Minimal) ---------- */
+.app-shell:is([data-layout="escenario"], [data-layout="minimal"]) {
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+
+.app-shell:is([data-layout="escenario"], [data-layout="minimal"]) .sidebar {
+  align-items: center;
+  padding: 22px 10px 15px;
+}
+
+.app-shell:is([data-layout="escenario"], [data-layout="minimal"]) .brand {
+  margin: 0 0 48px;
+}
+
+.app-shell:is([data-layout="escenario"], [data-layout="minimal"]) :is(.sidebar-label, .sidebar-tip, .profile-copy, .profile-chevron),
+.app-shell:is([data-layout="escenario"], [data-layout="minimal"]) .brand > span:last-child,
+.app-shell:is([data-layout="escenario"], [data-layout="minimal"]) .nav-item > span {
+  display: none;
+}
+
+.app-shell:is([data-layout="escenario"], [data-layout="minimal"]) .sidebar-section,
+.app-shell:is([data-layout="escenario"], [data-layout="minimal"]) .sidebar-bottom {
+  width: 100%;
+  padding: 0;
+}
+
+.app-shell:is([data-layout="escenario"], [data-layout="minimal"]) .main-nav {
+  gap: 10px;
+  margin-top: 0;
+}
+
+.app-shell:is([data-layout="escenario"], [data-layout="minimal"]) .nav-item {
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  min-height: 46px;
+  margin: auto;
+  padding: 0;
+}
+
+.app-shell:is([data-layout="escenario"], [data-layout="minimal"]) .profile-button {
+  justify-content: center;
+  padding: 11px 0 0;
+}
+
+/* ---------- 2. Espejo ---------- */
+.app-shell[data-layout="espejo"] {
+  grid-template-columns: minmax(0, 1fr) 238px;
+}
+
+.app-shell[data-layout="espejo"] .sidebar {
+  order: 2;
+  border-right: 0;
+  border-left: 1px solid var(--t-border, var(--border-subtle));
+}
+
+.app-shell[data-layout="espejo"] .content-grid {
+  grid-template-columns: minmax(265px, 310px) minmax(370px, 1fr);
+}
+
+.app-shell[data-layout="espejo"] .now-playing-column {
+  order: -1;
+}
+
+.app-shell[data-layout="espejo"] .player-track {
+  order: 3;
+  justify-content: flex-end;
+}
+
+.app-shell[data-layout="espejo"] .player-volume {
+  order: 1;
+  justify-content: flex-start;
+}
+
+.app-shell[data-layout="espejo"] .player-center {
+  order: 2;
+}
+
+/* ---------- 3. Barra superior ---------- */
+.app-shell[data-layout="superior"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.app-shell[data-layout="superior"] .sidebar {
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  padding: 10px 26px;
+  border-right: 0;
+  border-bottom: 1px solid var(--t-border, var(--border-subtle));
+}
+
+.app-shell[data-layout="superior"] .brand {
+  margin: 0;
+}
+
+.app-shell[data-layout="superior"] :is(.sidebar-label, .sidebar-tip, .profile-copy, .profile-chevron) {
+  display: none;
+}
+
+.app-shell[data-layout="superior"] .sidebar-section {
+  padding: 0;
+}
+
+.app-shell[data-layout="superior"] .main-nav {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+}
+
+.app-shell[data-layout="superior"] .nav-item {
+  width: auto;
+  min-height: 36px;
+  padding: 0 14px;
+}
+
+.app-shell[data-layout="superior"] .nav-item.active::before {
+  display: none;
+}
+
+.app-shell[data-layout="superior"] .sidebar-bottom {
+  display: flex;
+  align-items: center;
+  margin: 0 0 0 auto;
+}
+
+.app-shell[data-layout="superior"] .profile-button {
+  padding: 0;
+  border-top: 0;
+}
+
+.app-shell[data-layout="superior"] .main-content {
+  height: auto;
+  min-height: 0;
+  padding-bottom: 83px;
+}
+
+/* ---------- 4. Escenario ---------- */
+.app-shell[data-layout="escenario"] .content-grid {
+  grid-template-columns: minmax(300px, 0.85fr) minmax(0, 1.15fr);
+  max-width: none;
+}
+
+.app-shell[data-layout="escenario"] .now-playing-column {
+  position: sticky;
+  top: 0;
+  order: -1;
+  align-self: start;
+}
+
+.app-shell[data-layout="escenario"] .album-art-large {
+  aspect-ratio: 1;
+}
+
+.app-shell[data-layout="escenario"] .now-track-details h3 {
+  font-size: 22px;
+}
+
+.app-shell[data-layout="escenario"] .now-track-details p {
+  font-size: 12px;
+}
+
+/* ---------- 5. Minimal ---------- */
+.app-shell[data-layout="minimal"] .now-playing-column {
+  display: none;
+}
+
+.app-shell[data-layout="minimal"] .content-grid {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 1100px;
+}
+
+.app-shell[data-layout="minimal"] .player-bar {
+  right: 18px;
+  bottom: 14px;
+  left: 94px;
+  border: 1px solid var(--t-border, rgba(255, 255, 255, 0.12));
+  border-radius: 20px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Pantalla de letra según la disposición ---------- */
+.lyrics-layout {
+  position: relative;
+}
+
+/* Espejo: la letra a la izquierda y la portada a la derecha */
+.app-shell[data-layout="espejo"] .lyrics-layout {
+  grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.85fr);
+}
+
+.app-shell[data-layout="espejo"] .lyrics-cover-panel {
+  order: 2;
+}
+
+/* Barra superior: portada pequeña arriba y la letra centrada debajo */
+.app-shell[data-layout="superior"] .lyrics-layout {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  justify-items: center;
+  gap: 12px;
+  padding-top: 64px;
+}
+
+.app-shell[data-layout="superior"] .lyrics-cover-panel {
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.app-shell[data-layout="superior"] .lyrics-cover-stack {
+  width: min(22vh, 150px);
+}
+
+.app-shell[data-layout="superior"] .lyrics-track-meta {
+  text-align: left;
+}
+
+.app-shell[data-layout="superior"] .lyrics-panel {
+  width: min(900px, 100%);
+}
+
+.app-shell[data-layout="superior"] .lyrics-list {
+  max-height: calc(100vh - 380px);
+  padding: 12vh 6px 26vh;
+}
+
+.app-shell:is([data-layout="superior"], [data-layout="minimal"]) .lyric-line {
+  text-align: center;
+  transform-origin: center;
+}
+
+/* Escenario: la portada gigante como fondo a la derecha y la letra encima */
+.app-shell[data-layout="escenario"] .lyrics-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell[data-layout="escenario"] .lyrics-cover-panel {
+  position: absolute;
+  top: 50%;
+  right: -3vw;
+  opacity: 0.6;
+  pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent, #000 50%);
+  transform: translateY(-55%);
+}
+
+.app-shell[data-layout="escenario"] .lyrics-cover-stack {
+  width: min(78vh, 680px);
+}
+
+.app-shell[data-layout="escenario"] .lyrics-track-meta {
+  display: none;
+}
+
+.app-shell[data-layout="escenario"] .lyrics-panel {
+  position: relative;
+  z-index: 1;
+  width: min(820px, 70%);
+}
+
+.app-shell[data-layout="escenario"] .lyric-line {
+  font-size: clamp(28px, 3.4vw, 52px);
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Minimal: solo la letra al centro, con la canción en una esquina */
+.app-shell[data-layout="minimal"] .lyrics-layout {
+  grid-template-columns: minmax(0, 1fr);
+  padding-top: 70px;
+}
+
+.app-shell[data-layout="minimal"] .lyrics-cover-panel {
+  position: absolute;
+  top: 70px;
+  left: 24px;
+  z-index: 2;
+  grid-auto-flow: column;
+  align-items: center;
+  justify-items: start;
+  gap: 12px;
+}
+
+.app-shell[data-layout="minimal"] .lyrics-cover-stack {
+  width: 60px;
+}
+
+.app-shell[data-layout="minimal"] :is(.lyrics-cover, .lyrics-cover-shine) {
+  border-radius: 10px;
+}
+
+.app-shell[data-layout="minimal"] .lyrics-track-meta {
+  text-align: left;
+}
+
+.app-shell[data-layout="minimal"] .lyrics-track-meta strong {
+  font-size: 15px;
+}
+
+.app-shell[data-layout="minimal"] .lyrics-panel {
+  justify-self: center;
+  width: min(860px, 100%);
+}
+
+@media (max-width: 900px) {
+  .app-shell[data-layout="espejo"] {
+    grid-template-columns: minmax(0, 1fr) 76px;
+  }
+
+  .app-shell:is([data-layout="espejo"], [data-layout="escenario"]) .content-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-shell[data-layout="escenario"] .now-playing-column {
+    position: static;
+  }
+
+  .app-shell[data-layout="minimal"] .player-bar {
+    left: 18px;
+  }
+}
+
+/* ---------- Fondo líquido de la portada (Big Picture) ----------
+   Sin portadas animadas solo se ve la primera capa (el fondo de siempre). En modo letra o con
+   portadas animadas, las cuatro copias giran a distintas velocidades como en Apple Music. */
+.artwork-flow {
+  position: absolute;
+  inset: 0;
+  animation: big-picture-fade 1.2s ease;
+}
+
+.big-picture-backdrop .artwork-flow img:not(.artwork-flow-0) {
+  display: none;
+}
+
+:is(.big-picture-mode-lyrics, .animated-covers .big-picture) .artwork-flow img:not(.artwork-flow-0) {
+  position: absolute;
+  display: block;
+  width: 75vmax;
+  height: 75vmax;
+  border-radius: 50%;
+  filter: blur(70px) saturate(1.8);
+  opacity: 0.85;
+  inset: auto;
+}
+
+:is(.big-picture-mode-lyrics, .animated-covers .big-picture) .artwork-flow-1 {
+  top: -30vmax;
+  left: -20vmax;
+  animation: flow-orbit 26s linear infinite;
+}
+
+:is(.big-picture-mode-lyrics, .animated-covers .big-picture) .artwork-flow-2 {
+  right: -25vmax;
+  bottom: -35vmax;
+  animation: flow-orbit 34s linear infinite reverse;
+}
+
+:is(.big-picture-mode-lyrics, .animated-covers .big-picture) .artwork-flow-3 {
+  top: 10%;
+  left: 30%;
+  width: 50vmax !important;
+  height: 50vmax !important;
+  animation: flow-drift 22s ease-in-out infinite alternate;
+}
+
+@keyframes flow-orbit {
+  from { transform: rotate(0deg) translateX(8vmax) rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) translateX(8vmax) rotate(-180deg) scale(1.15); }
+  to { transform: rotate(360deg) translateX(8vmax) rotate(-360deg) scale(1); }
+}
+
+@keyframes flow-drift {
+  from { transform: translate(-20%, -10%) rotate(0deg) scale(0.9); }
+  to { transform: translate(15%, 20%) rotate(120deg) scale(1.2); }
+}
+
+/* ---------- Portadas en movimiento ----------
+   El filtro #cover-motion ondula la imagen despacio; se agranda un poco para que los bordes
+   ondulados queden fuera del recorte. */
+.cover-motion-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+@keyframes cover-live {
+  0% { scale: 1.1; translate: 0 0; }
+  50% { scale: 1.18; translate: -2% 1.5%; }
+  100% { scale: 1.13; translate: 1.5% -1.5%; }
+}
+
+.app-shell.animated-covers:not([data-theme="retro"]) .album-art-large > img,
+.app-shell.animated-covers .big-picture-card-current .big-picture-card-art img,
+.app-shell.animated-covers .detail-hero-image:not(.detail-hero-round),
+.app-shell.animated-covers .featured-image {
+  filter: url(#cover-motion);
+  animation: fade-scale-in 700ms ease backwards, cover-live 16s ease-in-out infinite alternate;
+}
+
+.app-shell.animated-covers .detail-hero-image:not(.detail-hero-round) {
+  clip-path: inset(5% round 10px);
+}
+
+/* En la portada de la letra no hay un contenedor que recorte, así que se recorta la propia imagen */
+.app-shell.animated-covers .lyrics-cover-entering {
+  filter: url(#cover-motion);
+  clip-path: inset(5% round 20px);
+  scale: 1.11;
+}

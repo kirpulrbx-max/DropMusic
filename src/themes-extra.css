@@ -1,0 +1,1239 @@
+/*
+  Temas adicionales, fondos animados y portadas animadas.
+  Los fondos se dibujan con CSS sobre .theme-scene (seis <i> genéricos más ::before y ::after):
+  no hay videos ni imágenes descargadas, y se detienen con Ajustes > Animaciones.
+*/
+
+/* ---------- Capa de escena ---------- */
+.theme-scene {
+  display: none;
+}
+
+.app-shell:is([data-theme="arasaka"], [data-theme="netrunner"], [data-theme="nightcity"], [data-theme="shinobi"], [data-theme="aincrad"], [data-theme="cazador"], [data-theme="blocks"], [data-theme="hyrule"], [data-theme="pokedex"], [data-theme="vaporwave"], [data-theme="lofi"], [data-theme="aurora"]) .theme-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Dentro de Big Picture la escena va detrás de todo; con z-index 0 tapaba los controles. */
+.app-shell[data-theme] .big-picture .theme-scene {
+  z-index: -1;
+}
+
+.app-shell:is([data-theme="arasaka"], [data-theme="netrunner"], [data-theme="nightcity"], [data-theme="shinobi"], [data-theme="aincrad"], [data-theme="cazador"], [data-theme="blocks"], [data-theme="hyrule"], [data-theme="pokedex"], [data-theme="vaporwave"], [data-theme="lofi"], [data-theme="aurora"]) .main-content {
+  background: var(--t-veil, transparent);
+}
+
+.app-shell:is([data-theme="arasaka"], [data-theme="netrunner"], [data-theme="nightcity"], [data-theme="shinobi"], [data-theme="aincrad"], [data-theme="cazador"], [data-theme="blocks"], [data-theme="hyrule"], [data-theme="pokedex"], [data-theme="vaporwave"], [data-theme="lofi"], [data-theme="aurora"]) .big-picture-backdrop img {
+  opacity: 0.3;
+}
+
+.theme-scene i,
+.theme-scene::before,
+.theme-scene::after {
+  position: absolute;
+  display: block;
+  content: "";
+}
+
+/* ---------- Letra y selector de formato en temas con texto propio ---------- */
+.app-shell.theme-ink .big-picture {
+  --t-lyric: var(--t-text);
+}
+
+/* La regla general de texto de estos temas no debe pisar el atenuado ni el relleno del karaoke */
+.app-shell.theme-ink .lyric-line,
+.app-shell.theme-ink .lyric-line span {
+  color: var(--lyric-dim);
+}
+
+.app-shell.theme-ink .lyrics-plain .lyric-line {
+  color: var(--lyric-active);
+}
+
+.app-shell.theme-ink .lyric-line-current span {
+  color: transparent;
+}
+
+.app-shell.theme-ink .big-picture-modes {
+  border-color: var(--t-border);
+  background: var(--t-surface);
+}
+
+.app-shell.theme-ink .big-picture-modes button[aria-pressed="true"] {
+  background: var(--t-accent);
+  color: var(--t-accent-ink);
+}
+
+.app-shell:not([data-theme="original"]) .big-picture-modes button[aria-pressed="true"] {
+  background: var(--t-accent);
+  color: var(--t-accent-ink);
+}
+
+.app-shell[data-theme="terminal"] .big-picture-modes,
+.app-shell[data-theme="blocks"] .big-picture-modes,
+.app-shell[data-theme="brutal"] .big-picture-modes {
+  border-radius: 0;
+}
+
+.app-shell[data-theme="terminal"] .big-picture-modes button,
+.app-shell[data-theme="blocks"] .big-picture-modes button,
+.app-shell[data-theme="brutal"] .big-picture-modes button {
+  border-radius: 0;
+}
+
+/* ---------- Personalización: opciones y filtros ---------- */
+.personalization-options {
+  margin-top: 14px;
+  padding: 4px 16px;
+  border: 1px solid var(--t-border, var(--border-subtle));
+  border-radius: var(--t-radius, 12px);
+  background: var(--t-surface, var(--surface-soft));
+}
+
+.theme-filters {
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+/* ---------- Portadas animadas ---------- */
+@keyframes cover-drift {
+  0% { scale: 1.02; translate: 0 0; }
+  50% { scale: 1.14; translate: -3% 2%; }
+  100% { scale: 1.08; translate: 2% -2%; }
+}
+
+@keyframes holo-sweep {
+  from { background-position: 160% 0; }
+  to { background-position: -60% 0; }
+}
+
+.animated-covers :is(.featured-image, .shelf-art > img, .album-card-art > img) {
+  animation: fade-scale-in 700ms ease backwards, cover-drift 16s ease-in-out infinite alternate;
+}
+
+/* El vinilo de Retro conserva su giro */
+.app-shell.animated-covers:not([data-theme="retro"]) .album-art-large > img {
+  animation: fade-scale-in 700ms ease backwards, cover-drift 14s ease-in-out infinite alternate;
+}
+
+.animated-covers .big-picture-card-current .big-picture-card-art {
+  overflow: hidden;
+}
+
+.animated-covers .big-picture-card-current .big-picture-card-art img {
+  animation: cover-drift 12s ease-in-out infinite alternate;
+}
+
+.animated-covers :is(.album-art-large, .shelf-art, .album-card-art, .big-picture-card-current .big-picture-card-art, .lyrics-cover-stack)::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.28) 47%, rgba(190, 220, 255, 0.18) 52%, transparent 64%) 0 0 / 250% 100%;
+  content: "";
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  animation: holo-sweep 5.5s linear infinite;
+}
+
+.animated-covers .big-picture-card-current .big-picture-card-art {
+  position: relative;
+}
+
+.animated-covers .lyrics-cover-stack::after {
+  border-radius: 22px;
+}
+
+/* =========================================================
+   Cyberpunk 2077 / Arasaka
+   ========================================================= */
+.app-shell[data-theme="arasaka"] {
+  --t-bg: #08080a;
+  --t-veil: rgba(8, 8, 10, 0.45);
+  --t-chrome: rgba(12, 12, 14, 0.94);
+  --t-surface: rgba(20, 20, 23, 0.92);
+  --t-hover: rgba(227, 24, 45, 0.1);
+  --t-input: #0d0d0f;
+  --t-muted: #a3a3ab;
+  --t-label: #ff4757;
+  --t-accent: #e3182d;
+  --t-accent-ink: #fff;
+  --t-accent-text: #ff5a67;
+  --t-accent-soft: rgba(227, 24, 45, 0.12);
+  --t-border: rgba(255, 255, 255, 0.12);
+  --t-track: #242428;
+  --t-radius: 2px;
+  --t-shadow: none;
+  --t-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-size-adjust: 0.56;
+  --t-lyric: #ffffff;
+}
+
+.app-shell[data-theme="arasaka"] :is(h1, h2, .eyebrow, .nav-item) {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.app-shell[data-theme="arasaka"] :is(.now-playing-card, .settings-panel, .featured-card, .detail-hero, .top-result-card) {
+  border-top: 2px solid var(--t-accent);
+}
+
+.app-shell[data-theme="arasaka"] .nav-item.active {
+  border-left: 3px solid var(--t-accent);
+  border-radius: 0;
+}
+
+.app-shell[data-theme="arasaka"] .theme-scene {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 100% 48px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 48px 100%;
+}
+
+.app-shell[data-theme="arasaka"] .theme-scene::before {
+  top: -20%;
+  right: -10%;
+  width: 60vw;
+  height: 60vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(227, 24, 45, 0.22), transparent 62%);
+  animation: arasaka-pulse 6s ease-in-out infinite;
+}
+
+.app-shell[data-theme="arasaka"] .theme-scene i:nth-child(1) {
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #e3182d 20%, #ff6b78 50%, #e3182d 80%, transparent);
+  box-shadow: 0 0 18px 4px rgba(227, 24, 45, 0.55);
+  animation: scan-down 7s linear infinite;
+}
+
+.app-shell[data-theme="arasaka"] .theme-scene i:nth-child(2) {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: scan-right 13s linear infinite;
+}
+
+@keyframes arasaka-pulse {
+  50% { opacity: 0.55; transform: scale(1.08); }
+}
+
+@keyframes scan-down {
+  from { top: -2%; }
+  to { top: 102%; }
+}
+
+@keyframes scan-right {
+  from { left: -2%; }
+  to { left: 102%; }
+}
+
+.app-shell[data-theme="arasaka"] :is(.big-picture-card, .big-picture-controls) {
+  border-color: rgba(255, 255, 255, 0.14);
+  border-radius: 2px;
+  background: rgba(14, 14, 16, 0.88);
+}
+
+.app-shell[data-theme="arasaka"] .big-picture-card-current {
+  border-top: 2px solid var(--t-accent);
+}
+
+/* =========================================================
+   Cyberpunk 2077 / Netrunner
+   ========================================================= */
+.app-shell[data-theme="netrunner"] {
+  --t-bg: #040714;
+  --t-veil: rgba(4, 7, 20, 0.55);
+  --t-chrome: rgba(6, 10, 30, 0.92);
+  --t-surface: rgba(10, 16, 48, 0.86);
+  --t-hover: rgba(0, 240, 255, 0.08);
+  --t-input: rgba(0, 0, 0, 0.4);
+  --t-muted: #8fb8cc;
+  --t-label: #ff4fd8;
+  --t-accent: #00f0ff;
+  --t-accent-ink: #001218;
+  --t-accent-soft: rgba(0, 240, 255, 0.1);
+  --t-border: rgba(0, 240, 255, 0.28);
+  --t-track: #18204a;
+  --t-radius: 4px;
+  --t-shadow: 0 0 24px rgba(0, 240, 255, 0.08), inset 0 0 0 1px rgba(255, 79, 216, 0.08);
+  --t-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-head-font: "VT323", Consolas, monospace;
+  --t-size-adjust: 0.56;
+  --t-lyric: #b8fbff;
+}
+
+.app-shell[data-theme="netrunner"] :is(h1, h2) {
+  text-shadow: 2px 0 rgba(255, 79, 216, 0.6), -2px 0 rgba(0, 240, 255, 0.6);
+}
+
+.app-shell[data-theme="netrunner"] .theme-scene::before {
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 85%, rgba(255, 79, 216, 0.18), transparent 40%),
+    radial-gradient(circle at 85% 15%, rgba(0, 240, 255, 0.16), transparent 40%);
+}
+
+/* Lluvia de datos: columnas de guiones que caen a distinto ritmo */
+.app-shell[data-theme="netrunner"] .theme-scene i {
+  top: -100%;
+  width: 14px;
+  height: 200%;
+  background: repeating-linear-gradient(180deg, rgba(0, 240, 255, 0.55) 0 6px, transparent 6px 14px, rgba(0, 240, 255, 0.2) 14px 18px, transparent 18px 40px);
+  mask-image: linear-gradient(180deg, transparent, #000 40%, #000 60%, transparent);
+  opacity: 0.35;
+  animation: data-rain 9s linear infinite;
+}
+
+.app-shell[data-theme="netrunner"] .theme-scene i:nth-child(1) { left: 8%; animation-duration: 7s; }
+.app-shell[data-theme="netrunner"] .theme-scene i:nth-child(2) { left: 23%; animation-duration: 11s; animation-delay: -3s; }
+.app-shell[data-theme="netrunner"] .theme-scene i:nth-child(3) { left: 41%; animation-duration: 8s; animation-delay: -6s; background: repeating-linear-gradient(180deg, rgba(255, 79, 216, 0.55) 0 6px, transparent 6px 22px); }
+.app-shell[data-theme="netrunner"] .theme-scene i:nth-child(4) { left: 58%; animation-duration: 13s; animation-delay: -2s; }
+.app-shell[data-theme="netrunner"] .theme-scene i:nth-child(5) { left: 76%; animation-duration: 9s; animation-delay: -5s; background: repeating-linear-gradient(180deg, rgba(255, 79, 216, 0.55) 0 6px, transparent 6px 22px); }
+.app-shell[data-theme="netrunner"] .theme-scene i:nth-child(6) { left: 92%; animation-duration: 10s; animation-delay: -8s; }
+
+@keyframes data-rain {
+  from { transform: translateY(0); }
+  to { transform: translateY(50%); }
+}
+
+.app-shell[data-theme="netrunner"] :is(.big-picture-card, .big-picture-controls) {
+  border-color: rgba(0, 240, 255, 0.35);
+  background: rgba(6, 10, 34, 0.82);
+  box-shadow: 0 0 40px rgba(0, 240, 255, 0.12);
+}
+
+/* =========================================================
+   Cyberpunk 2077 / Night City
+   ========================================================= */
+.app-shell[data-theme="nightcity"] {
+  --t-bg: #0c0518;
+  --t-veil: linear-gradient(180deg, rgba(12, 5, 24, 0.6), rgba(12, 5, 24, 0.35));
+  --t-chrome: rgba(16, 7, 30, 0.9);
+  --t-surface: rgba(22, 10, 40, 0.86);
+  --t-hover: rgba(255, 42, 109, 0.1);
+  --t-input: rgba(0, 0, 0, 0.35);
+  --t-muted: #c4a8cf;
+  --t-label: #05d9e8;
+  --t-accent: #ff2a6d;
+  --t-accent-ink: #fff;
+  --t-accent-text: #ff6b98;
+  --t-accent-soft: rgba(255, 42, 109, 0.14);
+  --t-border: rgba(255, 42, 109, 0.3);
+  --t-track: #2a1640;
+  --t-radius: 6px;
+  --t-shadow: 0 0 30px rgba(255, 42, 109, 0.12);
+  --t-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-size-adjust: 0.56;
+  --t-lyric: #ffe9f3;
+}
+
+.app-shell[data-theme="nightcity"] h1 {
+  text-shadow: 0 0 18px rgba(255, 42, 109, 0.7);
+}
+
+.app-shell[data-theme="nightcity"] .theme-scene {
+  background: linear-gradient(180deg, #120626 0%, #2a0a36 55%, #4a1040 100%);
+}
+
+/* Silueta de edificios */
+.app-shell[data-theme="nightcity"] .theme-scene::before {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 46%;
+  background:
+    linear-gradient(#07020e, #07020e) 2% 100% / 7% 70% no-repeat,
+    linear-gradient(#0a0314, #0a0314) 10% 100% / 5% 92% no-repeat,
+    linear-gradient(#07020e, #07020e) 16% 100% / 9% 55% no-repeat,
+    linear-gradient(#0a0314, #0a0314) 27% 100% / 6% 100% no-repeat,
+    linear-gradient(#07020e, #07020e) 35% 100% / 10% 66% no-repeat,
+    linear-gradient(#0a0314, #0a0314) 47% 100% / 5% 84% no-repeat,
+    linear-gradient(#07020e, #07020e) 54% 100% / 8% 60% no-repeat,
+    linear-gradient(#0a0314, #0a0314) 64% 100% / 7% 95% no-repeat,
+    linear-gradient(#07020e, #07020e) 73% 100% / 9% 72% no-repeat,
+    linear-gradient(#0a0314, #0a0314) 84% 100% / 6% 88% no-repeat,
+    linear-gradient(#07020e, #07020e) 92% 100% / 8% 62% no-repeat;
+}
+
+/* Lluvia */
+.app-shell[data-theme="nightcity"] .theme-scene::after {
+  inset: -20% 0 0;
+  background: repeating-linear-gradient(105deg, transparent 0 22px, rgba(180, 200, 255, 0.18) 22px 23px, transparent 23px 48px);
+  animation: rain-fall 0.7s linear infinite;
+}
+
+@keyframes rain-fall {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-12px, 48px); }
+}
+
+/* Carteles de neón que parpadean */
+.app-shell[data-theme="nightcity"] .theme-scene i:nth-child(-n + 4) {
+  bottom: 30%;
+  width: 6%;
+  height: 4%;
+  border-radius: 2px;
+  filter: blur(1px);
+  animation: neon-flicker 4s steps(1) infinite;
+}
+
+.app-shell[data-theme="nightcity"] .theme-scene i:nth-child(1) { left: 12%; background: #ff2a6d; box-shadow: 0 0 24px 6px rgba(255, 42, 109, 0.7); }
+.app-shell[data-theme="nightcity"] .theme-scene i:nth-child(2) { left: 30%; bottom: 40%; background: #05d9e8; box-shadow: 0 0 24px 6px rgba(5, 217, 232, 0.7); animation-delay: -1.3s; }
+.app-shell[data-theme="nightcity"] .theme-scene i:nth-child(3) { left: 66%; bottom: 36%; background: #fcee0a; box-shadow: 0 0 24px 6px rgba(252, 238, 10, 0.6); animation-delay: -2.2s; }
+.app-shell[data-theme="nightcity"] .theme-scene i:nth-child(4) { left: 86%; bottom: 26%; background: #b14aed; box-shadow: 0 0 24px 6px rgba(177, 74, 237, 0.7); animation-delay: -0.6s; }
+
+@keyframes neon-flicker {
+  0%, 40%, 44%, 100% { opacity: 1; }
+  42%, 46% { opacity: 0.2; }
+}
+
+.app-shell[data-theme="nightcity"] :is(.big-picture-card, .big-picture-controls) {
+  border-color: rgba(255, 42, 109, 0.4);
+  background: rgba(20, 8, 36, 0.78);
+  box-shadow: 0 0 40px rgba(255, 42, 109, 0.18);
+}
+
+/* =========================================================
+   Estilo Naruto
+   ========================================================= */
+.app-shell[data-theme="shinobi"] {
+  --t-bg: #17110c;
+  --t-veil: rgba(23, 17, 12, 0.5);
+  --t-chrome: rgba(26, 18, 12, 0.94);
+  --t-surface: rgba(37, 26, 18, 0.9);
+  --t-hover: rgba(255, 122, 0, 0.1);
+  --t-input: rgba(0, 0, 0, 0.3);
+  --t-muted: #d1b89c;
+  --t-label: #ff9a3c;
+  --t-accent: #ff7a00;
+  --t-accent-ink: #1a0e02;
+  --t-accent-soft: rgba(255, 122, 0, 0.14);
+  --t-border: rgba(255, 122, 0, 0.25);
+  --t-track: #33261b;
+  --t-radius: 12px;
+  --t-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: Righteous, "Segoe UI", sans-serif;
+  --t-lyric: #fff2e2;
+}
+
+.app-shell[data-theme="shinobi"] .sidebar {
+  border-right: 3px solid #ff7a00;
+}
+
+.app-shell[data-theme="shinobi"] .player-bar {
+  border-top: 3px solid #1f6feb;
+}
+
+.app-shell[data-theme="shinobi"] :is(.now-playing-card, .settings-panel, .featured-card, .detail-hero) {
+  border-left: 4px solid #ff7a00;
+}
+
+/* Espiral girando de fondo */
+.app-shell[data-theme="shinobi"] .theme-scene::before {
+  top: 50%;
+  left: 62%;
+  width: 90vmin;
+  height: 90vmin;
+  margin: -45vmin 0 0 -45vmin;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 0 6%, rgba(255, 122, 0, 0.16) 6% 7%, transparent 7%),
+    repeating-conic-gradient(from 0deg, rgba(255, 122, 0, 0.09) 0 12deg, transparent 12deg 30deg);
+  mask-image: radial-gradient(circle, #000 25%, transparent 70%);
+  animation: spiral-spin 40s linear infinite;
+}
+
+@keyframes spiral-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Hojas que caen balanceándose */
+.app-shell[data-theme="shinobi"] .theme-scene i {
+  top: -6%;
+  width: 18px;
+  height: 18px;
+  border-radius: 0 100% 0 100%;
+  background: linear-gradient(135deg, #7cc242, #3f8a2b);
+  opacity: 0.75;
+  animation: leaf-fall 14s linear infinite;
+}
+
+.app-shell[data-theme="shinobi"] .theme-scene i:nth-child(1) { left: 10%; animation-duration: 13s; }
+.app-shell[data-theme="shinobi"] .theme-scene i:nth-child(2) { left: 28%; animation-duration: 17s; animation-delay: -5s; width: 14px; height: 14px; }
+.app-shell[data-theme="shinobi"] .theme-scene i:nth-child(3) { left: 47%; animation-duration: 15s; animation-delay: -9s; }
+.app-shell[data-theme="shinobi"] .theme-scene i:nth-child(4) { left: 63%; animation-duration: 19s; animation-delay: -2s; width: 12px; height: 12px; }
+.app-shell[data-theme="shinobi"] .theme-scene i:nth-child(5) { left: 79%; animation-duration: 14s; animation-delay: -11s; }
+.app-shell[data-theme="shinobi"] .theme-scene i:nth-child(6) { left: 92%; animation-duration: 16s; animation-delay: -7s; width: 15px; height: 15px; }
+
+@keyframes leaf-fall {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(40px, 28vh) rotate(120deg); }
+  50% { transform: translate(-20px, 56vh) rotate(220deg); }
+  75% { transform: translate(30px, 84vh) rotate(320deg); }
+  100% { transform: translate(-10px, 112vh) rotate(420deg); }
+}
+
+.app-shell[data-theme="shinobi"] :is(.big-picture-card, .big-picture-controls) {
+  border-color: rgba(255, 122, 0, 0.35);
+  background: rgba(30, 20, 13, 0.85);
+}
+
+/* =========================================================
+   Estilo Sword Art Online
+   ========================================================= */
+.app-shell[data-theme="aincrad"] {
+  --t-bg: #dbe9f6;
+  --t-veil: rgba(238, 244, 251, 0.45);
+  --t-chrome: rgba(250, 252, 255, 0.92);
+  --t-surface: rgba(255, 255, 255, 0.9);
+  --t-dialog: #ffffff;
+  --t-hover: rgba(47, 140, 255, 0.1);
+  --t-input: rgba(255, 255, 255, 0.9);
+  --t-text: #1f2d3d;
+  --t-muted: #4f6274;
+  --t-label: #a85410;
+  --t-accent: #2f8cff;
+  --t-accent-ink: #fff;
+  --t-accent-text: #1452a3;
+  --t-accent-soft: rgba(47, 140, 255, 0.12);
+  --t-border: rgba(47, 140, 255, 0.25);
+  --t-track: #d3dfec;
+  --t-radius: 8px;
+  --t-shadow: 0 12px 30px rgba(31, 60, 100, 0.12);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: Rajdhani, "Segoe UI", sans-serif;
+}
+
+.app-shell[data-theme="aincrad"] :is(h1, h2) {
+  letter-spacing: 0.04em;
+}
+
+.app-shell[data-theme="aincrad"] :is(.now-playing-card, .settings-panel, .top-result-card, .theme-card, .personalization-hero) {
+  border-top: 3px solid #f39c33;
+}
+
+.app-shell[data-theme="aincrad"] .theme-scene {
+  background: linear-gradient(180deg, #bcd8f3 0%, #e4effa 60%, #f5f9fd 100%);
+}
+
+/* Anillos de "inicio de enlace" que se expanden */
+.app-shell[data-theme="aincrad"] .theme-scene::before,
+.app-shell[data-theme="aincrad"] .theme-scene::after {
+  top: 50%;
+  left: 60%;
+  width: 40vmin;
+  height: 40vmin;
+  margin: -20vmin 0 0 -20vmin;
+  border: 2px solid rgba(47, 140, 255, 0.35);
+  border-radius: 50%;
+  animation: link-ring 7s ease-out infinite;
+}
+
+.app-shell[data-theme="aincrad"] .theme-scene::after {
+  animation-delay: -3.5s;
+}
+
+@keyframes link-ring {
+  from { opacity: 0.9; transform: scale(0.3); }
+  to { opacity: 0; transform: scale(3); }
+}
+
+/* Hexágonos flotando */
+.app-shell[data-theme="aincrad"] .theme-scene i {
+  bottom: -12%;
+  width: 70px;
+  height: 80px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.85), rgba(47, 140, 255, 0.25));
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  opacity: 0.6;
+  animation: hex-float 18s linear infinite;
+}
+
+.app-shell[data-theme="aincrad"] .theme-scene i:nth-child(1) { left: 6%; animation-duration: 16s; }
+.app-shell[data-theme="aincrad"] .theme-scene i:nth-child(2) { left: 22%; width: 40px; height: 46px; animation-duration: 21s; animation-delay: -6s; }
+.app-shell[data-theme="aincrad"] .theme-scene i:nth-child(3) { left: 44%; width: 54px; height: 62px; animation-duration: 19s; animation-delay: -12s; }
+.app-shell[data-theme="aincrad"] .theme-scene i:nth-child(4) { left: 64%; animation-duration: 23s; animation-delay: -3s; }
+.app-shell[data-theme="aincrad"] .theme-scene i:nth-child(5) { left: 81%; width: 36px; height: 42px; animation-duration: 17s; animation-delay: -9s; }
+.app-shell[data-theme="aincrad"] .theme-scene i:nth-child(6) { left: 93%; width: 50px; height: 58px; animation-duration: 20s; animation-delay: -15s; }
+
+@keyframes hex-float {
+  from { transform: translateY(0) rotate(0deg); }
+  to { transform: translateY(-125vh) rotate(180deg); }
+}
+
+.app-shell[data-theme="aincrad"] .big-picture {
+  background: #dbe9f6;
+}
+
+.app-shell[data-theme="aincrad"] :is(.big-picture-card, .big-picture-controls) {
+  border-color: rgba(47, 140, 255, 0.3);
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.app-shell[data-theme="aincrad"] .big-picture-card-current {
+  border-top: 3px solid #f39c33;
+}
+
+/* =========================================================
+   Estilo Demon Slayer
+   ========================================================= */
+.app-shell[data-theme="cazador"] {
+  --checker: conic-gradient(#1f6b52 25%, #0b1210 0 50%, #1f6b52 0 75%, #0b1210 0) 0 0 / 28px 28px;
+  --t-bg: #0b1210;
+  --t-veil: rgba(11, 18, 16, 0.55);
+  --t-chrome: rgba(13, 22, 19, 0.95);
+  --t-surface: rgba(20, 32, 28, 0.9);
+  --t-hover: rgba(47, 191, 143, 0.1);
+  --t-input: rgba(0, 0, 0, 0.3);
+  --t-muted: #a9c4b8;
+  --t-label: #e0525c;
+  --t-accent: #2fbf8f;
+  --t-accent-ink: #04140e;
+  --t-accent-soft: rgba(47, 191, 143, 0.13);
+  --t-border: rgba(47, 191, 143, 0.25);
+  --t-track: #20302b;
+  --t-radius: 6px;
+  --t-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: "Yu Mincho", Georgia, serif;
+  --t-lyric: #eef7f2;
+}
+
+/* Franja de cuadros verdes y negros en la barra lateral */
+.app-shell[data-theme="cazador"] .sidebar {
+  position: relative;
+  border-right: 0;
+}
+
+.app-shell[data-theme="cazador"] .sidebar::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  background: var(--checker);
+  content: "";
+}
+
+.app-shell[data-theme="cazador"] .player-bar {
+  border-top: 3px solid #c8323a;
+}
+
+.app-shell[data-theme="cazador"] :is(h1, h2) {
+  font-weight: 700;
+}
+
+.app-shell[data-theme="cazador"] .theme-scene::before {
+  inset: 0;
+  background: var(--checker);
+  opacity: 0.07;
+  mask-image: linear-gradient(180deg, #000, transparent 70%);
+}
+
+/* Olas de agua (patrón seigaiha) desplazándose */
+.app-shell[data-theme="cazador"] .theme-scene::after {
+  right: -60px;
+  bottom: 0;
+  left: -60px;
+  height: 160px;
+  background:
+    radial-gradient(circle at 50% 100%, transparent 0 14px, rgba(80, 160, 230, 0.45) 14px 17px, transparent 17px 24px, rgba(80, 160, 230, 0.3) 24px 27px, transparent 27px) 0 0 / 60px 30px;
+  mask-image: linear-gradient(0deg, #000, transparent);
+  animation: waves-flow 6s linear infinite;
+}
+
+@keyframes waves-flow {
+  from { transform: translateX(0); }
+  to { transform: translateX(60px); }
+}
+
+/* Pétalos de glicina */
+.app-shell[data-theme="cazador"] .theme-scene i {
+  top: -5%;
+  width: 9px;
+  height: 13px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: #b78be8;
+  box-shadow: 0 0 8px rgba(183, 139, 232, 0.6);
+  opacity: 0.8;
+  animation: leaf-fall 16s linear infinite;
+}
+
+.app-shell[data-theme="cazador"] .theme-scene i:nth-child(1) { left: 12%; animation-duration: 15s; }
+.app-shell[data-theme="cazador"] .theme-scene i:nth-child(2) { left: 30%; animation-duration: 19s; animation-delay: -7s; }
+.app-shell[data-theme="cazador"] .theme-scene i:nth-child(3) { left: 51%; animation-duration: 17s; animation-delay: -3s; background: #e8a6d4; }
+.app-shell[data-theme="cazador"] .theme-scene i:nth-child(4) { left: 68%; animation-duration: 21s; animation-delay: -11s; }
+.app-shell[data-theme="cazador"] .theme-scene i:nth-child(5) { left: 83%; animation-duration: 16s; animation-delay: -5s; background: #e8a6d4; }
+.app-shell[data-theme="cazador"] .theme-scene i:nth-child(6) { left: 95%; animation-duration: 18s; animation-delay: -13s; }
+
+.app-shell[data-theme="cazador"] :is(.big-picture-card, .big-picture-controls) {
+  border-color: rgba(47, 191, 143, 0.35);
+  background: rgba(16, 26, 23, 0.86);
+}
+
+.app-shell[data-theme="cazador"] .big-picture-card-current {
+  border-bottom: 6px solid transparent;
+  border-image: var(--checker) 6;
+}
+
+/* =========================================================
+   Estilo Minecraft: mundo de bloques animado
+   ========================================================= */
+.app-shell[data-theme="blocks"] {
+  --t-veil: transparent;
+}
+
+.app-shell[data-theme="blocks"] .theme-scene {
+  background: linear-gradient(180deg, #6fb0ff 0%, #9ccbff 55%, #c7e3ff 100%);
+  image-rendering: pixelated;
+}
+
+/* Sol cuadrado */
+.app-shell[data-theme="blocks"] .theme-scene i:nth-child(1) {
+  top: 9%;
+  right: 12%;
+  width: 72px;
+  height: 72px;
+  background: #fff7a1;
+  box-shadow: 0 0 0 10px rgba(255, 247, 161, 0.35);
+}
+
+/* Nubes de bloques que avanzan despacio */
+.app-shell[data-theme="blocks"] .theme-scene i:nth-child(n + 2):nth-child(-n + 5) {
+  left: -220px;
+  width: 64px;
+  height: 24px;
+  background: #fff;
+  box-shadow:
+    32px -16px 0 #fff, 64px 0 0 #fff, 96px 0 0 #fff, 64px -16px 0 #fff,
+    128px 0 0 #f2f2f2, 32px 8px 0 #f2f2f2, 96px 8px 0 #f2f2f2;
+  opacity: 0.95;
+  animation: cloud-drift 90s linear infinite;
+}
+
+.app-shell[data-theme="blocks"] .theme-scene i:nth-child(2) { top: 14%; }
+.app-shell[data-theme="blocks"] .theme-scene i:nth-child(3) { top: 26%; animation-duration: 120s; animation-delay: -40s; transform: scale(0.7); }
+.app-shell[data-theme="blocks"] .theme-scene i:nth-child(4) { top: 8%; animation-duration: 140s; animation-delay: -95s; transform: scale(1.3); }
+.app-shell[data-theme="blocks"] .theme-scene i:nth-child(5) { top: 34%; animation-duration: 105s; animation-delay: -70s; }
+
+@keyframes cloud-drift {
+  from { translate: 0 0; }
+  to { translate: calc(100vw + 400px) 0; }
+}
+
+/* Colinas lejanas */
+.app-shell[data-theme="blocks"] .theme-scene::before {
+  right: 0;
+  bottom: 120px;
+  left: 0;
+  height: 110px;
+  background:
+    linear-gradient(#5f9e48, #5f9e48) 0 100% / 12% 60% no-repeat,
+    linear-gradient(#5a9743, #5a9743) 12% 100% / 10% 85% no-repeat,
+    linear-gradient(#5f9e48, #5f9e48) 22% 100% / 14% 45% no-repeat,
+    linear-gradient(#5a9743, #5a9743) 36% 100% / 8% 100% no-repeat,
+    linear-gradient(#5f9e48, #5f9e48) 44% 100% / 16% 65% no-repeat,
+    linear-gradient(#5a9743, #5a9743) 60% 100% / 10% 90% no-repeat,
+    linear-gradient(#5f9e48, #5f9e48) 70% 100% / 12% 50% no-repeat,
+    linear-gradient(#5a9743, #5a9743) 82% 100% / 9% 78% no-repeat,
+    linear-gradient(#5f9e48, #5f9e48) 91% 100% / 9% 58% no-repeat;
+  opacity: 0.55;
+}
+
+/* Suelo: hierba y tierra en bloques */
+.app-shell[data-theme="blocks"] .theme-scene::after {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 120px;
+  background:
+    linear-gradient(#5d9b3a 0 18px, transparent 18px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.08) 0 2px, transparent 2px 32px),
+    conic-gradient(#8a5a35 25%, #7a4e2d 0 50%, #835532 0 75%, #74492a 0) 0 0 / 32px 32px;
+}
+
+.app-shell[data-theme="blocks"] .big-picture {
+  background: #6fb0ff;
+}
+
+/* Las filas van en "casillas" de inventario para leerse sobre el cielo o la tierra */
+.app-shell[data-theme="blocks"] :is(.track-row, .shelf-card, .album-card, .artist-card, .up-next-row, .empty-search) {
+  border: 2px solid #000;
+  background: rgba(198, 198, 198, 0.9);
+  box-shadow: inset 2px 2px 0 #fff, inset -2px -2px 0 #555;
+}
+
+.app-shell[data-theme="blocks"] :is(.section-heading, .greeting) :is(h2, p) {
+  text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.85);
+}
+
+/* =========================================================
+   Estilo Zelda
+   ========================================================= */
+.app-shell[data-theme="hyrule"] {
+  --t-bg: #0d1418;
+  --t-veil: rgba(13, 20, 24, 0.5);
+  --t-chrome: rgba(15, 23, 28, 0.94);
+  --t-surface: rgba(22, 34, 42, 0.9);
+  --t-hover: rgba(95, 214, 245, 0.08);
+  --t-input: rgba(0, 0, 0, 0.3);
+  --t-muted: #a9c1c8;
+  --t-label: #d8b45c;
+  --t-accent: #5fd6f5;
+  --t-accent-ink: #04161c;
+  --t-accent-soft: rgba(95, 214, 245, 0.12);
+  --t-border: rgba(216, 180, 92, 0.28);
+  --t-track: #22323b;
+  --t-radius: 10px;
+  --t-shadow: 0 0 0 1px rgba(95, 214, 245, 0.06), 0 12px 30px rgba(0, 0, 0, 0.35);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: Georgia, "Times New Roman", serif;
+  --t-lyric: #eaf6f8;
+}
+
+.app-shell[data-theme="hyrule"] :is(h1, h2) {
+  color: #f1e3b8;
+  letter-spacing: 0.02em;
+}
+
+.app-shell[data-theme="hyrule"] :is(.now-playing-card, .settings-panel, .featured-card, .detail-hero, .top-result-card) {
+  box-shadow: inset 0 0 0 1px rgba(216, 180, 92, 0.25), 0 0 28px rgba(95, 214, 245, 0.08);
+}
+
+/* Círculos de runas girando */
+.app-shell[data-theme="hyrule"] .theme-scene::before {
+  top: 50%;
+  left: 62%;
+  width: 80vmin;
+  height: 80vmin;
+  margin: -40vmin 0 0 -40vmin;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle, transparent 0 46px, rgba(95, 214, 245, 0.16) 46px 47px, transparent 47px 70px),
+    repeating-conic-gradient(rgba(95, 214, 245, 0.12) 0 2deg, transparent 2deg 15deg);
+  mask-image: radial-gradient(circle, #000 30%, transparent 70%);
+  animation: spiral-spin 80s linear infinite reverse;
+}
+
+/* Luces que suben */
+.app-shell[data-theme="hyrule"] .theme-scene i {
+  bottom: -4%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8ff0ff;
+  box-shadow: 0 0 12px 4px rgba(95, 214, 245, 0.7);
+  animation: mote-rise 12s ease-in infinite;
+}
+
+.app-shell[data-theme="hyrule"] .theme-scene i:nth-child(1) { left: 14%; animation-duration: 11s; }
+.app-shell[data-theme="hyrule"] .theme-scene i:nth-child(2) { left: 33%; animation-duration: 15s; animation-delay: -6s; background: #ffe39a; box-shadow: 0 0 12px 4px rgba(216, 180, 92, 0.7); }
+.app-shell[data-theme="hyrule"] .theme-scene i:nth-child(3) { left: 49%; animation-duration: 13s; animation-delay: -3s; }
+.app-shell[data-theme="hyrule"] .theme-scene i:nth-child(4) { left: 66%; animation-duration: 17s; animation-delay: -10s; }
+.app-shell[data-theme="hyrule"] .theme-scene i:nth-child(5) { left: 81%; animation-duration: 12s; animation-delay: -8s; background: #ffe39a; box-shadow: 0 0 12px 4px rgba(216, 180, 92, 0.7); }
+.app-shell[data-theme="hyrule"] .theme-scene i:nth-child(6) { left: 93%; animation-duration: 14s; animation-delay: -1s; }
+
+@keyframes mote-rise {
+  0% { opacity: 0; transform: translate(0, 0); }
+  15% { opacity: 1; }
+  80% { opacity: 0.8; }
+  100% { opacity: 0; transform: translate(30px, -95vh); }
+}
+
+.app-shell[data-theme="hyrule"] :is(.big-picture-card, .big-picture-controls) {
+  border-color: rgba(216, 180, 92, 0.4);
+  background: rgba(16, 26, 32, 0.86);
+  box-shadow: 0 0 40px rgba(95, 214, 245, 0.12);
+}
+
+/* =========================================================
+   Estilo Pokémon
+   ========================================================= */
+.app-shell[data-theme="pokedex"] {
+  --t-bg: #f1efe9;
+  --t-veil: rgba(241, 239, 233, 0.4);
+  --t-chrome: #f7f5f0;
+  --t-surface: #ffffff;
+  --t-dialog: #ffffff;
+  --t-hover: rgba(227, 53, 13, 0.08);
+  --t-input: #fff;
+  --t-text: #1d2228;
+  --t-muted: #4d5560;
+  --t-label: #b8280a;
+  --t-accent: #e3350d;
+  --t-accent-ink: #fff;
+  --t-accent-text: #b8280a;
+  --t-accent-soft: rgba(227, 53, 13, 0.1);
+  --t-border: rgba(29, 34, 40, 0.18);
+  --t-track: #dcd8cf;
+  --t-radius: 12px;
+  --t-shadow: 0 4px 0 rgba(29, 34, 40, 0.12);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: "Press Start 2P", monospace;
+  --t-size-adjust: 0.5;
+}
+
+/* Carcasa roja: barra lateral y reproductor con texto blanco */
+.app-shell[data-theme="pokedex"] :is(.sidebar, .player-bar) {
+  background: linear-gradient(180deg, #e3350d, #b8280a);
+}
+
+.app-shell[data-theme="pokedex"] .sidebar :is(span, strong, small, p, button, a),
+.app-shell[data-theme="pokedex"] .player-bar :is(span, strong, small, button) {
+  color: #fff;
+}
+
+.app-shell[data-theme="pokedex"] .sidebar .nav-item.active {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.app-shell[data-theme="pokedex"] .sidebar .nav-item.active span {
+  color: #fff;
+}
+
+.app-shell[data-theme="pokedex"] .player-bar .play-button {
+  background: #fff;
+  color: #e3350d;
+}
+
+.app-shell[data-theme="pokedex"] .player-bar .range-input {
+  background: linear-gradient(90deg, #fff var(--range-progress), rgba(0, 0, 0, 0.25) var(--range-progress));
+}
+
+.app-shell[data-theme="pokedex"] .sidebar-tip {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.app-shell[data-theme="pokedex"] h1 {
+  font-size: clamp(18px, 2vw, 26px);
+  line-height: 1.5;
+}
+
+/* Lente azul y luces de colores */
+.app-shell[data-theme="pokedex"] .theme-scene::before {
+  inset: 0;
+  background: radial-gradient(circle, rgba(29, 34, 40, 0.08) 1.5px, transparent 1.6px) 0 0 / 14px 14px;
+}
+
+.app-shell[data-theme="pokedex"] .theme-scene i:nth-child(1) {
+  right: 4%;
+  bottom: 14%;
+  width: 120px;
+  height: 120px;
+  border: 8px solid #fff;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #a8e4ff, #2a8be0 55%, #135a9c);
+  box-shadow: 0 0 0 3px rgba(29, 34, 40, 0.25), 0 0 30px rgba(42, 139, 224, 0.5);
+  animation: lens-glow 3s ease-in-out infinite;
+}
+
+.app-shell[data-theme="pokedex"] .theme-scene i:nth-child(n + 2):nth-child(-n + 4) {
+  top: 12%;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(29, 34, 40, 0.35);
+  border-radius: 50%;
+  animation: led-blink 2.4s steps(1) infinite;
+}
+
+.app-shell[data-theme="pokedex"] .theme-scene i:nth-child(2) { right: 9%; background: #ff4b4b; }
+.app-shell[data-theme="pokedex"] .theme-scene i:nth-child(3) { right: 6%; background: #ffd23f; animation-delay: -0.8s; }
+.app-shell[data-theme="pokedex"] .theme-scene i:nth-child(4) { right: 3%; background: #4cd964; animation-delay: -1.6s; }
+
+@keyframes lens-glow {
+  50% { box-shadow: 0 0 0 3px rgba(29, 34, 40, 0.25), 0 0 50px 10px rgba(42, 139, 224, 0.7); }
+}
+
+@keyframes led-blink {
+  0%, 60% { opacity: 1; }
+  61%, 100% { opacity: 0.35; }
+}
+
+.app-shell[data-theme="pokedex"] .big-picture {
+  background: #f1efe9;
+}
+
+.app-shell[data-theme="pokedex"] .big-picture-controls {
+  background: linear-gradient(180deg, #e3350d, #b8280a);
+}
+
+.app-shell[data-theme="pokedex"] .big-picture-controls :is(button, span, strong, small) {
+  color: #fff;
+}
+
+.app-shell[data-theme="pokedex"] .big-picture-controls .big-picture-play {
+  background: #fff;
+  color: #e3350d;
+}
+
+.app-shell[data-theme="pokedex"] .big-picture-now {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* =========================================================
+   Vaporwave
+   ========================================================= */
+.app-shell[data-theme="vaporwave"] {
+  --t-bg: #1a0933;
+  --t-veil: linear-gradient(180deg, rgba(26, 9, 51, 0.55), rgba(26, 9, 51, 0.3));
+  --t-chrome: rgba(30, 10, 56, 0.9);
+  --t-surface: rgba(38, 12, 70, 0.85);
+  --t-hover: rgba(255, 113, 206, 0.12);
+  --t-input: rgba(0, 0, 0, 0.3);
+  --t-muted: #d6b8e8;
+  --t-label: #01cdfe;
+  --t-accent: #ff71ce;
+  --t-accent-ink: #2a0b45;
+  --t-accent-soft: rgba(255, 113, 206, 0.14);
+  --t-border: rgba(1, 205, 254, 0.3);
+  --t-track: #3a1866;
+  --t-radius: 4px;
+  --t-shadow: 4px 4px 0 rgba(1, 205, 254, 0.35);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: Righteous, "Segoe UI", sans-serif;
+  --t-lyric: #fdf0ff;
+}
+
+.app-shell[data-theme="vaporwave"] h1 {
+  background: linear-gradient(180deg, #fff 30%, #ff71ce 70%, #01cdfe);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-style: italic;
+}
+
+.app-shell[data-theme="vaporwave"] .theme-scene {
+  background: linear-gradient(180deg, #1a0933 0%, #4b1069 45%, #ff71ce 75%, #2a0b45 75.2%);
+}
+
+/* Sol de rayas */
+.app-shell[data-theme="vaporwave"] .theme-scene::before {
+  bottom: 25%;
+  left: 58%;
+  width: 34vmin;
+  height: 34vmin;
+  margin-left: -17vmin;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fffb96, #ff9a5a 50%, #ff71ce);
+  mask-image: linear-gradient(180deg, #000 50%, transparent 50% 54%, #000 54% 62%, transparent 62% 66%, #000 66% 73%, transparent 73% 77%, #000 77% 84%, transparent 84% 88%, #000 88%);
+  filter: drop-shadow(0 0 30px rgba(255, 113, 206, 0.6));
+  animation: sun-bob 8s ease-in-out infinite;
+}
+
+@keyframes sun-bob {
+  50% { transform: translateY(8px); }
+}
+
+/* Cuadrícula infinita */
+.app-shell[data-theme="vaporwave"] .theme-scene::after {
+  right: -50%;
+  bottom: 0;
+  left: -50%;
+  height: 25%;
+  background:
+    linear-gradient(rgba(1, 205, 254, 0.8) 2px, transparent 2px) 0 0 / 100% 40px,
+    linear-gradient(90deg, rgba(255, 113, 206, 0.8) 2px, transparent 2px) 0 0 / 60px 100%;
+  transform: perspective(300px) rotateX(55deg);
+  transform-origin: top;
+  animation: grid-run 1.6s linear infinite;
+}
+
+@keyframes grid-run {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 40px, 0 0; }
+}
+
+/* Estrellas */
+.app-shell[data-theme="vaporwave"] .theme-scene i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px #fff;
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+.app-shell[data-theme="vaporwave"] .theme-scene i:nth-child(1) { top: 10%; left: 18%; }
+.app-shell[data-theme="vaporwave"] .theme-scene i:nth-child(2) { top: 22%; left: 38%; animation-delay: -1s; }
+.app-shell[data-theme="vaporwave"] .theme-scene i:nth-child(3) { top: 8%; left: 64%; animation-delay: -2s; }
+.app-shell[data-theme="vaporwave"] .theme-scene i:nth-child(4) { top: 30%; left: 82%; animation-delay: -0.5s; }
+.app-shell[data-theme="vaporwave"] .theme-scene i:nth-child(5) { top: 16%; left: 90%; animation-delay: -1.5s; }
+.app-shell[data-theme="vaporwave"] .theme-scene i:nth-child(6) { top: 36%; left: 8%; animation-delay: -2.5s; }
+
+@keyframes twinkle {
+  50% { opacity: 0.2; transform: scale(0.6); }
+}
+
+.app-shell[data-theme="vaporwave"] :is(.big-picture-card, .big-picture-controls) {
+  border-color: rgba(1, 205, 254, 0.45);
+  background: rgba(36, 10, 66, 0.8);
+  box-shadow: 6px 6px 0 rgba(255, 113, 206, 0.45);
+}
+
+/* =========================================================
+   Lo-fi lluvioso
+   ========================================================= */
+.app-shell[data-theme="lofi"] {
+  --t-bg: #141a24;
+  --t-veil: rgba(20, 26, 36, 0.4);
+  --t-chrome: rgba(22, 29, 40, 0.94);
+  --t-surface: rgba(29, 37, 51, 0.9);
+  --t-hover: rgba(242, 184, 128, 0.08);
+  --t-input: rgba(0, 0, 0, 0.25);
+  --t-muted: #b4bccb;
+  --t-label: #f2b880;
+  --t-accent: #f2b880;
+  --t-accent-ink: #221608;
+  --t-accent-soft: rgba(242, 184, 128, 0.13);
+  --t-border: rgba(255, 255, 255, 0.09);
+  --t-track: #2b3446;
+  --t-radius: 14px;
+  --t-shadow: 0 14px 30px rgba(0, 0, 0, 0.3);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: Georgia, "Times New Roman", serif;
+  --t-lyric: #f8efe4;
+}
+
+.app-shell[data-theme="lofi"] .theme-scene {
+  background: radial-gradient(ellipse at 15% 90%, rgba(242, 184, 128, 0.22), transparent 45%), linear-gradient(180deg, #101521, #1a2232);
+}
+
+/* Lluvia en dos capas */
+.app-shell[data-theme="lofi"] .theme-scene::before,
+.app-shell[data-theme="lofi"] .theme-scene::after {
+  inset: -30% 0 0;
+  background: repeating-linear-gradient(100deg, transparent 0 34px, rgba(170, 195, 230, 0.16) 34px 35px, transparent 35px 70px);
+  animation: rain-fall 0.9s linear infinite;
+}
+
+.app-shell[data-theme="lofi"] .theme-scene::after {
+  background: repeating-linear-gradient(100deg, transparent 0 58px, rgba(170, 195, 230, 0.1) 58px 59px, transparent 59px 110px);
+  animation-duration: 1.4s;
+}
+
+/* Lámpara que respira */
+.app-shell[data-theme="lofi"] .theme-scene i:nth-child(1) {
+  bottom: -10%;
+  left: -5%;
+  width: 45vmin;
+  height: 45vmin;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(242, 184, 128, 0.35), transparent 65%);
+  animation: lamp-breathe 5s ease-in-out infinite;
+}
+
+@keyframes lamp-breathe {
+  50% { opacity: 0.6; transform: scale(1.06); }
+}
+
+/* Gotas resbalando por el vidrio */
+.app-shell[data-theme="lofi"] .theme-scene i:nth-child(n + 2) {
+  top: -3%;
+  width: 4px;
+  height: 12px;
+  border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
+  background: rgba(200, 220, 250, 0.45);
+  animation: drop-slide 9s cubic-bezier(0.5, 0, 0.9, 0.6) infinite;
+}
+
+.app-shell[data-theme="lofi"] .theme-scene i:nth-child(2) { left: 22%; animation-delay: -2s; }
+.app-shell[data-theme="lofi"] .theme-scene i:nth-child(3) { left: 41%; animation-duration: 12s; animation-delay: -7s; }
+.app-shell[data-theme="lofi"] .theme-scene i:nth-child(4) { left: 63%; animation-duration: 10s; animation-delay: -4s; }
+.app-shell[data-theme="lofi"] .theme-scene i:nth-child(5) { left: 78%; animation-duration: 14s; animation-delay: -10s; }
+.app-shell[data-theme="lofi"] .theme-scene i:nth-child(6) { left: 91%; animation-duration: 11s; animation-delay: -1s; }
+
+@keyframes drop-slide {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(18vh); }
+  45% { transform: translateY(20vh); }
+  100% { transform: translateY(110vh); }
+}
+
+.app-shell[data-theme="lofi"] :is(.big-picture-card, .big-picture-controls) {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(26, 33, 46, 0.82);
+}
+
+/* =========================================================
+   Aurora boreal
+   ========================================================= */
+.app-shell[data-theme="aurora"] {
+  --t-bg: #03101c;
+  --t-veil: rgba(3, 16, 28, 0.4);
+  --t-chrome: rgba(4, 18, 30, 0.9);
+  --t-surface: rgba(8, 26, 40, 0.82);
+  --t-hover: rgba(78, 240, 182, 0.08);
+  --t-input: rgba(0, 0, 0, 0.3);
+  --t-muted: #a6c9cf;
+  --t-label: #b28dff;
+  --t-accent: #4ef0b6;
+  --t-accent-ink: #022016;
+  --t-accent-soft: rgba(78, 240, 182, 0.12);
+  --t-border: rgba(78, 240, 182, 0.18);
+  --t-track: #12303f;
+  --t-radius: 16px;
+  --t-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+  --t-font: Inter, "Segoe UI", sans-serif;
+  --t-lyric: #eafff7;
+}
+
+.app-shell[data-theme="aurora"] .theme-scene {
+  background: linear-gradient(180deg, #020a14 0%, #06192a 60%, #0b2a3a 100%);
+}
+
+/* Estrellas */
+.app-shell[data-theme="aurora"] .theme-scene::before {
+  inset: 0;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.8) 1px, transparent 1.4px) 0 0 / 90px 90px,
+    radial-gradient(circle, rgba(255, 255, 255, 0.5) 1px, transparent 1.4px) 45px 30px / 130px 130px;
+  mask-image: linear-gradient(180deg, #000, transparent 75%);
+  animation: twinkle 6s ease-in-out infinite;
+}
+
+/* Cortinas de luz */
+.app-shell[data-theme="aurora"] .theme-scene i:nth-child(-n + 3) {
+  top: 5%;
+  left: -20%;
+  width: 140%;
+  height: 45%;
+  border-radius: 50%;
+  background: linear-gradient(90deg, transparent, rgba(78, 240, 182, 0.55), rgba(120, 220, 255, 0.4), rgba(178, 141, 255, 0.5), transparent);
+  filter: blur(40px);
+  mix-blend-mode: screen;
+  opacity: 0.7;
+  animation: aurora-wave 16s ease-in-out infinite alternate;
+}
+
+.app-shell[data-theme="aurora"] .theme-scene i:nth-child(2) {
+  top: 18%;
+  background: linear-gradient(90deg, transparent, rgba(178, 141, 255, 0.5), rgba(78, 240, 182, 0.45), transparent);
+  animation-duration: 22s;
+  animation-delay: -6s;
+}
+
+.app-shell[data-theme="aurora"] .theme-scene i:nth-child(3) {
+  top: 0;
+  height: 30%;
+  animation-duration: 19s;
+  animation-delay: -11s;
+}
+
+@keyframes aurora-wave {
+  0% { transform: translateX(-8%) skewX(-12deg) scaleY(0.8); }
+  50% { transform: translateX(6%) skewX(10deg) scaleY(1.2); }
+  100% { transform: translateX(-4%) skewX(-6deg) scaleY(0.9); }
+}
+
+.app-shell[data-theme="aurora"] :is(.big-picture-card, .big-picture-controls) {
+  border-color: rgba(78, 240, 182, 0.28);
+  background: rgba(6, 24, 38, 0.72);
+}

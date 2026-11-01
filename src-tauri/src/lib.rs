@@ -35,6 +35,7 @@ struct SpotifySession {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 struct SpotifyTrack {
     id: String,
     title: String,
@@ -43,6 +44,60 @@ struct SpotifyTrack {
     duration: u32,
     artwork: String,
     url: String,
+    album_id: String,
+    album_type: String,
+    artists: Vec<SpotifyArtistRef>,
+}
+
+#[derive(Clone, Serialize)]
+struct SpotifyArtistRef {
+    id: String,
+    name: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SpotifyAlbum {
+    id: String,
+    title: String,
+    artist: String,
+    artists: Vec<SpotifyArtistRef>,
+    artwork: String,
+    year: String,
+    album_type: String,
+    total_tracks: u32,
+    url: String,
+}
+
+#[derive(Serialize)]
+struct SpotifyArtist {
+    id: String,
+    name: String,
+    image: String,
+    genres: Vec<String>,
+    followers: Option<u64>,
+    url: String,
+}
+
+#[derive(Serialize)]
+struct SpotifyCatalogResults {
+    tracks: Vec<SpotifyTrack>,
+    albums: Vec<SpotifyAlbum>,
+    artists: Vec<SpotifyArtist>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SpotifyArtistPage {
+    artist: SpotifyArtist,
+    top_tracks: Vec<SpotifyTrack>,
+    albums: Vec<SpotifyAlbum>,
+}
+
+#[derive(Serialize)]
+struct SpotifyAlbumPage {
+    album: SpotifyAlbum,
+    tracks: Vec<SpotifyTrack>,
 }
 
 #[derive(Serialize)]
@@ -181,34 +236,7 @@ fn parse_spotify_search_page(
         .ok_or_else(|| "Spotify devolvió una lista de canciones inválida.".to_owned())?;
     let tracks = items
         .iter()
-        .filter_map(|item| {
-            let id = item.get("id")?.as_str()?;
-            let album = item.get("album")?;
-            let artists = item.get("artists")?.as_array()?;
-            let artist = artists
-                .iter()
-                .filter_map(|artist| artist.get("name")?.as_str())
-                .collect::<Vec<_>>()
-                .join(", ");
-            let artwork = album
-                .get("images")?
-                .as_array()?
-                .first()?
-                .get("url")?
-                .as_str()?;
-            Some(SpotifyTrack {
-                id: id.to_owned(),
-                title: item.get("name")?.as_str()?.to_owned(),
-                artist,
-                album: album.get("name")?.as_str()?.to_owned(),
-                duration: item
-                    .get("duration_ms")?
-                    .as_u64()
-                    .map(|duration| (duration / 1000) as u32)?,
-                artwork: artwork.to_owned(),
-                url: format!("https://open.spotify.com/track/{id}"),
-            })
-        })
+        .filter_map(|item| parse_spotify_track(item, None))
         .collect::<Vec<_>>();
     let page_end = offset + items.len() as u32;
     let next_offset = (page_end < total && page_end < 1000).then_some(page_end);
@@ -218,6 +246,634 @@ fn parse_spotify_search_page(
         offset,
         next_offset,
     })
+}
+
+fn parse_spotify_artist_refs(value: &serde_json::Value) -> Vec<SpotifyArtistRef> {
+    value
+        .get("artists")
+        .and_then(serde_json::Value::as_array)
+        .map(|artists| {
+            artists
+                .iter()
+                .filter_map(|artist| {
+                    // Las pistas locales de Spotify pueden traer artistas sin id.
+                    Some(SpotifyArtistRef {
+                        id: json_str(artist, "id"),
+                        name: artist.get("name")?.as_str()?.to_owned(),
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn first_image_url(value: &serde_json::Value) -> Option<&str> {
+    value.get("images")?.as_array()?.first()?.get("url")?.as_str()
+}
+
+fn json_str(value: &serde_json::Value, key: &str) -> String {
+    value
+        .get(key)
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_default()
+        .to_owned()
+}
+
+/// Las canciones de un álbum (GET /albums/{id}) no traen su álbum, así que se pasa aparte.
+fn parse_spotify_track(
+    item: &serde_json::Value,
+    album_override: Option<&serde_json::Value>,
+) -> Option<SpotifyTrack> {
+    let id = item.get("id")?.as_str()?;
+    let album = album_override.or_else(|| item.get("album"))?;
+    let artists = parse_spotify_artist_refs(item);
+    Some(SpotifyTrack {
+        id: id.to_owned(),
+        title: item.get("name")?.as_str()?.to_owned(),
+        artist: artists
+            .iter()
+            .map(|artist| artist.name.as_str())
+            .collect::<Vec<_>>()
+            .join(", "),
+        album: album.get("name")?.as_str()?.to_owned(),
+        duration: item
+            .get("duration_ms")?
+            .as_u64()
+            .map(|duration| (duration / 1000) as u32)?,
+        artwork: first_image_url(album)?.to_owned(),
+        url: format!("https://open.spotify.com/track/{id}"),
+        album_id: json_str(album, "id"),
+        album_type: json_str(album, "album_type"),
+        artists,
+    })
+}
+
+fn parse_spotify_album(item: &serde_json::Value) -> Option<SpotifyAlbum> {
+    let id = item.get("id")?.as_str()?;
+    let artists = parse_spotify_artist_refs(item);
+    Some(SpotifyAlbum {
+        id: id.to_owned(),
+        title: item.get("name")?.as_str()?.to_owned(),
+        artist: artists
+            .iter()
+            .map(|artist| artist.name.as_str())
+            .collect::<Vec<_>>()
+            .join(", "),
+        artists,
+        artwork: first_image_url(item).unwrap_or_default().to_owned(),
+        year: json_str(item, "release_date").chars().take(4).collect(),
+        album_type: json_str(item, "album_type"),
+        total_tracks: item
+            .get("total_tracks")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0) as u32,
+        url: format!("https://open.spotify.com/album/{id}"),
+    })
+}
+
+fn parse_spotify_artist(item: &serde_json::Value) -> Option<SpotifyArtist> {
+    let id = item.get("id")?.as_str()?;
+    Some(SpotifyArtist {
+        id: id.to_owned(),
+        name: item.get("name")?.as_str()?.to_owned(),
+        image: first_image_url(item).unwrap_or_default().to_owned(),
+        genres: item
+            .get("genres")
+            .and_then(serde_json::Value::as_array)
+            .map(|genres| {
+                genres
+                    .iter()
+                    .filter_map(|genre| genre.as_str().map(str::to_owned))
+                    .collect()
+            })
+            .unwrap_or_default(),
+        followers: item
+            .pointer("/followers/total")
+            .and_then(serde_json::Value::as_u64),
+        url: format!("https://open.spotify.com/artist/{id}"),
+    })
+}
+
+fn page_items(body: &serde_json::Value, key: &str) -> Vec<serde_json::Value> {
+    body.get(key)
+        .and_then(|page| page.get("items"))
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+}
+
+fn validate_spotify_id(id: &str) -> Result<(), String> {
+    if id.len() != 22 || !id.bytes().all(|byte| byte.is_ascii_alphanumeric()) {
+        return Err("Spotify devolvió un identificador no válido.".into());
+    }
+    Ok(())
+}
+
+/// GET autenticado a la API web de Spotify, renovando el token una vez si caducó.
+async fn spotify_api_get(
+    client_id: &str,
+    path: &str,
+    params: &[(&str, String)],
+    action: &str,
+) -> Result<serde_json::Value, String> {
+    let mut session = usable_spotify_session(client_id)
+        .await?
+        .ok_or_else(|| format!("Vincula tu cuenta de Spotify para {action}."))?;
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(20))
+        .build()
+        .map_err(|error| format!("No se pudo preparar Spotify: {error}"))?;
+    let url = format!("{SPOTIFY_API_BASE}{path}");
+    let mut response = client
+        .get(&url)
+        .bearer_auth(&session.access_token)
+        .query(params)
+        .send()
+        .await
+        .map_err(|error| format!("No se pudo {action}: {error}"))?;
+    if response.status().as_u16() == 401 {
+        refresh_spotify_session(&client, &mut session).await?;
+        response = client
+            .get(&url)
+            .bearer_auth(&session.access_token)
+            .query(params)
+            .send()
+            .await
+            .map_err(|error| format!("No se pudo {action}: {error}"))?;
+    }
+    let status = response.status();
+    let body: serde_json::Value = response.json().await.unwrap_or(serde_json::Value::Null);
+    if !status.is_success() {
+        log::error!("Spotify respondió con HTTP {status} al intentar {action}.");
+        if status.as_u16() == 401 {
+            delete_spotify_session()?;
+        }
+        let detail = spotify_error_message(&body)
+            .map(|message| format!(": {}", message.chars().take(240).collect::<String>()))
+            .unwrap_or_default();
+        return Err(match status.as_u16() {
+            401 => "La sesión de Spotify dejó de ser válida. Vuelve a vincularla.".into(),
+            429 => "Spotify limitó temporalmente las consultas. Espera un momento e inténtalo de nuevo.".into(),
+            _ => format!("No se pudo {action} (HTTP {status}){detail}"),
+        });
+    }
+    Ok(body)
+}
+
+#[tauri::command]
+async fn spotify_search_catalog(
+    client_id: String,
+    query: String,
+) -> Result<SpotifyCatalogResults, String> {
+    let query = query.trim();
+    if query.chars().count() < 2 || query.chars().count() > 200 {
+        return Err("Escribe entre 2 y 200 caracteres para buscar en Spotify.".into());
+    }
+    let body = spotify_api_get(
+        &client_id,
+        "/search",
+        &[
+            ("q", query.to_owned()),
+            ("type", "track,album,artist".to_owned()),
+            ("limit", SPOTIFY_SEARCH_LIMIT.to_string()),
+        ],
+        "buscar en Spotify",
+    )
+    .await?;
+    Ok(SpotifyCatalogResults {
+        tracks: page_items(&body, "tracks")
+            .iter()
+            .filter_map(|item| parse_spotify_track(item, None))
+            .collect(),
+        albums: page_items(&body, "albums")
+            .iter()
+            .filter_map(parse_spotify_album)
+            .collect(),
+        artists: page_items(&body, "artists")
+            .iter()
+            .filter_map(parse_spotify_artist)
+            .collect(),
+    })
+}
+
+#[tauri::command]
+async fn spotify_get_artist(
+    client_id: String,
+    artist_id: String,
+) -> Result<SpotifyArtistPage, String> {
+    validate_spotify_id(&artist_id)?;
+    let body = spotify_api_get(
+        &client_id,
+        &format!("/artists/{artist_id}"),
+        &[],
+        "cargar el artista",
+    )
+    .await?;
+    let artist =
+        parse_spotify_artist(&body).ok_or_else(|| "Spotify devolvió un artista inválido.".to_owned())?;
+
+    // Con la cuenta del usuario, Spotify usa el país de la cuenta y no este mercado.
+    let top_tracks = match spotify_api_get(
+        &client_id,
+        &format!("/artists/{artist_id}/top-tracks"),
+        &[("market", "US".to_owned())],
+        "cargar las canciones populares",
+    )
+    .await
+    {
+        Ok(body) => body
+            .get("tracks")
+            .and_then(serde_json::Value::as_array)
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|item| parse_spotify_track(item, None))
+                    .collect()
+            })
+            .unwrap_or_default(),
+        Err(error) => {
+            // Las apps en modo desarrollo pueden no tener este endpoint: se buscan sus canciones.
+            log::warn!("Canciones populares no disponibles, se usa la búsqueda: {error}");
+            let body = spotify_api_get(
+                &client_id,
+                "/search",
+                &[
+                    ("q", format!("artist:\"{}\"", artist.name)),
+                    ("type", "track".to_owned()),
+                    ("limit", SPOTIFY_SEARCH_LIMIT.to_string()),
+                ],
+                "cargar las canciones populares",
+            )
+            .await?;
+            page_items(&body, "tracks")
+                .iter()
+                .filter_map(|item| parse_spotify_track(item, None))
+                .filter(|track| track.artists.iter().any(|item| item.id == artist.id))
+                .collect()
+        }
+    };
+
+    let mut albums = Vec::new();
+    for offset in (0..30).step_by(SPOTIFY_SEARCH_LIMIT as usize) {
+        let page = match spotify_api_get(
+            &client_id,
+            &format!("/artists/{artist_id}/albums"),
+            &[
+                ("include_groups", "album,single".to_owned()),
+                ("limit", SPOTIFY_SEARCH_LIMIT.to_string()),
+                ("offset", offset.to_string()),
+            ],
+            "cargar la discografía",
+        )
+        .await
+        {
+            Ok(page) => page,
+            Err(error) if offset == 0 => return Err(error),
+            Err(_) => break,
+        };
+        if let Some(items) = page.get("items").and_then(serde_json::Value::as_array) {
+            albums.extend(items.iter().filter_map(parse_spotify_album));
+        }
+        if page.get("next").is_none_or(serde_json::Value::is_null) {
+            break;
+        }
+    }
+
+    Ok(SpotifyArtistPage {
+        artist,
+        top_tracks,
+        albums,
+    })
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SpotifyRadioBatch {
+    genres: Vec<String>,
+    same_artist: Vec<SpotifyTrack>,
+    related: Vec<SpotifyTrack>,
+    genre: Vec<SpotifyTrack>,
+    related_artists: Vec<SpotifyArtistRef>,
+}
+
+async fn search_track_items(
+    client_id: &str,
+    query: String,
+    offset: u32,
+) -> Result<Vec<SpotifyTrack>, String> {
+    let body = spotify_api_get(
+        client_id,
+        "/search",
+        &[
+            ("q", query),
+            ("type", "track".to_owned()),
+            ("limit", SPOTIFY_SEARCH_LIMIT.to_string()),
+            ("offset", offset.to_string()),
+        ],
+        "preparar la radio",
+    )
+    .await?;
+    Ok(page_items(&body, "tracks")
+        .iter()
+        .filter_map(|item| parse_spotify_track(item, None))
+        .collect())
+}
+
+/// Tanda de canciones para la radio, al estilo de Spotify: no busca el texto escrito,
+/// sino canciones del artista, de artistas relacionados (colaboradores o del mismo género)
+/// y del mismo género. La API de recomendaciones ya no está disponible para apps nuevas.
+#[tauri::command]
+async fn spotify_build_radio(
+    client_id: String,
+    artist_id: Option<String>,
+    artist_name: Option<String>,
+    genre: Option<String>,
+    offset: u32,
+) -> Result<SpotifyRadioBatch, String> {
+    let offset = offset.min(900);
+    let artist_id = artist_id.filter(|id| validate_spotify_id(id).is_ok());
+    let artist_name = artist_name
+        .map(|name| name.trim().replace('"', ""))
+        .filter(|name| !name.is_empty() && name.len() <= 200);
+    let mut genres: Vec<String> = genre
+        .map(|genre| genre.trim().replace('"', ""))
+        .filter(|genre| !genre.is_empty() && genre.len() <= 100)
+        .into_iter()
+        .collect();
+
+    if let Some(id) = &artist_id {
+        if let Ok(body) = spotify_api_get(&client_id, &format!("/artists/{id}"), &[], "preparar la radio").await {
+            if let Some(artist) = parse_spotify_artist(&body) {
+                genres.extend(artist.genres);
+            }
+        }
+    }
+    genres.dedup();
+
+    // Canciones del propio artista; sus colaboraciones dicen quién está "cerca" de él.
+    let mut same_artist = Vec::new();
+    let mut collaborators: Vec<(SpotifyArtistRef, u32)> = Vec::new();
+    if let Some(name) = &artist_name {
+        let tracks = search_track_items(&client_id, format!("artist:\"{name}\""), offset).await?;
+        for track in tracks {
+            let is_seed = |artist: &SpotifyArtistRef| {
+                artist_id.as_deref().map_or(artist.name.eq_ignore_ascii_case(name), |id| artist.id == id)
+            };
+            if !track.artists.iter().any(is_seed) {
+                continue;
+            }
+            for artist in track.artists.iter().filter(|artist| !is_seed(artist) && !artist.id.is_empty()) {
+                match collaborators.iter_mut().find(|(known, _)| known.id == artist.id) {
+                    Some((_, count)) => *count += 1,
+                    None => collaborators.push((artist.clone(), 1)),
+                }
+            }
+            same_artist.push(track);
+        }
+    }
+    collaborators.sort_by(|a, b| b.1.cmp(&a.1));
+    let mut related_artists: Vec<SpotifyArtistRef> =
+        collaborators.into_iter().map(|(artist, _)| artist).collect();
+
+    // Si hay pocos colaboradores, se completan con artistas del mismo género.
+    if related_artists.len() < 4 {
+        if let Some(main_genre) = genres.first() {
+            if let Ok(body) = spotify_api_get(
+                &client_id,
+                "/search",
+                &[
+                    ("q", format!("genre:\"{main_genre}\"")),
+                    ("type", "artist".to_owned()),
+                    ("limit", SPOTIFY_SEARCH_LIMIT.to_string()),
+                    ("offset", (offset / 2).to_string()),
+                ],
+                "preparar la radio",
+            )
+            .await
+            {
+                for artist in page_items(&body, "artists").iter().filter_map(parse_spotify_artist) {
+                    let is_seed = artist_id.as_deref() == Some(artist.id.as_str());
+                    if !is_seed && !related_artists.iter().any(|known| known.id == artist.id) {
+                        related_artists.push(SpotifyArtistRef { id: artist.id, name: artist.name });
+                    }
+                }
+            }
+        }
+    }
+
+    let mut related = Vec::new();
+    for artist in related_artists.iter().take(3) {
+        let query = format!("artist:\"{}\"", artist.name.replace('"', ""));
+        if let Ok(tracks) = search_track_items(&client_id, query, 0).await {
+            related.extend(
+                tracks
+                    .into_iter()
+                    .filter(|track| track.artists.iter().any(|item| item.id == artist.id))
+                    .take(4),
+            );
+        }
+    }
+
+    let mut genre_tracks = Vec::new();
+    if let Some(main_genre) = genres.first() {
+        let query = format!("genre:\"{main_genre}\"");
+        if let Ok(tracks) = search_track_items(&client_id, query.clone(), offset).await {
+            genre_tracks.extend(tracks);
+        }
+        // Una radio solo de género necesita más volumen.
+        if artist_name.is_none() {
+            if let Ok(tracks) = search_track_items(&client_id, query, offset + SPOTIFY_SEARCH_LIMIT).await {
+                genre_tracks.extend(tracks);
+            }
+        }
+    }
+
+    Ok(SpotifyRadioBatch {
+        genres,
+        same_artist,
+        related,
+        genre: genre_tracks,
+        related_artists,
+    })
+}
+
+#[derive(Serialize)]
+struct Lyrics {
+    synced: Option<String>,
+    plain: Option<String>,
+    instrumental: bool,
+}
+
+const LRCLIB_API_BASE: &str = "https://lrclib.net/api";
+
+fn parse_lyrics(item: &serde_json::Value) -> Lyrics {
+    let text = |key: &str| {
+        item.get(key)
+            .and_then(serde_json::Value::as_str)
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(str::to_owned)
+    };
+    Lyrics {
+        synced: text("syncedLyrics"),
+        plain: text("plainLyrics"),
+        instrumental: item
+            .get("instrumental")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false),
+    }
+}
+
+/// Busca la letra en LRCLIB (base de datos abierta de letras sincronizadas, sin clave).
+#[tauri::command]
+async fn lyrics_get(
+    artist: String,
+    title: String,
+    album: String,
+    duration: u32,
+) -> Result<Option<Lyrics>, String> {
+    let artist = artist.trim();
+    let title = title.trim();
+    if artist.is_empty() || title.is_empty() || artist.len() > 300 || title.len() > 300 {
+        return Ok(None);
+    }
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(15))
+        .user_agent(concat!("DropMusic/", env!("CARGO_PKG_VERSION")))
+        .build()
+        .map_err(|error| format!("No se pudo preparar la búsqueda de letras: {error}"))?;
+
+    let exact = client
+        .get(format!("{LRCLIB_API_BASE}/get"))
+        .query(&[
+            ("artist_name", artist.to_owned()),
+            ("track_name", title.to_owned()),
+            ("album_name", album.trim().to_owned()),
+            ("duration", duration.to_string()),
+        ])
+        .send()
+        .await
+        .map_err(|error| format!("No se pudo buscar la letra: {error}"))?;
+    if exact.status().is_success() {
+        let body: serde_json::Value = exact
+            .json()
+            .await
+            .map_err(|error| format!("La letra llegó en un formato inválido: {error}"))?;
+        return Ok(Some(parse_lyrics(&body)));
+    }
+
+    // Sin coincidencia exacta: se busca por título y artista y se elige la de duración más parecida.
+    // Si no aparece, se prueba sin "(feat. …)" ni " - Remastered …", que suelen cambiar entre servicios.
+    let simple_title = title
+        .split(" - ")
+        .next()
+        .unwrap_or(title)
+        .split(" (")
+        .next()
+        .unwrap_or(title)
+        .trim()
+        .to_owned();
+    let mut titles = vec![title.to_owned()];
+    if !simple_title.is_empty() && simple_title != title {
+        titles.push(simple_title);
+    }
+    for search_title in titles {
+        if let Some(lyrics) = search_lyrics(&client, &search_title, artist, duration).await? {
+            return Ok(Some(lyrics));
+        }
+    }
+    Ok(None)
+}
+
+async fn search_lyrics(
+    client: &reqwest::Client,
+    title: &str,
+    artist: &str,
+    duration: u32,
+) -> Result<Option<Lyrics>, String> {
+    let search = client
+        .get(format!("{LRCLIB_API_BASE}/search"))
+        .query(&[("track_name", title), ("artist_name", artist)])
+        .send()
+        .await
+        .map_err(|error| format!("No se pudo buscar la letra: {error}"))?;
+    if !search.status().is_success() {
+        return Ok(None);
+    }
+    let results: serde_json::Value = search
+        .json()
+        .await
+        .map_err(|error| format!("La letra llegó en un formato inválido: {error}"))?;
+    let best = results.as_array().and_then(|items| {
+        items
+            .iter()
+            .filter(|item| {
+                item.get("syncedLyrics").is_some_and(|value| value.is_string())
+                    || item.get("plainLyrics").is_some_and(|value| value.is_string())
+            })
+            .min_by_key(|item| {
+                let item_duration = item
+                    .get("duration")
+                    .and_then(serde_json::Value::as_f64)
+                    .unwrap_or(0.0) as i64;
+                let missing_sync = i64::from(!item.get("syncedLyrics").is_some_and(|value| value.is_string()));
+                missing_sync * 10_000 + (item_duration - i64::from(duration)).abs()
+            })
+    });
+    Ok(best.map(parse_lyrics))
+}
+
+#[tauri::command]
+async fn spotify_get_top_artists(client_id: String) -> Result<Vec<SpotifyArtist>, String> {
+    let body = spotify_api_get(
+        &client_id,
+        "/me/top/artists",
+        &[
+            ("limit", SPOTIFY_SEARCH_LIMIT.to_string()),
+            ("time_range", "medium_term".to_owned()),
+        ],
+        "cargar tus artistas favoritos",
+    )
+    .await?;
+    Ok(body
+        .get("items")
+        .and_then(serde_json::Value::as_array)
+        .map(|items| items.iter().filter_map(parse_spotify_artist).collect())
+        .unwrap_or_default())
+}
+
+#[tauri::command]
+async fn spotify_get_new_releases(client_id: String) -> Result<Vec<SpotifyAlbum>, String> {
+    let body = spotify_api_get(
+        &client_id,
+        "/browse/new-releases",
+        &[("limit", SPOTIFY_SEARCH_LIMIT.to_string())],
+        "cargar los lanzamientos nuevos",
+    )
+    .await?;
+    Ok(page_items(&body, "albums")
+        .iter()
+        .filter_map(parse_spotify_album)
+        .collect())
+}
+
+#[tauri::command]
+async fn spotify_get_album(client_id: String, album_id: String) -> Result<SpotifyAlbumPage, String> {
+    validate_spotify_id(&album_id)?;
+    let body = spotify_api_get(
+        &client_id,
+        &format!("/albums/{album_id}"),
+        &[],
+        "cargar el álbum",
+    )
+    .await?;
+    let album =
+        parse_spotify_album(&body).ok_or_else(|| "Spotify devolvió un álbum inválido.".to_owned())?;
+    let tracks = page_items(&body, "tracks")
+        .iter()
+        .filter_map(|item| parse_spotify_track(item, Some(&body)))
+        .collect();
+    Ok(SpotifyAlbumPage { album, tracks })
 }
 
 fn spotify_error_message(body: &serde_json::Value) -> Option<&str> {
@@ -1301,6 +1957,13 @@ pub fn run() {
             spotify_set_playback_option,
             spotify_skip_track,
             spotify_search_tracks,
+            spotify_search_catalog,
+            spotify_get_artist,
+            spotify_get_album,
+            spotify_get_top_artists,
+            spotify_get_new_releases,
+            lyrics_get,
+            spotify_build_radio,
             jamendo_search_tracks,
             spotify_disconnect
         ])
