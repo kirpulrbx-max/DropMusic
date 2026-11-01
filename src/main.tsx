@@ -10,7 +10,10 @@ import '@fontsource/righteous/latin-400.css'
 import './index.css'
 import './themes.css'
 import './themes-extra.css'
+import './themes-more.css'
+import './themes-aesthetic.css'
 import './layouts.css'
+import './layouts-extra.css'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(

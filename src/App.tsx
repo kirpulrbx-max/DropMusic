@@ -5,6 +5,7 @@ import { listen } from '@tauri-apps/api/event'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import type { LucideIcon } from 'lucide-react'
 import {
+  Activity,
   ArrowLeft,
   ArrowUpRight,
   AudioLines,
@@ -13,6 +14,7 @@ import {
   Disc3,
   Headphones,
   Heart,
+  LayoutDashboard,
   Library,
   ListMusic,
   Maximize2,
@@ -23,6 +25,7 @@ import {
   Pause,
   Play,
   Plus,
+  Radio,
   Repeat2,
   Search,
   Settings2,
@@ -167,6 +170,7 @@ type SpotifyWebPlayer = {
   nextTrack(): Promise<void>
   seek(position: number): Promise<void>
   setVolume(volume: number): Promise<void>
+  getCurrentState(): Promise<SpotifyPlaybackState | null>
 }
 
 type SpotifySdk = {
@@ -187,10 +191,14 @@ declare global {
 type ThemeId =
   | 'original' | 'zen' | 'soft' | 'glass' | 'retro' | 'terminal' | 'brutal' | 'amoled' | 'blocks' | 'militech' | 'funky'
   | 'arasaka' | 'netrunner' | 'nightcity' | 'shinobi' | 'aincrad' | 'cazador' | 'hyrule' | 'pokedex' | 'vaporwave' | 'lofi' | 'aurora'
+  | 'nordico' | 'papel' | 'medianoche' | 'cafe' | 'contraste' | 'oceano' | 'sakura' | 'desierto' | 'galaxia' | 'bosque' | 'nieve'
+  | 'volcan' | 'urbano' | 'jazz' | 'fiesta' | 'metal' | 'disco' | 'pastel' | 'setentas' | 'arcade'
+  | 'y2k' | 'frutiger' | 'siete' | 'ios' | 'vibras2017' | 'tresd' | 'transparente' | 'jdm' | 'granpremio' | 'hatchback'
+  | 'venezolano' | 'chino' | 'ladrillos' | 'bloques08' | 'nuclear'
 
-type ThemeCategory = 'Esenciales' | 'Cyberpunk' | 'Anime' | 'Videojuegos' | 'Ambientes'
+type ThemeCategory = 'Esenciales' | 'Cyberpunk' | 'Anime' | 'Videojuegos' | 'Ambientes' | 'Géneros' | 'Estéticas' | 'Motor' | 'Culturas'
 
-const themeCategories: ThemeCategory[] = ['Esenciales', 'Cyberpunk', 'Anime', 'Videojuegos', 'Ambientes']
+const themeCategories: ThemeCategory[] = ['Esenciales', 'Estéticas', 'Ambientes', 'Géneros', 'Motor', 'Culturas', 'Cyberpunk', 'Anime', 'Videojuegos']
 
 type ThemeOption = {
   id: ThemeId
@@ -227,10 +235,47 @@ const themes: ThemeOption[] = [
   { id: 'vaporwave', name: 'Vaporwave', vibe: 'Atardecer de los 80: sol de neón, cuadrícula infinita y colores pastel.', category: 'Ambientes', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #2b0b4f, #ff71ce)', surface: 'rgba(34,10,60,0.8)', accent: '#01cdfe', text: '#fdf0ff', font: 'Righteous, "Segoe UI", sans-serif' } },
   { id: 'lofi', name: 'Lo-fi lluvioso', vibe: 'Noche tranquila con lluvia en la ventana y luz cálida de lámpara.', category: 'Ambientes', ink: false, scene: true, preview: { bg: '#141a24', surface: '#1d2533', accent: '#f2b880', text: '#f3ece4', font: 'Georgia, "Times New Roman", serif' } },
   { id: 'aurora', name: 'Aurora boreal', vibe: 'Cielo polar con cortinas de luz verde y violeta que ondulan despacio.', category: 'Ambientes', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #03101c, #0b2a3a)', surface: 'rgba(8,24,38,0.78)', accent: '#4ef0b6', text: '#eafff7', font: 'Inter, "Segoe UI", sans-serif' } },
+  { id: 'nordico', name: 'Nórdico', vibe: 'Claro y sereno: grises fríos, azul pizarra y tipografía ligera.', category: 'Esenciales', ink: true, preview: { bg: '#eef1f4', surface: '#ffffff', accent: '#4c6e8c', text: '#22303c', font: '"Segoe UI", sans-serif' } },
+  { id: 'papel', name: 'Papel y tinta', vibe: 'Como un periódico: papel crema, letra serif en cursiva y detalles en rojo.', category: 'Esenciales', ink: true, preview: { bg: '#f4efe4', surface: '#fbf8f1', accent: '#b01e1e', text: '#161310', font: 'Georgia, "Times New Roman", serif' } },
+  { id: 'medianoche', name: 'Azul medianoche', vibe: 'Azul marino profundo con detalles dorados, elegante y tranquilo.', category: 'Esenciales', ink: false, preview: { bg: '#0b1426', surface: '#13203a', accent: '#e8c16a', text: '#f4f3f6', font: 'Georgia, "Times New Roman", serif' } },
+  { id: 'cafe', name: 'Café con leche', vibe: 'Tonos cálidos de cafetería: crema, caramelo y marrón tostado.', category: 'Esenciales', ink: true, preview: { bg: '#efe4d6', surface: '#f8f1e7', accent: '#6f4528', text: '#3a2618', font: 'Georgia, "Times New Roman", serif' } },
+  { id: 'contraste', name: 'Alto contraste', vibe: 'Negro, blanco y amarillo con bordes marcados: lo más fácil de leer.', category: 'Esenciales', ink: false, preview: { bg: '#000000', surface: '#000000', accent: '#ffe600', text: '#ffffff', font: '"Segoe UI", sans-serif' } },
+  { id: 'oceano', name: 'Fondo marino', vibe: 'Bajo el mar: rayos de luz desde la superficie y burbujas que suben.', category: 'Ambientes', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #0a4a6e, #020f1c)', surface: 'rgba(6,40,64,0.85)', accent: '#4ae0e0', text: '#e8fbff', font: 'Inter, "Segoe UI", sans-serif' } },
+  { id: 'sakura', name: 'Primavera de cerezos', vibe: 'Rosa claro con ramas en flor y pétalos que caen girando.', category: 'Ambientes', ink: true, scene: true, preview: { bg: 'linear-gradient(180deg, #fff5f8, #fbe6ec)', surface: '#ffffff', accent: '#e2678f', text: '#3d2530', font: '"Yu Mincho", Georgia, serif' } },
+  { id: 'desierto', name: 'Dunas al atardecer', vibe: 'Sol que se pone sobre las dunas, cielo de fuego y calor que ondula.', category: 'Ambientes', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #3b1238, #f08a3c 70%, #4a2014 71%)', surface: 'rgba(60,29,20,0.88)', accent: '#ff9a3d', text: '#fff1e2', font: 'Righteous, "Segoe UI", sans-serif' } },
+  { id: 'galaxia', name: 'Galaxia', vibe: 'Espacio profundo: estrellas, una nebulosa que gira y estrellas fugaces.', category: 'Ambientes', ink: false, scene: true, preview: { bg: 'radial-gradient(circle at 60% 50%, #3a2470, #05030f 70%)', surface: 'rgba(18,12,44,0.85)', accent: '#a78bfa', text: '#f3efff', font: 'Inter, "Segoe UI", sans-serif' } },
+  { id: 'bosque', name: 'Bosque de luciérnagas', vibe: 'Pinos de noche y luciérnagas que flotan y parpadean.', category: 'Ambientes', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #030a07, #163a24)', surface: 'rgba(14,34,22,0.88)', accent: '#b5e655', text: '#f1fde4', font: 'Georgia, "Times New Roman", serif' } },
+  { id: 'nieve', name: 'Noche nevada', vibe: 'Azul de invierno con copos de nieve cayendo sobre las colinas.', category: 'Ambientes', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #0a1220, #2a3d5a)', surface: 'rgba(24,37,58,0.88)', accent: '#9fd3ff', text: '#f3f8ff', font: 'Inter, "Segoe UI", sans-serif' } },
+  { id: 'volcan', name: 'Lava', vibe: 'Negro volcánico con un río de lava que late y brasas que suben.', category: 'Ambientes', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #0b0303, #3a0d05 70%, #ff5a28)', surface: 'rgba(34,12,10,0.9)', accent: '#ff5a28', text: '#fff0e6', font: 'Rajdhani, "Segoe UI", sans-serif' } },
+  { id: 'urbano', name: 'Calle urbana', vibe: 'Negro, verde lima y rosa: grafiti, letras grandes y barras que rebotan con la música.', category: 'Géneros', ink: false, scene: true, preview: { bg: '#0d0d0d', surface: '#181818', accent: '#c6ff00', text: '#ffffff', font: '"Archivo Black", Impact, sans-serif' } },
+  { id: 'jazz', name: 'Club de jazz', vibe: 'Terciopelo vino y dorado, un foco de escenario y humo flotando.', category: 'Géneros', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #250e16, #120609)', surface: 'rgba(40,17,24,0.9)', accent: '#d6aa5c', text: '#fbefdc', font: 'Georgia, "Times New Roman", serif' } },
+  { id: 'fiesta', name: 'Fiesta latina', vibe: 'Colores de verbena: papel picado, confeti y rojo de salsa.', category: 'Géneros', ink: true, scene: true, preview: { bg: 'linear-gradient(180deg, #fff1d6, #ffe7c2)', surface: '#ffffff', accent: '#e63946', text: '#2b1a12', font: 'Righteous, "Segoe UI", sans-serif' } },
+  { id: 'metal', name: 'Metal pesado', vibe: 'Negro y rojo, esquinas rectas, relámpagos y llamas en la base.', category: 'Géneros', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #050505, #2a0a0e)', surface: '#161616', accent: '#c8102e', text: '#f2f2f2', font: '"Archivo Black", Impact, sans-serif' } },
+  { id: 'disco', name: 'Bola disco', vibe: 'Morado y dorado con una bola de espejos y destellos que recorren la pista.', category: 'Géneros', ink: false, scene: true, preview: { bg: 'radial-gradient(circle at 50% 0%, #3d1766, #0e0518 75%)', surface: 'rgba(40,18,68,0.88)', accent: '#ffd23f', text: '#fff5d6', font: 'Righteous, "Segoe UI", sans-serif' } },
+  { id: 'pastel', name: 'Pop pastel', vibe: 'Degradados de algodón de azúcar, esquinas redondas y corazones flotando.', category: 'Géneros', ink: true, scene: true, preview: { bg: 'linear-gradient(135deg, #fde2f3, #e4ecff, #d8fbef)', surface: '#ffffff', accent: '#8b5cf6', text: '#2f2346', font: 'Righteous, "Segoe UI", sans-serif' } },
+  { id: 'setentas', name: 'Años 70', vibe: 'Mostaza, naranja y marrón con franjas groovy y esquinas muy redondas.', category: 'Géneros', ink: true, preview: { bg: 'linear-gradient(180deg, #f3e3c3 70%, #e8a33d 70% 78%, #d9622b 78% 86%, #5c3a1e 86%)', surface: '#fbf1dc', accent: '#d9622b', text: '#3d2614', font: 'Righteous, "Segoe UI", sans-serif' } },
+  { id: 'arcade', name: 'Sala arcade', vibe: 'Pantalla de máquina recreativa: líneas de CRT, píxeles y naves marchando.', category: 'Videojuegos', ink: false, scene: true, preview: { bg: 'radial-gradient(circle, #1a0836, #07020f 75%)', surface: 'rgba(18,8,36,0.9)', accent: '#ffe600', text: '#fffbe0', font: '"Press Start 2P", monospace' } },
+  { id: 'y2k', name: 'Y2K', vibe: 'Cromo holográfico, rosa y celeste, títulos en degradado y destellos brillando.', category: 'Estéticas', ink: true, scene: true, preview: { bg: 'linear-gradient(120deg, #e7ecf5, #f3d9f0, #d3f1ff)', surface: '#ffffff', accent: '#ff4fc1', text: '#1d2240', font: '"Trebuchet MS", sans-serif' } },
+  { id: 'frutiger', name: 'Frutiger Aero', vibe: 'Cielo azul, pasto verde, burbujas de cristal y botones brillantes como gel.', category: 'Estéticas', ink: true, scene: true, preview: { bg: 'linear-gradient(180deg, #3fb5f0, #e8f8ff 62%, #8fd36a 63%)', surface: 'rgba(255,255,255,0.85)', accent: '#1ea7e8', text: '#0d3550', font: '"Segoe UI", sans-serif' } },
+  { id: 'siete', name: 'Escritorio de cristal', vibe: 'El escritorio azul de 2009: ventanas de cristal con brillo y barridos de luz.', category: 'Estéticas', ink: true, scene: true, preview: { bg: 'radial-gradient(circle at 60% 40%, #2f8fd8, #082b52)', surface: 'rgba(40,90,145,0.75)', accent: '#4cc2ff', text: '#ffffff', font: '"Segoe UI", sans-serif' } },
+  { id: 'ios', name: 'Teléfono clásico', vibe: 'Los teléfonos de antes: fondo de rayas finas, barras azul metálico y botones con relieve.', category: 'Estéticas', ink: true, preview: { bg: 'repeating-linear-gradient(90deg, #c5ccd4 0 6px, #cbd2d9 6px 8px)', surface: '#ffffff', accent: '#2f6fd1', text: '#1f2a37', font: '"Helvetica Neue", Helvetica, Arial, sans-serif' } },
+  { id: 'vibras2017', name: 'Vibras 2017', vibe: 'Rosa pastel, todo redondeado, títulos en minúscula y manchas de color flotando.', category: 'Estéticas', ink: true, scene: true, preview: { bg: 'linear-gradient(160deg, #f7cac9, #c8d7f5)', surface: '#ffffff', accent: '#e87085', text: '#2e2433', font: '"Segoe UI", sans-serif' } },
+  { id: 'tresd', name: 'Profundidad 3D', vibe: 'Botones con volumen, letras en relieve, suelo de cuadrícula y figuras girando.', category: 'Estéticas', ink: true, scene: true, preview: { bg: 'radial-gradient(circle at 50% 35%, #1d2246, #0d0f1a 70%)', surface: '#1a1e33', accent: '#5eead4', text: '#f1fffc', font: '"Archivo Black", Impact, sans-serif' } },
+  { id: 'transparente', name: 'Mega transparente', vibe: 'La ventana es transparente: se ve tu escritorio detrás y DropMusic flota encima como un panel.', category: 'Estéticas', ink: false, preview: { bg: 'repeating-conic-gradient(#d8d8d8 0 25%, #f4f4f4 0 50%) 0 0 / 14px 14px', surface: 'rgba(20,20,26,0.45)', accent: '#ffffff', text: '#ffffff', font: '"Segoe UI", sans-serif' } },
+  { id: 'jdm', name: 'Leyenda JDM', vibe: 'Deportivos japoneses de noche: naranja, autopista, luces que pasan y ciudad de neón.', category: 'Motor', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #2a0f2e 40%, #0b0b0e 41%)', surface: '#18181e', accent: '#ff7a00', text: '#fff4ea', font: 'Rajdhani, "Segoe UI", sans-serif' } },
+  { id: 'granpremio', name: 'Gran Premio', vibe: 'Carreras de monoplazas: rojo y negro, pianos de la pista, bandera a cuadros y velocidad.', category: 'Motor', ink: false, scene: true, preview: { bg: '#0e0e10', surface: '#1b1b1f', accent: '#e10600', text: '#ffffff', font: 'Rajdhani, "Segoe UI", sans-serif' } },
+  { id: 'hatchback', name: 'Hatchback 2000', vibe: 'Tablero de un compacto de los 2000: plástico gris, pantalla naranja y agujas que suben con la música.', category: 'Motor', ink: false, scene: true, preview: { bg: 'radial-gradient(circle at 50% 120%, #2a2e35, #121417 70%)', surface: '#23272d', accent: '#ff8c1a', text: '#fff3e4', font: 'Rajdhani, "Segoe UI", sans-serif' } },
+  { id: 'venezolano', name: 'Venezolano', vibe: 'Amarillo, azul y rojo, las ocho estrellas en arco y tepuyes al fondo.', category: 'Culturas', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #ffcc00 0 14%, #0a2366 14% 86%, #cf142b 86%)', surface: 'rgba(12,36,104,0.9)', accent: '#ffcc00', text: '#ffffff', font: 'Righteous, "Segoe UI", sans-serif' } },
+  { id: 'chino', name: 'Chino tradicional', vibe: 'Rojo laca y dorado, marcos de celosía, nubes doradas y faroles que se mecen.', category: 'Culturas', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #5c0f0d, #300605)', surface: 'rgba(88,16,14,0.9)', accent: '#f0c05a', text: '#fff1d8', font: 'KaiTi, STKaiti, Georgia, serif' } },
+  { id: 'ladrillos', name: 'Ladrillos de juguete', vibe: 'Piezas de colores primarios con sus tetones, sobre una base gris para construir.', category: 'Videojuegos', ink: true, preview: { bg: 'radial-gradient(circle at 6px 6px, #f2f2f2 0 4px, transparent 5px) 0 0 / 12px 12px, #e4e4e4', surface: '#ffffff', accent: '#0055bf', text: '#1a1a1a', font: '"Archivo Black", Impact, sans-serif' } },
+  { id: 'bloques08', name: 'Bloques clásicos', vibe: 'Los juegos de bloques online de 2008: superficies grises con tetones, cielo azul y nubes cuadradas.', category: 'Videojuegos', ink: true, scene: true, preview: { bg: 'linear-gradient(180deg, #4aa3e0, #a8dcff 70%, #59a63a 70.5%)', surface: '#f4f4f4', accent: '#0066cc', text: '#191919', font: '"Arial Black", Arial, sans-serif' } },
+  { id: 'nuclear', name: 'Planta nuclear', vibe: 'Amarillo de peligro y verde radiactivo, el símbolo girando y partículas que brillan.', category: 'Videojuegos', ink: false, scene: true, preview: { bg: 'radial-gradient(circle, #1f2a12, #0a0d07 70%)', surface: '#181c10', accent: '#7cff3a', text: '#f3ffe8', font: 'Rajdhani, "Segoe UI", sans-serif' } },
 ]
 
 // Capas genéricas que cada tema con fondo animado usa a su manera desde themes.css.
-type LayoutId = 'clasica' | 'espejo' | 'superior' | 'escenario' | 'minimal'
+type LayoutId =
+  | 'clasica' | 'espejo' | 'superior' | 'escenario' | 'minimal'
+  | 'cabecera' | 'dock' | 'panorama' | 'cabina' | 'dividida' | 'ventanas' | 'cine'
 
 const layouts: { id: LayoutId; name: string; description: string }[] = [
   { id: 'clasica', name: 'Clásica', description: 'Menú a la izquierda y lo que suena a la derecha. En la letra, la portada a la izquierda.' },
@@ -238,6 +283,13 @@ const layouts: { id: LayoutId; name: string; description: string }[] = [
   { id: 'superior', name: 'Barra superior', description: 'Menú arriba en pestañas y más espacio para tu música. En la letra, la portada arriba y la letra centrada.' },
   { id: 'escenario', name: 'Escenario', description: 'La portada en grande como protagonista junto al contenido. En la letra, la portada gigante de fondo.' },
   { id: 'minimal', name: 'Minimal', description: 'Solo iconos, sin panel lateral y con el reproductor flotando. En la letra, solo la letra en el centro.' },
+  { id: 'cabecera', name: 'Reproductor arriba', description: 'Los controles pasan a la parte de arriba, como una cabecera. En Big Picture también quedan arriba.' },
+  { id: 'dock', name: 'Dock flotante', description: 'Sin barra lateral: el menú es un dock de iconos flotando abajo. En la letra, la portada como foto instantánea.' },
+  { id: 'panorama', name: 'Panorama', description: 'Lo que suena es una franja ancha arriba y tu música debajo. En la letra, la portada en formato de cine.' },
+  { id: 'cabina', name: 'Cabina', description: 'El reproductor es un panel vertical a la derecha con la portada grande. En la letra, la portada gira como un disco.' },
+  { id: 'dividida', name: 'Pantalla dividida', description: 'Menú arriba y la pantalla partida a la mitad. En la letra, la portada llena media pantalla.' },
+  { id: 'ventanas', name: 'Ventanas flotantes', description: 'Cada parte flota como una ventana con esquinas redondas. En la letra, la portada inclinada en 3D.' },
+  { id: 'cine', name: 'Cine', description: 'Contenido centrado y el menú a la derecha. En la letra, subtítulos con franjas negras de película.' },
 ]
 
 // Filtro que ondula la imagen despacio: la portada parece "viva", como las portadas en
@@ -681,7 +733,25 @@ type LyricsState = {
   instrumental: boolean
 }
 
-type BigPictureMode = 'carousel' | 'lyrics'
+type BigPictureMode = 'carousel' | 'lyrics' | 'vinilo' | 'pulso'
+
+// Un segundo de silencio (WAV de 8 kHz) en bucle; el volumen casi nulo evita que el navegador
+// lo trate como audio silenciado, que no cuenta para el panel multimedia del sistema.
+function createSilentAudio() {
+  const samples = 8000
+  const buffer = new ArrayBuffer(44 + samples)
+  const view = new DataView(buffer)
+  const text = (offset: number, value: string) => [...value].forEach((char, index) => view.setUint8(offset + index, char.charCodeAt(0)))
+  text(0, 'RIFF'); view.setUint32(4, 36 + samples, true); text(8, 'WAVE')
+  text(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true)
+  view.setUint32(24, samples, true); view.setUint32(28, samples, true); view.setUint16(32, 1, true); view.setUint16(34, 8, true)
+  text(36, 'data'); view.setUint32(40, samples, true)
+  new Uint8Array(buffer, 44).fill(128)
+  const audio = new Audio(URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' })))
+  audio.loop = true
+  audio.volume = 0.01
+  return audio
+}
 
 // Convierte LRC ("[01:23.45] texto") en líneas con su segundo de inicio.
 function parseLrc(lrc: string): LyricLine[] {
@@ -892,10 +962,70 @@ function BigPicturePlayer({
       <div aria-label="Formato de pantalla completa" className="big-picture-modes" role="group">
         <button aria-pressed={mode === 'carousel'} data-mode="carousel" onClick={() => onModeChange('carousel')} type="button"><Disc3 size={15} /> Carrusel</button>
         <button aria-pressed={mode === 'lyrics'} data-mode="lyrics" onClick={() => onModeChange('lyrics')} type="button"><Mic2 size={15} /> Letra</button>
+        <button aria-pressed={mode === 'vinilo'} data-mode="vinilo" onClick={() => onModeChange('vinilo')} type="button"><Radio size={15} /> Vinilo</button>
+        <button aria-pressed={mode === 'pulso'} data-mode="pulso" onClick={() => onModeChange('pulso')} type="button"><Activity size={15} /> Pulso</button>
       </div>
       <button aria-label="Salir de Big Picture" className="big-picture-close" onClick={onClose} type="button"><Minimize2 size={18} /></button>
 
-      {mode === 'lyrics' ? (
+      {mode === 'pulso' ? (
+        <div className="pulse-layout">
+          <div className="pulse-orb">
+            <span aria-hidden="true" className="pulse-ripples"><i /><i /><i /></span>
+            <span aria-hidden="true" className="pulse-ring">
+              {Array.from({ length: 64 }, (_, index) => <i key={index} style={{ '--bar': index } as CSSProperties} />)}
+            </span>
+            <button aria-label={isPlaying ? 'Pausar' : 'Reproducir'} className="pulse-cover" key={track.id} onClick={onTogglePlayback} type="button">
+              {track.artwork ? <img alt={`Portada de ${track.album}`} src={track.artwork} /> : <Music2 size={64} />}
+            </button>
+          </div>
+          <div className="pulse-meta" key={`meta-${track.id}`}>
+            <strong>{track.title}</strong>
+            <span>{track.artist}</span>
+          </div>
+          {upcomingTracks[0] && (
+            <button className="pulse-next" key={`next-${upcomingTracks[0].id}`} onClick={() => onPlay(upcomingTracks[0].id)} type="button">
+              <small>Sigue</small>
+              {upcomingTracks[0].artwork ? <img alt="" src={upcomingTracks[0].artwork} /> : <Music2 size={16} />}
+              <span><strong>{upcomingTracks[0].title}</strong><small>{upcomingTracks[0].artist}</small></span>
+            </button>
+          )}
+        </div>
+      ) : mode === 'vinilo' ? (
+        <div className="vinyl-layout">
+          <div className="vinyl-deck">
+            <span className="vinyl-sleeve" key={`sleeve-${track.id}`}>
+              {track.artwork ? <img alt={`Portada de ${track.album}`} src={track.artwork} /> : <Music2 size={64} />}
+            </span>
+            <button aria-label={isPlaying ? 'Pausar' : 'Reproducir'} className="vinyl-record" key={`record-${track.id}`} onClick={onTogglePlayback} type="button">
+              <span className="vinyl-label">{track.artwork ? <img alt="" src={track.artwork} /> : <Music2 size={28} />}</span>
+            </button>
+            <span aria-hidden="true" className="vinyl-arm"><i /></span>
+          </div>
+          <div className="vinyl-info">
+            <div className="vinyl-meta" key={track.id}>
+              <small>Sonando ahora</small>
+              <strong>{track.title}</strong>
+              <span>{track.artist}</span>
+              {track.album && <em>{track.album}</em>}
+            </div>
+            {upcomingTracks.length > 0 && (
+              <ol className="vinyl-queue">
+                <li className="vinyl-queue-title">Cara B · a continuación</li>
+                {upcomingTracks.slice(0, 5).map((item, index) => (
+                  <li key={item.id} style={{ '--i': index } as CSSProperties}>
+                    <button onClick={() => onPlay(item.id)} type="button">
+                      <span>{String(index + 1).padStart(2, '0')}</span>
+                      {item.artwork ? <img alt="" src={item.artwork} /> : <span className="vinyl-queue-art"><Music2 size={14} /></span>}
+                      <span className="vinyl-queue-meta"><strong>{item.title}</strong><small>{item.artist}</small></span>
+                      <span>{formatTime(item.duration)}</span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        </div>
+      ) : mode === 'lyrics' ? (
         <div className="lyrics-layout">
           <LyricsCover track={track} />
           <div className="lyrics-panel" key={track.id}>
@@ -1179,6 +1309,9 @@ function App() {
   const spotifySuggestionRequestRef = useRef(0)
   const spotifyLastStateRef = useRef<{ id: string | null; paused: boolean; position: number } | null>(null)
   const trackEndRef = useRef<() => void>(() => {})
+  // Evita avanzar dos veces cuando el fin de la canción se detecta por dos caminos a la vez.
+  const spotifyEndedIdRef = useRef('')
+  const spotifyStartedAtRef = useRef(0)
   const spotifyRadioRef = useRef<SpotifyRadio>(createSpotifyRadio(null))
   const spotifyHistoryRef = useRef<Track[]>([])
   const [radioSeed, setRadioSeed] = useState('')
@@ -1195,6 +1328,7 @@ function App() {
   const [bigPictureMode, setBigPictureMode] = useState<BigPictureMode | null>(null)
   const [lyrics, setLyrics] = useState<LyricsState | null>(null)
   const [themeFilter, setThemeFilter] = useState<ThemeCategory | 'Todos'>('Todos')
+  const [personalizationTab, setPersonalizationTab] = useState<'temas' | 'disposiciones'>('temas')
   const lyricsCacheRef = useRef(new Map<string, LyricsState>())
   const [topArtists, setTopArtists] = useState<Artist[]>([])
   const [newReleases, setNewReleases] = useState<Album[]>([])
@@ -1365,11 +1499,17 @@ function App() {
         if (!state) return
         const track = state.track_window.current_track
         // Spotify no avisa cuando termina una canción: pasa de sonando a pausado en la posición 0.
+        // Casi nunca manda estados a mitad de canción, así que el último suele tener posición 0;
+        // por eso basta con que la canción lleve unos segundos sonando.
         const previous = spotifyLastStateRef.current
         spotifyLastStateRef.current = { id: track.id, paused: state.paused, position: state.position }
-        if (previous && !previous.paused && previous.position > 0 && previous.id === track.id
-          && state.paused && state.position === 0) {
+        if (previous && !previous.paused && previous.id === track.id && state.paused && state.position === 0
+          && (previous.position > 0 || Date.now() - spotifyStartedAtRef.current > 5000)
+          && spotifyEndedIdRef.current !== track.id) {
+          spotifyEndedIdRef.current = track.id ?? ''
           trackEndRef.current()
+          // Este estado es de la canción que terminó: no debe pisar la que acaba de empezar.
+          return
         }
         setElapsedSeconds(Math.floor(state.position / 1000))
         setIsPlaying(!state.paused)
@@ -1515,6 +1655,74 @@ function App() {
   }, [bigPictureMode, activeTrack.id, activeTrack.title, activeTrack.artist, activeTrack.artists, activeTrack.album, activeTrack.duration])
 
   useEffect(() => {
+    document.documentElement.classList.toggle('see-through', settings.theme === 'transparente')
+  }, [settings.theme])
+
+  // Reproductores externos (el panel multimedia de Windows, widgets, teclas multimedia):
+  // sin estos datos mostraban el título de la ventana y ninguna portada.
+  const mediaHandlersRef = useRef({ togglePlayback: () => {}, skipTrack: (_direction: 1 | -1) => {}, seekTo: (_time: number) => {} })
+  useEffect(() => {
+    document.title = activeTrack.source ? `${activeTrack.title} · ${activeTrack.artist}` : 'DropMusic — Tu música, a tu manera'
+    if (!('mediaSession' in navigator)) return
+    navigator.mediaSession.metadata = activeTrack.source
+      ? new MediaMetadata({
+          title: activeTrack.title,
+          artist: activeTrack.artist,
+          album: activeTrack.album,
+          artwork: activeTrack.artwork ? [{ src: activeTrack.artwork, sizes: '640x640' }] : [],
+        })
+      : null
+  }, [activeTrack.source, activeTrack.title, activeTrack.artist, activeTrack.album, activeTrack.artwork])
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return
+    navigator.mediaSession.playbackState = activeTrack.source ? (isPlaying ? 'playing' : 'paused') : 'none'
+  }, [activeTrack.source, isPlaying])
+
+  // Spotify suena dentro de su propio iframe y Windows tomaba los datos de ese marco (vacíos).
+  // Un audio silencioso en la ventana principal hace que Windows lea nuestros datos.
+  const silentAudioRef = useRef<HTMLAudioElement | null>(null)
+  useEffect(() => {
+    if (activeTrack.source !== 'Spotify') {
+      silentAudioRef.current?.pause()
+      return
+    }
+    silentAudioRef.current ??= createSilentAudio()
+    const silent = silentAudioRef.current
+    if (isPlaying) void silent.play().catch(() => {})
+    else silent.pause()
+  }, [activeTrack.source, isPlaying])
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !activeTrack.duration) return
+    try {
+      navigator.mediaSession.setPositionState({ duration: activeTrack.duration, position: Math.min(activeTrack.duration, elapsedSeconds), playbackRate: 1 })
+    } catch {
+      // Algunos motores rechazan posiciones fuera de rango durante el cambio de canción.
+    }
+  }, [activeTrack.duration, elapsedSeconds])
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return
+    const session = navigator.mediaSession
+    const handlers: [MediaSessionAction, MediaSessionActionHandler][] = [
+      ['play', () => mediaHandlersRef.current.togglePlayback()],
+      ['pause', () => mediaHandlersRef.current.togglePlayback()],
+      ['nexttrack', () => mediaHandlersRef.current.skipTrack(1)],
+      ['previoustrack', () => mediaHandlersRef.current.skipTrack(-1)],
+      ['seekto', (details) => { if (details.seekTime !== undefined) mediaHandlersRef.current.seekTo(Math.floor(details.seekTime)) }],
+    ]
+    for (const [action, handler] of handlers) {
+      try { session.setActionHandler(action, handler) } catch { /* acción no soportada */ }
+    }
+    return () => {
+      for (const [action] of handlers) {
+        try { session.setActionHandler(action, null) } catch { /* acción no soportada */ }
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     mainContentRef.current?.scrollTo({ top: 0 })
   }, [currentDetail, activeSection, isSearching])
 
@@ -1592,6 +1800,23 @@ function App() {
     return () => window.clearInterval(timer)
   }, [activeTrack, isPlaying])
 
+  useEffect(() => {
+    if (activeTrack.source !== 'Spotify' || !isPlaying || !activeTrack.duration || elapsedSeconds < activeTrack.duration) return
+    const trackId = activeTrack.id
+    const timer = window.setInterval(() => {
+      void spotifyPlayerRef.current?.getCurrentState().then((state) => {
+        if (spotifyEndedIdRef.current === trackId) return
+        const current = state?.track_window.current_track.id
+        if (state && current !== trackId) return
+        if (!state || (state.paused && state.position === 0) || state.position >= state.duration - 1000) {
+          spotifyEndedIdRef.current = trackId
+          trackEndRef.current()
+        }
+      }).catch((error: unknown) => console.error('No se pudo consultar el estado de Spotify.', error))
+    }, 2000)
+    return () => window.clearInterval(timer)
+  }, [activeTrack.source, activeTrack.id, activeTrack.duration, isPlaying, elapsedSeconds])
+
   function prepareAudio() {
     const audio = audioRef.current
     if (!audio) return false
@@ -1638,6 +1863,8 @@ function App() {
       return
     }
     if (addToHistory) spotifyHistoryRef.current = [...spotifyHistoryRef.current, spotifyTrack].slice(-50)
+    spotifyEndedIdRef.current = ''
+    spotifyStartedAtRef.current = Date.now()
     setRecentTracks(spotifyHistoryRef.current.slice(0, -1).slice(-2))
     setListeningHistory((current) => [spotifyTrack, ...current.filter((track) => track.id !== spotifyTrack.id)].slice(0, 12))
     spotifyRadioRef.current.playedIds.add(spotifyTrack.id)
@@ -1656,7 +1883,9 @@ function App() {
       trackId: spotifyTrack.id.replace(/^spotify:/, ''),
     }).then(() => {
       setSpotifyPlayerError('')
-      setSpotifyPlaybackOption('repeat', repeat)
+      // La repetición la maneja DropMusic; si Spotify tuviera la suya activa, la canción nunca terminaría.
+      void invoke('spotify_set_playback_option', { clientId: spotifyClientId, deviceId: spotifyDeviceId, option: 'repeat', enabled: false })
+        .catch((error: unknown) => console.error('No se pudo quitar la repetición de Spotify.', error))
     }).catch((error: unknown) => {
       console.error(`No se pudo reproducir ${spotifyTrack.title} en DropMusic.`, error)
       setIsPlaying(false)
@@ -1766,7 +1995,9 @@ function App() {
     const radio = spotifyRadioRef.current
     if (radio.upNext.length === 0 && radio.queue.length === 0) await fillSpotifyRadio()
     if (spotifyRadioRef.current !== radio) return
-    const next = radio.upNext.shift() ?? radio.queue.shift()
+    // En aleatorio la siguiente sale de cualquier punto de la cola, no de la primera posición.
+    const pool = radio.upNext.length > 0 ? radio.upNext : radio.queue
+    const next = pool.splice(shuffle ? Math.floor(Math.random() * pool.length) : 0, 1)[0]
     syncRadioQueue()
     if (!next) {
       setIsPlaying(false)
@@ -1830,27 +2061,6 @@ function App() {
     setIsPlaying(false)
   }
 
-  function setSpotifyPlaybackOption(option: 'shuffle' | 'repeat', enabled: boolean) {
-    if (!spotifyClientId || !spotifyDeviceId) {
-      setSpotifyPlayerError('El reproductor de Spotify todavía no está listo para cambiar este ajuste.')
-      return
-    }
-    void invoke('spotify_set_playback_option', {
-      clientId: spotifyClientId,
-      deviceId: spotifyDeviceId,
-      option,
-      enabled,
-    }).catch((error: unknown) => {
-      console.error(`No se pudo cambiar ${option} en Spotify.`, error)
-      if (option === 'shuffle') {
-        setShuffle((current) => current === enabled ? !enabled : current)
-      } else {
-        setRepeat((current) => current === enabled ? !enabled : current)
-      }
-      setSpotifyPlayerError(error instanceof Error ? error.message : String(error))
-    })
-  }
-
   function toggleShuffle() {
     // El aleatorio lo maneja DropMusic: al activarlo se mezcla lo que queda en la cola.
     const enabled = !shuffle
@@ -1863,16 +2073,9 @@ function App() {
     }
   }
 
+  // Repetir la canción lo maneja DropMusic: al terminar vuelve a empezar la misma.
   function toggleRepeat() {
-    if (activeTrack.source === 'Spotify' && (!spotifyClientId || !spotifyDeviceId)) {
-      setSpotifyPlayerError('El reproductor de Spotify todavía no está listo para cambiar este ajuste.')
-      return
-    }
-    const enabled = !repeat
-    setRepeat(enabled)
-    if (activeTrack.source === 'Spotify') {
-      setSpotifyPlaybackOption('repeat', enabled)
-    }
+    setRepeat((current) => !current)
   }
 
   function togglePlayback() {
@@ -1933,8 +2136,8 @@ function App() {
 
   function handleTrackEnd() {
     if (activeTrack.source === 'Spotify') {
-      // Con repetir activo, Spotify vuelve a empezar la canción por su cuenta.
-      if (!repeat) skipTrack(1)
+      if (repeat) startSpotifyTrack(activeTrack, false)
+      else skipTrack(1)
       return
     }
     if (repeat && audioRef.current) {
@@ -2086,6 +2289,10 @@ function App() {
       audioRef.current.currentTime = time
     }
   }
+
+  useEffect(() => {
+    mediaHandlersRef.current = { togglePlayback, skipTrack, seekTo }
+  })
 
   function renderAlbumGrid(list: Album[]) {
     return (
@@ -2395,16 +2602,26 @@ function App() {
 
   function renderPersonalization() {
     const current = themes.find(({ id }) => id === settings.theme) ?? themes[0]
+    const currentLayout = layouts.find(({ id }) => id === settings.layout) ?? layouts[0]
+    const showThemes = personalizationTab === 'temas'
     return (
       <section aria-labelledby="personalization-heading" className="personalization-page">
-        <div className="personalization-hero">
+        <div className="personalization-hero" key={personalizationTab}>
           <span className="personalization-orb" aria-hidden="true" />
-          <span className="personalization-icon"><Palette size={26} /></span>
-          <p className="eyebrow">TEMA ACTIVO</p>
-          <h2 id="personalization-heading">{current.name}</h2>
-          <p>{current.vibe}</p>
+          <span className="personalization-icon">{showThemes ? <Palette size={26} /> : <LayoutDashboard size={26} />}</span>
+          <p className="eyebrow">{showThemes ? 'TEMA ACTIVO' : 'DISPOSICIÓN ACTIVA'}</p>
+          <h2 id="personalization-heading">{showThemes ? current.name : currentLayout.name}</h2>
+          <p>{showThemes ? current.vibe : currentLayout.description}</p>
         </div>
-        <div className="section-heading layout-heading"><div><p className="eyebrow">DISPOSICIÓN</p><h2>Cómo se acomoda todo</h2></div></div>
+        <div aria-label="Qué personalizar" className="personalization-tabs" role="tablist">
+          <button aria-selected={showThemes} onClick={() => setPersonalizationTab('temas')} role="tab" type="button">
+            <Palette size={18} /><span><strong>Temas</strong><small>{themes.length} estilos de color y fondo</small></span>
+          </button>
+          <button aria-selected={!showThemes} onClick={() => setPersonalizationTab('disposiciones')} role="tab" type="button">
+            <LayoutDashboard size={18} /><span><strong>Disposiciones</strong><small>{layouts.length} formas de acomodar la app</small></span>
+          </button>
+        </div>
+        {!showThemes && (
         <div aria-label="Disposición de DropMusic" className="layout-grid" role="radiogroup">
           {layouts.map((layout) => {
             const selected = layout.id === settings.layout
@@ -2426,7 +2643,9 @@ function App() {
             )
           })}
         </div>
-        <div className="section-heading layout-heading"><div><p className="eyebrow">ESTILO</p><h2>Temas</h2></div></div>
+        )}
+        {showThemes && (
+        <>
         <div className="personalization-options">
           <div className="setting-toggle-row">
             <span>
@@ -2481,6 +2700,8 @@ function App() {
             )
           })}
         </div>
+        </>
+        )}
       </section>
     )
   }
@@ -2496,7 +2717,7 @@ function App() {
 
   return (
     <div
-      className={`app-shell min-h-screen${settings.ambientGlow ? '' : ' no-ambient'}${settings.animations ? '' : ' reduce-motion'}${activeTheme.ink ? ' theme-ink' : ''}${isPlaying ? ' is-playing' : ''}${settings.animatedCovers ? ' animated-covers' : ''}`}
+      className={`app-shell min-h-screen${settings.ambientGlow ? '' : ' no-ambient'}${settings.animations ? '' : ' reduce-motion'}${activeTheme.ink ? ' theme-ink' : ''}${activeTheme.scene ? ' has-scene' : ''}${isPlaying ? ' is-playing' : ''}${settings.animatedCovers ? ' animated-covers' : ''}`}
       data-layout={settings.layout}
       data-theme={settings.theme}
       style={{ '--ambient-color': activeTrack.color } as CSSProperties}

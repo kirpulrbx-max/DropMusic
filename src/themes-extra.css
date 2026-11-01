@@ -9,7 +9,7 @@
   display: none;
 }
 
-.app-shell:is([data-theme="arasaka"], [data-theme="netrunner"], [data-theme="nightcity"], [data-theme="shinobi"], [data-theme="aincrad"], [data-theme="cazador"], [data-theme="blocks"], [data-theme="hyrule"], [data-theme="pokedex"], [data-theme="vaporwave"], [data-theme="lofi"], [data-theme="aurora"]) .theme-scene {
+.app-shell.has-scene .theme-scene {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -23,11 +23,11 @@
   z-index: -1;
 }
 
-.app-shell:is([data-theme="arasaka"], [data-theme="netrunner"], [data-theme="nightcity"], [data-theme="shinobi"], [data-theme="aincrad"], [data-theme="cazador"], [data-theme="blocks"], [data-theme="hyrule"], [data-theme="pokedex"], [data-theme="vaporwave"], [data-theme="lofi"], [data-theme="aurora"]) .main-content {
+.app-shell.has-scene .main-content {
   background: var(--t-veil, transparent);
 }
 
-.app-shell:is([data-theme="arasaka"], [data-theme="netrunner"], [data-theme="nightcity"], [data-theme="shinobi"], [data-theme="aincrad"], [data-theme="cazador"], [data-theme="blocks"], [data-theme="hyrule"], [data-theme="pokedex"], [data-theme="vaporwave"], [data-theme="lofi"], [data-theme="aurora"]) .big-picture-backdrop img {
+.app-shell.has-scene .big-picture-backdrop img {
   opacity: 0.3;
 }
 

@@ -1,0 +1,1143 @@
+/*
+  Tercera tanda de temas: estéticas de internet, motor, culturas y juegos.
+  Igual que los demás, los fondos animados usan .theme-scene (seis <i> más ::before y ::after).
+*/
+
+/* =========================================================
+   Estéticas
+   ========================================================= */
+
+/* ---------- Y2K ---------- */
+.app-shell[data-theme="y2k"] {
+  --t-bg: #dfe6ef;
+  --t-veil: rgba(236, 241, 248, 0.45);
+  --t-chrome: rgba(240, 244, 250, 0.9);
+  --t-surface: rgba(255, 255, 255, 0.82);
+  --t-dialog: #f7f9fc;
+  --t-hover: rgba(255, 79, 193, 0.1);
+  --t-input: rgba(255, 255, 255, 0.9);
+  --t-text: #1d2240;
+  --t-muted: #4f5679;
+  --t-label: #6a3fd0;
+  --t-accent: #ff4fc1;
+  --t-accent-ink: #2a0620;
+  --t-accent-text: #a10a70;
+  --t-accent-soft: rgba(255, 79, 193, 0.14);
+  --t-border: rgba(120, 140, 200, 0.35);
+  --t-track: #c9d3e3;
+  --t-radius: 22px;
+  --t-shadow: 0 10px 26px rgba(70, 90, 160, 0.18), inset 0 1px 0 #ffffff;
+  --t-font: "Trebuchet MS", "Segoe UI", sans-serif;
+  --t-head-font: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+.app-shell[data-theme="y2k"] :is(h1, h2) {
+  background: linear-gradient(90deg, #6a3fd0, #ff4fc1, #2ab7ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-style: italic;
+}
+
+.app-shell[data-theme="y2k"] :is(.now-playing-card, .settings-panel, .top-result-card, .theme-card, .personalization-hero) {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(214, 224, 240, 0.85));
+}
+
+/* Cromo holográfico */
+.app-shell[data-theme="y2k"] .theme-scene {
+  background: linear-gradient(120deg, #e7ecf5, #c9d6ea 30%, #f3d9f0 55%, #d3f1ff 80%, #e7ecf5);
+  background-size: 300% 300%;
+  animation: holo-shift 16s ease-in-out infinite alternate;
+}
+
+@keyframes holo-shift {
+  to { background-position: 100% 100%; }
+}
+
+/* Destellos de cuatro puntas */
+.app-shell[data-theme="y2k"] .theme-scene i {
+  width: 34px;
+  height: 34px;
+  background: radial-gradient(circle, #fff 0 12%, transparent 13%), conic-gradient(from 45deg, transparent 0 0);
+  clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%);
+  background-color: #ffffff;
+  filter: drop-shadow(0 0 6px #ff9fe0);
+  animation: sparkle 3.2s ease-in-out infinite;
+}
+
+.app-shell[data-theme="y2k"] .theme-scene i:nth-child(1) { top: 12%; left: 18%; }
+.app-shell[data-theme="y2k"] .theme-scene i:nth-child(2) { top: 30%; left: 76%; animation-delay: -1s; }
+.app-shell[data-theme="y2k"] .theme-scene i:nth-child(3) { top: 64%; left: 40%; animation-delay: -2s; width: 22px; height: 22px; }
+.app-shell[data-theme="y2k"] .theme-scene i:nth-child(4) { top: 82%; left: 86%; animation-delay: -0.5s; }
+.app-shell[data-theme="y2k"] .theme-scene i:nth-child(5) { top: 50%; left: 8%; animation-delay: -2.6s; width: 18px; height: 18px; }
+.app-shell[data-theme="y2k"] .theme-scene i:nth-child(6) { top: 8%; left: 55%; animation-delay: -1.7s; width: 26px; height: 26px; }
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.5) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(45deg); }
+}
+
+/* ---------- Frutiger Aero ---------- */
+.app-shell[data-theme="frutiger"] {
+  --t-bg: #bfe6fb;
+  --t-veil: rgba(225, 245, 255, 0.4);
+  --t-chrome: rgba(240, 250, 255, 0.82);
+  --t-surface: rgba(255, 255, 255, 0.78);
+  --t-dialog: #f4fbff;
+  --t-hover: rgba(0, 150, 220, 0.1);
+  --t-input: rgba(255, 255, 255, 0.9);
+  --t-text: #0d3550;
+  --t-muted: #3c6178;
+  --t-label: #1b7f2a;
+  --t-accent: #0873ad;
+  --t-accent-ink: #ffffff;
+  --t-accent-text: #0a6ea3;
+  --t-accent-soft: rgba(30, 167, 232, 0.14);
+  --t-border: rgba(255, 255, 255, 0.85);
+  --t-track: #b7dcef;
+  --t-radius: 16px;
+  --t-shadow: 0 10px 24px rgba(10, 90, 140, 0.18), inset 0 1px 0 #ffffff;
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: "Segoe UI", sans-serif;
+}
+
+/* Brillo de cristal en la mitad superior de botones y paneles */
+.app-shell[data-theme="frutiger"] :is(.play-button, .primary-button, .theme-card-state, .chip-active) {
+  background: linear-gradient(180deg, #2f9bd6 0%, #0873ad 50%, #065f91 51%, #0a78b5 100%);
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 2px 6px rgba(0, 90, 140, 0.35);
+}
+
+.app-shell[data-theme="frutiger"] :is(.now-playing-card, .settings-panel, .top-result-card, .theme-card) {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(235, 248, 255, 0.72));
+}
+
+.app-shell[data-theme="frutiger"] .theme-scene {
+  background: linear-gradient(180deg, #3fb5f0 0%, #9ddcfb 45%, #e8f8ff 62%, #8fd36a 63%, #3f9e2f 100%);
+}
+
+/* Nubes */
+.app-shell[data-theme="frutiger"] .theme-scene::before {
+  top: 8%;
+  left: -40%;
+  width: 180%;
+  height: 30%;
+  background:
+    radial-gradient(ellipse 120px 40px at 10% 50%, rgba(255, 255, 255, 0.9), transparent 70%),
+    radial-gradient(ellipse 160px 50px at 35% 30%, rgba(255, 255, 255, 0.85), transparent 70%),
+    radial-gradient(ellipse 140px 45px at 65% 60%, rgba(255, 255, 255, 0.9), transparent 70%),
+    radial-gradient(ellipse 110px 38px at 88% 35%, rgba(255, 255, 255, 0.85), transparent 70%);
+  animation: clouds-drift 60s linear infinite;
+}
+
+@keyframes clouds-drift {
+  to { transform: translateX(30%); }
+}
+
+/* Destello de sol */
+.app-shell[data-theme="frutiger"] .theme-scene::after {
+  top: -12vmin;
+  right: -8vmin;
+  width: 50vmin;
+  height: 50vmin;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95), rgba(255, 255, 220, 0.4) 30%, transparent 65%);
+}
+
+/* Burbujas brillantes */
+.app-shell[data-theme="frutiger"] .theme-scene i {
+  bottom: -60px;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95) 0 12%, rgba(255, 255, 255, 0.15) 30%, rgba(120, 210, 255, 0.25) 70%, rgba(255, 255, 255, 0.5));
+  animation: bubble-rise 16s ease-in infinite;
+}
+
+.app-shell[data-theme="frutiger"] .theme-scene i:nth-child(1) { left: 6%; }
+.app-shell[data-theme="frutiger"] .theme-scene i:nth-child(2) { left: 22%; width: 28px; height: 28px; animation-duration: 12s; animation-delay: -5s; }
+.app-shell[data-theme="frutiger"] .theme-scene i:nth-child(3) { left: 44%; width: 60px; height: 60px; animation-duration: 20s; animation-delay: -9s; }
+.app-shell[data-theme="frutiger"] .theme-scene i:nth-child(4) { left: 62%; animation-delay: -3s; }
+.app-shell[data-theme="frutiger"] .theme-scene i:nth-child(5) { left: 80%; width: 32px; height: 32px; animation-duration: 13s; animation-delay: -11s; }
+.app-shell[data-theme="frutiger"] .theme-scene i:nth-child(6) { left: 93%; width: 22px; height: 22px; animation-duration: 10s; animation-delay: -7s; }
+
+/* ---------- Escritorio de cristal ---------- */
+.app-shell[data-theme="siete"] {
+  --t-bg: #0b3a6c;
+  --t-veil: rgba(6, 32, 64, 0.5);
+  --t-text: #ffffff;
+  --t-dialog: #123e6e;
+  --t-accent-text: #8fd8ff;
+  --t-chrome: rgba(30, 70, 115, 0.72);
+  --t-surface: rgba(28, 72, 120, 0.7);
+  --t-hover: rgba(255, 255, 255, 0.12);
+  --t-input: rgba(255, 255, 255, 0.92);
+  --t-muted: #d6e6f5;
+  --t-label: #9ee0ff;
+  --t-accent: #4cc2ff;
+  --t-accent-ink: #062238;
+  --t-accent-soft: rgba(76, 194, 255, 0.16);
+  --t-border: rgba(255, 255, 255, 0.35);
+  --t-track: rgba(255, 255, 255, 0.25);
+  --t-radius: 7px;
+  --t-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: "Segoe UI", sans-serif;
+  --t-lyric: #ffffff;
+}
+
+/* Cristal con brillo diagonal, como las ventanas de esa época */
+.app-shell[data-theme="siete"] :is(.sidebar, .player-bar, .now-playing-card, .settings-panel, .top-result-card, .theme-card) {
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 40%, transparent 41%),
+    rgba(20, 58, 104, 0.78);
+  backdrop-filter: blur(14px) saturate(1.4);
+}
+
+.app-shell[data-theme="siete"] .search-box :is(input, kbd, svg) {
+  color: #102a43;
+}
+
+.app-shell[data-theme="siete"] .play-button {
+  background: radial-gradient(circle at 50% 30%, #8fe1ff, #1b8fd6 60%, #0a5c99);
+  box-shadow: 0 0 14px rgba(76, 194, 255, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  color: #fff;
+}
+
+.app-shell[data-theme="siete"] .theme-scene {
+  background: radial-gradient(ellipse at 60% 40%, #2f8fd8, #0f4c8a 55%, #082b52);
+}
+
+/* Barridos de luz */
+.app-shell[data-theme="siete"] .theme-scene::before,
+.app-shell[data-theme="siete"] .theme-scene::after {
+  top: 20%;
+  left: -20%;
+  width: 140%;
+  height: 50%;
+  border-radius: 50%;
+  border-top: 26px solid rgba(160, 230, 255, 0.35);
+  filter: blur(8px);
+  transform: rotate(-12deg);
+  animation: swoosh-glow 9s ease-in-out infinite alternate;
+}
+
+.app-shell[data-theme="siete"] .theme-scene::after {
+  top: 32%;
+  border-top: 14px solid rgba(140, 255, 160, 0.3);
+  transform: rotate(-8deg);
+  animation-delay: -4s;
+}
+
+@keyframes swoosh-glow {
+  to { opacity: 0.45; translate: 4% 2%; }
+}
+
+/* ---------- Teléfono clásico (iOS de antes) ---------- */
+.app-shell[data-theme="ios"] {
+  --t-bg: #c5ccd4;
+  --t-bg-image: repeating-linear-gradient(90deg, #c5ccd4 0 6px, #cbd2d9 6px 8px), #c5ccd4;
+  --t-chrome: #e9ecef;
+  --t-surface: #ffffff;
+  --t-dialog: #ffffff;
+  --t-hover: rgba(50, 100, 180, 0.08);
+  --t-input: #ffffff;
+  --t-text: #1f2a37;
+  --t-muted: #4c5a6a;
+  --t-label: #3a5f8f;
+  --t-accent: #2f6fd1;
+  --t-accent-ink: #ffffff;
+  --t-accent-text: #234f99;
+  --t-accent-soft: rgba(47, 111, 209, 0.12);
+  --t-border: #a9b4c0;
+  --t-track: #b8c2cc;
+  --t-radius: 10px;
+  --t-shadow: 0 1px 0 #ffffff, 0 2px 6px rgba(0, 0, 0, 0.2);
+  --t-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --t-head-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* Barras con el azul brillante y el texto grabado */
+.app-shell[data-theme="ios"] :is(.topbar, .player-bar) {
+  background: linear-gradient(180deg, #b0bccd 0%, #6d84a2 50%, #5d7596 51%, #6d84a2 100%);
+  border-color: #2d3f57;
+}
+
+.app-shell[data-theme="ios"] .breadcrumbs span,
+.app-shell[data-theme="ios"] .player-bar :is(span, strong, small) {
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
+}
+
+.app-shell[data-theme="ios"] :is(h1, h2) {
+  text-shadow: 0 1px 0 #ffffff;
+}
+
+.app-shell[data-theme="ios"] :is(.play-button, .primary-button, .theme-card-state, .chip-active, .top-connect-button) {
+  background: linear-gradient(180deg, #7fa9e8 0%, #2f6fd1 50%, #2560bf 51%, #3a7be0 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 2px rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+}
+
+/* ---------- Vibras 2017 ---------- */
+.app-shell[data-theme="vibras2017"] {
+  --t-bg: #fbe3e1;
+  --t-veil: rgba(253, 238, 236, 0.45);
+  --t-chrome: rgba(255, 245, 244, 0.9);
+  --t-surface: rgba(255, 255, 255, 0.88);
+  --t-dialog: #ffffff;
+  --t-hover: rgba(232, 112, 133, 0.1);
+  --t-input: #ffffff;
+  --t-text: #2e2433;
+  --t-muted: #6a5866;
+  --t-label: #5b6fd6;
+  --t-accent: #c94661;
+  --t-accent-ink: #ffffff;
+  --t-accent-text: #b8364d;
+  --t-accent-soft: rgba(232, 112, 133, 0.13);
+  --t-border: rgba(232, 112, 133, 0.2);
+  --t-track: #f2d0d3;
+  --t-radius: 999px;
+  --t-shadow: 0 14px 34px rgba(150, 80, 110, 0.14);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: "Segoe UI", sans-serif;
+}
+
+.app-shell[data-theme="vibras2017"] :is(.now-playing-card, .settings-panel, .top-result-card, .theme-card, .personalization-hero, .album-art-large, .featured-card) {
+  border-radius: 26px;
+}
+
+.app-shell[data-theme="vibras2017"] :is(h1, h2) {
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+}
+
+.app-shell[data-theme="vibras2017"] .theme-scene {
+  background: linear-gradient(160deg, #f7cac9, #f3e3f3 50%, #c8d7f5);
+}
+
+/* Manchas de color que flotan, como los fondos de aquel año */
+.app-shell[data-theme="vibras2017"] .theme-scene i:nth-child(-n + 4) {
+  width: 46vmin;
+  height: 46vmin;
+  border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+  filter: blur(30px);
+  opacity: 0.7;
+  animation: blob-morph 18s ease-in-out infinite alternate;
+}
+
+.app-shell[data-theme="vibras2017"] .theme-scene i:nth-child(1) { top: -10%; left: -8%; background: #f9a8c3; }
+.app-shell[data-theme="vibras2017"] .theme-scene i:nth-child(2) { top: 40%; right: -10%; background: #92a8f0; animation-delay: -6s; }
+.app-shell[data-theme="vibras2017"] .theme-scene i:nth-child(3) { bottom: -15%; left: 30%; background: #ffd1a6; animation-delay: -11s; }
+.app-shell[data-theme="vibras2017"] .theme-scene i:nth-child(4) { top: 15%; left: 45%; width: 30vmin; height: 30vmin; background: #c4b5fd; animation-delay: -3s; }
+
+@keyframes blob-morph {
+  50% { border-radius: 60% 40% 35% 65% / 55% 60% 40% 45%; transform: translate(6vw, 4vh) rotate(40deg); }
+  100% { border-radius: 38% 62% 50% 50% / 48% 38% 62% 52%; transform: translate(-4vw, 8vh) rotate(-20deg); }
+}
+
+/* ---------- Profundidad 3D ---------- */
+.app-shell[data-theme="tresd"] {
+  --t-bg: #0d0f1a;
+  --t-veil: rgba(13, 15, 26, 0.4);
+  --t-text: #eef2ff;
+  --t-dialog: #1a1e33;
+  --t-accent-text: #5eead4;
+  --t-chrome: rgba(18, 21, 36, 0.94);
+  --t-surface: #1a1e33;
+  --t-hover: rgba(94, 234, 212, 0.08);
+  --t-input: #12152a;
+  --t-muted: #aab1d0;
+  --t-label: #f472b6;
+  --t-accent: #5eead4;
+  --t-accent-ink: #052620;
+  --t-accent-soft: rgba(94, 234, 212, 0.12);
+  --t-border: #2c3354;
+  --t-track: #2a3050;
+  --t-radius: 12px;
+  --t-shadow: 0 1px 0 #2c3354, 0 2px 0 #262c4a, 0 3px 0 #212640, 0 4px 0 #1c2036, 0 5px 0 #171b2e, 0 14px 24px rgba(0, 0, 0, 0.5);
+  --t-font: Inter, "Segoe UI", sans-serif;
+  --t-head-font: "Archivo Black", Impact, sans-serif;
+  --t-lyric: #f1fffc;
+}
+
+/* Letras con relieve */
+.app-shell[data-theme="tresd"] :is(h1, h2) {
+  color: #f1fffc;
+  text-shadow: 1px 1px 0 #5eead4, 2px 2px 0 #3fc9b4, 3px 3px 0 #2ba595, 4px 4px 0 #1c7f73, 6px 8px 12px rgba(0, 0, 0, 0.5);
+}
+
+.app-shell[data-theme="tresd"] :is(.theme-card, .album-card, .featured-card, .top-result-card) {
+  transition: transform 350ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 350ms ease;
+}
+
+.app-shell[data-theme="tresd"] :is(.theme-card, .album-card, .top-result-card):hover {
+  transform: perspective(700px) rotateX(8deg) rotateY(-8deg) translateY(-4px);
+}
+
+.app-shell[data-theme="tresd"] .theme-scene {
+  background: radial-gradient(ellipse at 50% 35%, #1d2246, #0d0f1a 65%);
+  perspective: 600px;
+}
+
+/* Suelo de cuadrícula en perspectiva */
+.app-shell[data-theme="tresd"] .theme-scene::before {
+  right: -50%;
+  bottom: -30%;
+  left: -50%;
+  height: 80%;
+  background:
+    linear-gradient(rgba(94, 234, 212, 0.35) 1px, transparent 1px) 0 0 / 60px 60px,
+    linear-gradient(90deg, rgba(94, 234, 212, 0.35) 1px, transparent 1px) 0 0 / 60px 60px;
+  mask-image: linear-gradient(180deg, transparent, #000 60%);
+  transform: rotateX(70deg);
+  transform-origin: 50% 100%;
+  animation: grid-scroll 3s linear infinite;
+}
+
+@keyframes grid-scroll {
+  to { background-position: 0 60px, 0 0; }
+}
+
+/* Cubo de alambre que gira */
+.app-shell[data-theme="tresd"] .theme-scene i:nth-child(1) {
+  top: 14%;
+  right: 12%;
+  width: 90px;
+  height: 90px;
+  border: 2px solid rgba(244, 114, 182, 0.7);
+  box-shadow: 0 0 20px rgba(244, 114, 182, 0.4), inset 0 0 20px rgba(244, 114, 182, 0.2);
+  transform-style: preserve-3d;
+  animation: cube-spin 14s linear infinite;
+}
+
+.app-shell[data-theme="tresd"] .theme-scene i:nth-child(2) {
+  top: 60%;
+  left: 8%;
+  width: 60px;
+  height: 60px;
+  border: 2px solid rgba(94, 234, 212, 0.6);
+  border-radius: 50%;
+  animation: cube-spin 10s linear infinite reverse;
+}
+
+@keyframes cube-spin {
+  from { transform: rotateX(0) rotateY(0) rotateZ(0); }
+  to { transform: rotateX(360deg) rotateY(720deg) rotateZ(180deg); }
+}
+
+/* ---------- Mega transparente ----------
+   La ventana de la app es transparente (tauri.conf.json) y este tema quita todos los fondos:
+   se ve el escritorio de Windows detrás. Los paneles llevan un velo oscuro mínimo y el texto
+   una sombra para que se pueda leer sobre cualquier fondo de pantalla. */
+:root.see-through,
+:root.see-through body,
+:root.see-through #root {
+  background: transparent;
+}
+
+.app-shell[data-theme="transparente"] {
+  --t-bg: transparent;
+  --t-chrome: rgba(10, 10, 14, 0.28);
+  --t-surface: rgba(14, 14, 20, 0.34);
+  --t-dialog: rgba(18, 18, 24, 0.92);
+  --t-hover: rgba(255, 255, 255, 0.12);
+  --t-input: rgba(0, 0, 0, 0.35);
+  --t-muted: #f0f0f4;
+  --t-label: #ffffff;
+  --t-accent: #ffffff;
+  --t-accent-ink: #111111;
+  --t-accent-soft: rgba(255, 255, 255, 0.16);
+  --t-border: rgba(255, 255, 255, 0.4);
+  --t-track: rgba(255, 255, 255, 0.3);
+  --t-radius: 14px;
+  --t-shadow: none;
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: "Segoe UI", sans-serif;
+  --t-lyric: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75), 0 0 1px rgba(0, 0, 0, 0.9);
+}
+
+.app-shell[data-theme="transparente"] :is(.sidebar, .topbar, .player-bar, .main-content) {
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.app-shell[data-theme="transparente"] :is(.now-playing-card, .settings-panel, .top-result-card, .theme-card, .personalization-hero, .featured-card, .track-row:hover, .personalization-tabs button) {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(14, 14, 20, 0.34);
+  backdrop-filter: none;
+}
+
+.app-shell[data-theme="transparente"] .big-picture {
+  background: rgba(8, 8, 12, 0.25);
+}
+
+.app-shell[data-theme="transparente"] .big-picture-backdrop {
+  display: none;
+}
+
+/* =========================================================
+   Motor
+   ========================================================= */
+
+/* ---------- Leyenda JDM ---------- */
+.app-shell[data-theme="jdm"] {
+  --t-bg: #0b0b0e;
+  --t-veil: rgba(11, 11, 14, 0.45);
+  --t-chrome: rgba(14, 14, 18, 0.94);
+  --t-surface: rgba(24, 24, 30, 0.9);
+  --t-hover: rgba(255, 122, 0, 0.1);
+  --t-input: #141419;
+  --t-muted: #b9b9c4;
+  --t-label: #ff3b5c;
+  --t-accent: #ff7a00;
+  --t-accent-ink: #1a0b00;
+  --t-accent-soft: rgba(255, 122, 0, 0.13);
+  --t-border: rgba(255, 122, 0, 0.22);
+  --t-track: #2a2a33;
+  --t-radius: 4px;
+  --t-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+  --t-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-head-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-lyric: #fff4ea;
+}
+
+.app-shell[data-theme="jdm"] :is(h1, h2) {
+  font-style: italic;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.app-shell[data-theme="jdm"] .theme-scene {
+  background: linear-gradient(180deg, #120a1c 0%, #2a0f2e 40%, #0b0b0e 41%, #111116 100%);
+  perspective: 500px;
+}
+
+/* Skyline de neón al fondo */
+.app-shell[data-theme="jdm"] .theme-scene::after {
+  top: 22%;
+  right: 0;
+  left: 0;
+  height: 19%;
+  background:
+    linear-gradient(0deg, #0b0b0e 0 0) 0 100% / 100% 0 no-repeat,
+    repeating-linear-gradient(90deg, #190d22 0 40px, #1f1029 40px 70px, #160b1e 70px 120px);
+  clip-path: polygon(0 60%, 6% 60%, 6% 20%, 12% 20%, 12% 45%, 20% 45%, 20% 5%, 26% 5%, 26% 50%, 35% 50%, 35% 30%, 42% 30%, 42% 0, 47% 0, 47% 40%, 58% 40%, 58% 15%, 66% 15%, 66% 55%, 75% 55%, 75% 25%, 83% 25%, 83% 45%, 92% 45%, 92% 10%, 100% 10%, 100% 100%, 0 100%);
+  box-shadow: inset 0 -2px 0 #ff3b5c;
+}
+
+/* La autopista: rayas que pasan rápido */
+.app-shell[data-theme="jdm"] .theme-scene::before {
+  bottom: -10%;
+  left: 50%;
+  width: 18px;
+  height: 70%;
+  margin-left: -9px;
+  background: repeating-linear-gradient(0deg, #ffb347 0 60px, transparent 60px 140px);
+  transform: rotateX(72deg);
+  transform-origin: 50% 100%;
+  animation: road-rush 0.5s linear infinite;
+}
+
+@keyframes road-rush {
+  to { background-position: 0 -140px; }
+}
+
+/* Luces de los autos que pasan */
+.app-shell[data-theme="jdm"] .theme-scene i:nth-child(-n + 4) {
+  top: 66%;
+  left: -20%;
+  width: 22vw;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent, #ff2e4d);
+  box-shadow: 0 0 12px #ff2e4d;
+  animation: light-streak 2.4s linear infinite;
+}
+
+.app-shell[data-theme="jdm"] .theme-scene i:nth-child(2) { top: 74%; animation-delay: -0.7s; background: linear-gradient(90deg, transparent, #ffe6a8); box-shadow: 0 0 12px #ffe6a8; animation-direction: reverse; }
+.app-shell[data-theme="jdm"] .theme-scene i:nth-child(3) { top: 82%; animation-delay: -1.5s; animation-duration: 1.8s; }
+.app-shell[data-theme="jdm"] .theme-scene i:nth-child(4) { top: 90%; animation-delay: -0.3s; animation-duration: 3s; background: linear-gradient(90deg, transparent, #ffe6a8); box-shadow: 0 0 12px #ffe6a8; animation-direction: reverse; }
+
+@keyframes light-streak {
+  to { transform: translateX(140vw); }
+}
+
+/* ---------- Gran Premio ---------- */
+.app-shell[data-theme="granpremio"] {
+  --t-bg: #0e0e10;
+  --t-veil: rgba(14, 14, 16, 0.45);
+  --t-chrome: rgba(16, 16, 18, 0.95);
+  --t-surface: #1b1b1f;
+  --t-hover: rgba(225, 6, 0, 0.12);
+  --t-input: #151518;
+  --t-muted: #bdbdc4;
+  --t-label: #ffffff;
+  --t-accent: #e10600;
+  --t-accent-ink: #ffffff;
+  --t-accent-text: #ff4b45;
+  --t-accent-soft: rgba(225, 6, 0, 0.15);
+  --t-border: rgba(255, 255, 255, 0.12);
+  --t-track: #2b2b30;
+  --t-radius: 3px;
+  --t-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+  --t-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-head-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-lyric: #ffffff;
+}
+
+.app-shell[data-theme="granpremio"] :is(h1, h2) {
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* Piano rojo y blanco bajo la barra superior y el reproductor */
+.app-shell[data-theme="granpremio"] :is(.topbar, .player-bar) {
+  border-image: repeating-linear-gradient(90deg, #e10600 0 24px, #ffffff 24px 48px) 4;
+}
+
+.app-shell[data-theme="granpremio"] .topbar {
+  border-bottom: 4px solid;
+}
+
+.app-shell[data-theme="granpremio"] .player-bar {
+  border-top: 4px solid;
+}
+
+.app-shell[data-theme="granpremio"] .theme-scene {
+  background: radial-gradient(ellipse at 80% 0%, rgba(225, 6, 0, 0.25), transparent 50%), #0e0e10;
+}
+
+/* Bandera a cuadros que ondea en la esquina */
+.app-shell[data-theme="granpremio"] .theme-scene::before {
+  top: 4%;
+  right: 3%;
+  width: 22vmin;
+  height: 14vmin;
+  background: conic-gradient(#fff 25%, #111 0 50%, #fff 0 75%, #111 0) 0 0 / 2.75vmin 2.75vmin;
+  opacity: 0.35;
+  transform-origin: left center;
+  animation: flag-wave 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes flag-wave {
+  from { transform: perspective(300px) rotateY(-14deg) skewY(-3deg); }
+  to { transform: perspective(300px) rotateY(10deg) skewY(3deg); }
+}
+
+/* Estelas de velocidad */
+.app-shell[data-theme="granpremio"] .theme-scene i {
+  left: -30%;
+  width: 30vw;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6));
+  animation: light-streak 0.9s linear infinite;
+}
+
+.app-shell[data-theme="granpremio"] .theme-scene i:nth-child(1) { top: 22%; }
+.app-shell[data-theme="granpremio"] .theme-scene i:nth-child(2) { top: 38%; animation-delay: -0.3s; background: linear-gradient(90deg, transparent, rgba(225, 6, 0, 0.8)); }
+.app-shell[data-theme="granpremio"] .theme-scene i:nth-child(3) { top: 51%; animation-delay: -0.6s; animation-duration: 1.2s; }
+.app-shell[data-theme="granpremio"] .theme-scene i:nth-child(4) { top: 67%; animation-delay: -0.15s; animation-duration: 0.7s; background: linear-gradient(90deg, transparent, rgba(225, 6, 0, 0.8)); }
+.app-shell[data-theme="granpremio"] .theme-scene i:nth-child(5) { top: 79%; animation-delay: -0.45s; }
+.app-shell[data-theme="granpremio"] .theme-scene i:nth-child(6) { top: 90%; animation-delay: -0.8s; animation-duration: 1.4s; }
+
+/* ---------- Hatchback 2000 ---------- */
+.app-shell[data-theme="hatchback"] {
+  --t-bg: #16181c;
+  --t-bg-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.015) 0 2px, transparent 2px 4px), #16181c;
+  --t-veil: rgba(22, 24, 28, 0.45);
+  --t-chrome: #1d2025;
+  --t-surface: #23272d;
+  --t-hover: rgba(255, 140, 26, 0.1);
+  --t-input: #101215;
+  --t-muted: #b4bac4;
+  --t-label: #9fb8d6;
+  --t-accent: #ff8c1a;
+  --t-accent-ink: #1e0f00;
+  --t-accent-soft: rgba(255, 140, 26, 0.13);
+  --t-border: #3a3f48;
+  --t-track: #2f343c;
+  --t-radius: 18px;
+  --t-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 24px rgba(0, 0, 0, 0.4);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-lyric: #fff3e4;
+}
+
+/* La hora y los tiempos como en la pantallita naranja del tablero */
+.app-shell[data-theme="hatchback"] :is(.progress-row span, .track-duration, .up-next-duration, .big-picture-time) {
+  color: #ff9d3b;
+  font-family: "VT323", Consolas, monospace;
+  font-size: 1.25em;
+  text-shadow: 0 0 6px rgba(255, 140, 26, 0.7);
+}
+
+.app-shell[data-theme="hatchback"] .theme-scene {
+  background: radial-gradient(ellipse at 50% 120%, #2a2e35, #121417 70%);
+}
+
+/* Dos relojes del tablero: la aguja del cuentarrevoluciones sube y baja con la música */
+.app-shell[data-theme="hatchback"] .theme-scene::before,
+.app-shell[data-theme="hatchback"] .theme-scene::after {
+  bottom: -14vmin;
+  width: 44vmin;
+  height: 44vmin;
+  border: 3px solid rgba(255, 140, 26, 0.25);
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(from -135deg, rgba(255, 255, 255, 0.35) 0 1deg, transparent 1deg 27deg) ,
+    radial-gradient(circle, #15171b 0 62%, transparent 63%);
+  mask-image: radial-gradient(circle, transparent 0 58%, #000 59%);
+  opacity: 0.6;
+}
+
+.app-shell[data-theme="hatchback"] .theme-scene::before { left: 6%; }
+.app-shell[data-theme="hatchback"] .theme-scene::after { right: 6%; }
+
+.app-shell[data-theme="hatchback"] .theme-scene i:nth-child(-n + 2) {
+  bottom: 8vmin;
+  width: 4px;
+  height: 19vmin;
+  margin-left: -2px;
+  border-radius: 4px;
+  background: linear-gradient(0deg, transparent, #ff6a00);
+  box-shadow: 0 0 10px #ff6a00;
+  transform: rotate(-110deg);
+  transform-origin: 50% 100%;
+  animation: needle-rev 2.2s ease-in-out infinite alternate;
+  animation-play-state: paused;
+}
+
+.app-shell[data-theme="hatchback"] .theme-scene i:nth-child(1) { left: calc(6% + 22vmin); }
+.app-shell[data-theme="hatchback"] .theme-scene i:nth-child(2) { right: calc(6% + 22vmin); animation-duration: 5s; }
+
+.app-shell[data-theme="hatchback"].is-playing .theme-scene i {
+  animation-play-state: running;
+}
+
+@keyframes needle-rev {
+  0% { transform: rotate(-110deg); }
+  60% { transform: rotate(50deg); }
+  70% { transform: rotate(20deg); }
+  100% { transform: rotate(75deg); }
+}
+
+/* =========================================================
+   Culturas
+   ========================================================= */
+
+/* ---------- Venezolano ---------- */
+.app-shell[data-theme="venezolano"] {
+  --t-bg: #071a52;
+  --t-veil: rgba(7, 26, 82, 0.35);
+  --t-chrome: rgba(6, 22, 70, 0.92);
+  --t-surface: rgba(12, 36, 104, 0.86);
+  --t-hover: rgba(255, 204, 0, 0.1);
+  --t-input: rgba(0, 0, 0, 0.25);
+  --t-muted: #c8d3f2;
+  --t-label: #ffcc00;
+  --t-accent: #ffcc00;
+  --t-accent-ink: #1d1600;
+  --t-accent-soft: rgba(255, 204, 0, 0.14);
+  --t-border: rgba(255, 204, 0, 0.22);
+  --t-track: #1b3a8a;
+  --t-radius: 12px;
+  --t-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: Righteous, "Segoe UI", sans-serif;
+  --t-lyric: #ffffff;
+}
+
+/* Tricolor arriba del menú y del reproductor */
+.app-shell[data-theme="venezolano"] .player-bar {
+  border-image: linear-gradient(90deg, #ffcc00 0 33.3%, #00247d 33.3% 66.6%, #cf142b 66.6%) 4;
+}
+
+.app-shell[data-theme="venezolano"] .player-bar {
+  border-top: 4px solid;
+}
+
+.app-shell[data-theme="venezolano"] .theme-scene {
+  background: linear-gradient(180deg, rgba(255, 204, 0, 0.18) 0 6%, transparent 6% 94%, rgba(207, 20, 43, 0.22) 94%), linear-gradient(180deg, #0a2366, #061444);
+}
+
+/* Las ocho estrellas en arco, brillando una tras otra */
+.app-shell[data-theme="venezolano"] .theme-scene::before {
+  top: 18%;
+  left: 50%;
+  width: 46vmin;
+  height: 23vmin;
+  margin-left: -23vmin;
+  background:
+    radial-gradient(circle, #fff 0 22%, transparent 24%) 0% 100% / 3.2vmin 3.2vmin no-repeat,
+    radial-gradient(circle, #fff 0 22%, transparent 24%) 8% 55% / 3.2vmin 3.2vmin no-repeat,
+    radial-gradient(circle, #fff 0 22%, transparent 24%) 22% 18% / 3.2vmin 3.2vmin no-repeat,
+    radial-gradient(circle, #fff 0 22%, transparent 24%) 40% 0% / 3.2vmin 3.2vmin no-repeat,
+    radial-gradient(circle, #fff 0 22%, transparent 24%) 60% 0% / 3.2vmin 3.2vmin no-repeat,
+    radial-gradient(circle, #fff 0 22%, transparent 24%) 78% 18% / 3.2vmin 3.2vmin no-repeat,
+    radial-gradient(circle, #fff 0 22%, transparent 24%) 92% 55% / 3.2vmin 3.2vmin no-repeat,
+    radial-gradient(circle, #fff 0 22%, transparent 24%) 100% 100% / 3.2vmin 3.2vmin no-repeat;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8));
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+/* Siluetas de tepuyes */
+.app-shell[data-theme="venezolano"] .theme-scene::after {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 22%;
+  background: #04102f;
+  clip-path: polygon(0 100%, 0 60%, 8% 58%, 10% 20%, 26% 18%, 28% 55%, 40% 60%, 44% 35%, 58% 32%, 61% 62%, 72% 64%, 75% 25%, 90% 22%, 92% 58%, 100% 60%, 100% 100%);
+}
+
+/* Destellos amarillos y rojos que suben, como fuegos artificiales suaves */
+.app-shell[data-theme="venezolano"] .theme-scene i {
+  bottom: 15%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffcc00;
+  box-shadow: 0 0 10px #ffcc00;
+  animation: ember-rise 8s ease-out infinite;
+}
+
+.app-shell[data-theme="venezolano"] .theme-scene i:nth-child(even) {
+  background: #ff3b4e;
+  box-shadow: 0 0 10px #ff3b4e;
+}
+
+.app-shell[data-theme="venezolano"] .theme-scene i:nth-child(1) { left: 12%; }
+.app-shell[data-theme="venezolano"] .theme-scene i:nth-child(2) { left: 28%; animation-delay: -2s; }
+.app-shell[data-theme="venezolano"] .theme-scene i:nth-child(3) { left: 45%; animation-delay: -5s; }
+.app-shell[data-theme="venezolano"] .theme-scene i:nth-child(4) { left: 62%; animation-delay: -3.5s; }
+.app-shell[data-theme="venezolano"] .theme-scene i:nth-child(5) { left: 78%; animation-delay: -6.5s; }
+.app-shell[data-theme="venezolano"] .theme-scene i:nth-child(6) { left: 91%; animation-delay: -1s; }
+
+/* ---------- Chino tradicional ---------- */
+.app-shell[data-theme="chino"] {
+  --t-bg: #4a0b0b;
+  --t-veil: rgba(60, 8, 8, 0.4);
+  --t-chrome: rgba(58, 8, 8, 0.94);
+  --t-surface: rgba(88, 16, 14, 0.88);
+  --t-hover: rgba(240, 192, 90, 0.1);
+  --t-input: rgba(0, 0, 0, 0.25);
+  --t-muted: #f0cfb8;
+  --t-label: #f0c05a;
+  --t-accent: #f0c05a;
+  --t-accent-ink: #3a0805;
+  --t-accent-soft: rgba(240, 192, 90, 0.14);
+  --t-border: rgba(240, 192, 90, 0.3);
+  --t-track: #6e1a15;
+  --t-radius: 4px;
+  --t-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: KaiTi, STKaiti, "Yu Mincho", Georgia, serif;
+  --t-lyric: #fff1d8;
+}
+
+/* Marco dorado con esquinas de celosía */
+.app-shell[data-theme="chino"] :is(.now-playing-card, .settings-panel, .top-result-card, .theme-card, .personalization-hero) {
+  border: 1px solid rgba(240, 192, 90, 0.5);
+  box-shadow: inset 0 0 0 4px rgba(88, 16, 14, 0.9), inset 0 0 0 5px rgba(240, 192, 90, 0.35), var(--t-shadow);
+}
+
+.app-shell[data-theme="chino"] .theme-scene {
+  background:
+    radial-gradient(circle at 20px 20px, transparent 14px, rgba(240, 192, 90, 0.07) 15px 17px, transparent 18px) 0 0 / 40px 40px,
+    linear-gradient(180deg, #5c0f0d, #300605);
+}
+
+/* Nubes doradas que pasan */
+.app-shell[data-theme="chino"] .theme-scene::before {
+  top: 30%;
+  left: -30%;
+  width: 160%;
+  height: 20%;
+  background:
+    radial-gradient(ellipse 60px 22px at 15% 50%, transparent 60%, rgba(240, 192, 90, 0.3) 62% 70%, transparent 72%),
+    radial-gradient(ellipse 80px 28px at 45% 40%, transparent 60%, rgba(240, 192, 90, 0.25) 62% 70%, transparent 72%),
+    radial-gradient(ellipse 70px 24px at 78% 60%, transparent 60%, rgba(240, 192, 90, 0.3) 62% 70%, transparent 72%);
+  animation: clouds-drift 50s linear infinite;
+}
+
+/* Faroles que se mecen */
+.app-shell[data-theme="chino"] .theme-scene i:nth-child(-n + 4) {
+  top: -2%;
+  width: 46px;
+  height: 58px;
+  border-radius: 45%;
+  background: radial-gradient(ellipse at 50% 40%, #ff6a3d, #d4231a 60%, #8e0f0b);
+  box-shadow: 0 0 30px rgba(255, 90, 50, 0.55);
+  transform-origin: 50% -60px;
+  animation: lantern-swing 4s ease-in-out infinite alternate;
+}
+
+/* Hilo y borla de cada farol */
+.app-shell[data-theme="chino"] .theme-scene i:nth-child(-n + 4)::before {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  width: 4px;
+  height: 14px;
+  margin-left: -2px;
+  background: #f0c05a;
+  content: "";
+}
+
+.app-shell[data-theme="chino"] .theme-scene i:nth-child(1) { top: 4%; left: 8%; }
+.app-shell[data-theme="chino"] .theme-scene i:nth-child(2) { top: 10%; left: 30%; animation-delay: -1.2s; transform: scale(0.8); }
+.app-shell[data-theme="chino"] .theme-scene i:nth-child(3) { top: 6%; right: 26%; animation-delay: -2.4s; }
+.app-shell[data-theme="chino"] .theme-scene i:nth-child(4) { top: 12%; right: 6%; animation-delay: -0.6s; }
+
+@keyframes lantern-swing {
+  from { rotate: -6deg; }
+  to { rotate: 6deg; }
+}
+
+/* =========================================================
+   Videojuegos
+   ========================================================= */
+
+/* ---------- Ladrillos de juguete ---------- */
+.app-shell[data-theme="ladrillos"] {
+  --t-bg: #e4e4e4;
+  --t-bg-image: radial-gradient(circle at 12px 12px, #eeeeee 0 7px, #cdcdcd 7.5px 8.5px, transparent 9px) 0 0 / 24px 24px, #e4e4e4;
+  --t-chrome: #ffd500;
+  --t-surface: #ffffff;
+  --t-dialog: #ffffff;
+  --t-hover: rgba(0, 85, 191, 0.08);
+  --t-input: #ffffff;
+  --t-text: #1a1a1a;
+  --t-muted: #4a4a4a;
+  --t-label: #c20a12;
+  --t-accent: #0055bf;
+  --t-accent-ink: #ffffff;
+  --t-accent-text: #0055bf;
+  --t-accent-soft: rgba(0, 85, 191, 0.12);
+  --t-border: rgba(0, 0, 0, 0.25);
+  --t-track: #d9d9d9;
+  --t-radius: 6px;
+  --t-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: "Archivo Black", Impact, sans-serif;
+}
+
+/* Paneles como piezas: con sus tetones arriba */
+.app-shell[data-theme="ladrillos"] :is(.now-playing-card, .settings-panel, .top-result-card, .theme-card, .personalization-hero, .personalization-tabs button) {
+  position: relative;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+.app-shell[data-theme="ladrillos"] :is(.now-playing-card, .settings-panel, .top-result-card, .theme-card)::before {
+  position: absolute;
+  top: -8px;
+  right: 14px;
+  left: 14px;
+  height: 8px;
+  background: radial-gradient(ellipse 9px 8px at 50% 100%, #ffffff 0 96%, transparent 100%) 0 0 / 26px 8px repeat-x;
+  content: "";
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.25));
+  pointer-events: none;
+}
+
+.app-shell[data-theme="ladrillos"] .sidebar {
+  background: radial-gradient(circle at 12px 12px, #ffe24d 0 7px, #e6bf00 7.5px 8.5px, transparent 9px) 0 0 / 24px 24px, #ffd500;
+}
+
+.app-shell[data-theme="ladrillos"] .player-bar {
+  background: radial-gradient(circle at 12px 12px, #e3222b 0 7px, #b30c14 7.5px 8.5px, transparent 9px) 0 0 / 24px 24px, #c90f18;
+}
+
+.app-shell[data-theme="ladrillos"] .player-bar :is(span, strong, small, button) {
+  color: #ffffff;
+}
+
+.app-shell[data-theme="ladrillos"] .player-bar .play-button {
+  background: #ffd500;
+  color: #1a1a1a;
+}
+
+/* ---------- Bloques clásicos (los juegos de bloques online de 2008) ---------- */
+.app-shell[data-theme="bloques08"] {
+  --t-bg: #7ec4f0;
+  --t-veil: rgba(200, 230, 250, 0.25);
+  --t-chrome: #e8e8e8;
+  --t-surface: #f4f4f4;
+  --t-dialog: #f4f4f4;
+  --t-hover: rgba(0, 102, 204, 0.1);
+  --t-input: #ffffff;
+  --t-text: #191919;
+  --t-muted: #474747;
+  --t-label: #b31b1b;
+  --t-accent: #0066cc;
+  --t-accent-ink: #ffffff;
+  --t-accent-text: #0058b0;
+  --t-accent-soft: rgba(0, 102, 204, 0.12);
+  --t-border: #a3a2a5;
+  --t-track: #c8c8c8;
+  --t-radius: 3px;
+  --t-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+  --t-font: Arial, "Segoe UI", sans-serif;
+  --t-head-font: "Arial Black", Arial, sans-serif;
+}
+
+/* Superficie con tetones grises, como el material clásico de los bloques */
+.app-shell[data-theme="bloques08"] .sidebar {
+  background: radial-gradient(circle at 10px 10px, #b5b4b7 0 5px, #8f8e91 5.5px 6.5px, transparent 7px) 0 0 / 20px 20px, #a3a2a5;
+}
+
+.app-shell[data-theme="bloques08"] .sidebar :is(span, strong, small, button) {
+  color: #111111;
+}
+
+.app-shell[data-theme="bloques08"] :is(.play-button, .primary-button, .theme-card-state, .chip-active) {
+  border: 1px solid #00468c;
+  background: linear-gradient(180deg, #4ea6ff, #0066cc);
+  color: #ffffff;
+}
+
+.app-shell[data-theme="bloques08"] .theme-scene {
+  background: linear-gradient(180deg, #4aa3e0, #a8dcff 70%, #59a63a 70.5%, #3f8a2a);
+}
+
+/* Nubes cuadradas */
+.app-shell[data-theme="bloques08"] .theme-scene i:nth-child(-n + 3) {
+  top: 12%;
+  left: -20%;
+  width: 150px;
+  height: 40px;
+  background: #ffffff;
+  box-shadow: 30px -20px 0 #ffffff, 70px -10px 0 #ffffff;
+  opacity: 0.9;
+  animation: clouds-block 40s linear infinite;
+}
+
+.app-shell[data-theme="bloques08"] .theme-scene i:nth-child(2) { top: 26%; animation-delay: -15s; animation-duration: 55s; }
+.app-shell[data-theme="bloques08"] .theme-scene i:nth-child(3) { top: 6%; animation-delay: -30s; }
+
+@keyframes clouds-block {
+  to { transform: translateX(140vw); }
+}
+
+/* Una pieza clásica (el bloque de 2x4) girando sobre el pasto */
+.app-shell[data-theme="bloques08"] .theme-scene i:nth-child(4) {
+  bottom: 22%;
+  left: 12%;
+  width: 70px;
+  height: 36px;
+  background: radial-gradient(circle at 50% 50%, #e3222b 0 6px, #a00c12 7px, transparent 8px) 0 -14px / 17.5px 17.5px repeat-x, #c90f18;
+  box-shadow: inset 0 -6px 0 rgba(0, 0, 0, 0.25);
+  animation: brick-hop 3s ease-in-out infinite;
+}
+
+@keyframes brick-hop {
+  50% { transform: translateY(-30px) rotate(8deg); }
+}
+
+/* ---------- Planta nuclear ---------- */
+.app-shell[data-theme="nuclear"] {
+  --t-bg: #0c0f08;
+  --t-veil: rgba(12, 15, 8, 0.45);
+  --t-chrome: rgba(16, 19, 11, 0.95);
+  --t-surface: rgba(24, 28, 16, 0.9);
+  --t-hover: rgba(124, 255, 58, 0.08);
+  --t-input: #10130b;
+  --t-muted: #bfc7ad;
+  --t-label: #ffd600;
+  --t-accent: #7cff3a;
+  --t-accent-ink: #0b1a02;
+  --t-accent-soft: rgba(124, 255, 58, 0.12);
+  --t-border: rgba(255, 214, 0, 0.25);
+  --t-track: #2a3020;
+  --t-radius: 2px;
+  --t-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+  --t-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-head-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-lyric: #f3ffe8;
+}
+
+.app-shell[data-theme="nuclear"] :is(h1, h2) {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Cinta de peligro sobre el reproductor */
+.app-shell[data-theme="nuclear"] .player-bar {
+  border-top: 6px solid;
+  border-image: repeating-linear-gradient(-45deg, #ffd600 0 14px, #111 14px 28px) 6;
+}
+
+.app-shell[data-theme="nuclear"] .theme-scene {
+  background: radial-gradient(ellipse at 50% 50%, rgba(124, 255, 58, 0.12), transparent 55%), linear-gradient(180deg, #0a0d07, #141a0c);
+}
+
+/* El símbolo de radiación girando con un brillo verde */
+.app-shell[data-theme="nuclear"] .theme-scene::before {
+  top: 50%;
+  left: 55%;
+  width: 52vmin;
+  height: 52vmin;
+  margin: -26vmin 0 0 -26vmin;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 214, 0, 0.22) 0 9%, transparent 9.5% 14%, transparent 14%),
+    conic-gradient(rgba(255, 214, 0, 0.22) 0 60deg, transparent 60deg 120deg, rgba(255, 214, 0, 0.22) 120deg 180deg, transparent 180deg 240deg, rgba(255, 214, 0, 0.22) 240deg 300deg, transparent 300deg);
+  mask-image: radial-gradient(circle, #000 0 9%, transparent 9.5% 15%, #000 15.5% 48%, transparent 49%);
+  filter: drop-shadow(0 0 18px rgba(124, 255, 58, 0.4));
+  animation: nebula-spin 40s linear infinite;
+}
+
+/* Cinta de peligro en los bordes */
+.app-shell[data-theme="nuclear"] .theme-scene::after {
+  inset: 0;
+  border: 10px solid;
+  border-image: repeating-linear-gradient(-45deg, rgba(255, 214, 0, 0.35) 0 16px, transparent 16px 32px) 10;
+}
+
+/* Partículas verdes flotando */
+.app-shell[data-theme="nuclear"] .theme-scene i {
+  bottom: -20px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7cff3a;
+  box-shadow: 0 0 14px 4px rgba(124, 255, 58, 0.6);
+  animation: ember-rise 10s ease-in-out infinite;
+}
+
+.app-shell[data-theme="nuclear"] .theme-scene i:nth-child(1) { left: 10%; }
+.app-shell[data-theme="nuclear"] .theme-scene i:nth-child(2) { left: 26%; animation-delay: -3s; animation-duration: 13s; }
+.app-shell[data-theme="nuclear"] .theme-scene i:nth-child(3) { left: 43%; animation-delay: -6s; }
+.app-shell[data-theme="nuclear"] .theme-scene i:nth-child(4) { left: 60%; animation-delay: -1.5s; animation-duration: 12s; }
+.app-shell[data-theme="nuclear"] .theme-scene i:nth-child(5) { left: 76%; animation-delay: -8s; }
+.app-shell[data-theme="nuclear"] .theme-scene i:nth-child(6) { left: 90%; animation-delay: -4.5s; animation-duration: 9s; }
+
+/* ---------- Big Picture: paneles de los temas oscuros nuevos ---------- */
+.app-shell:is([data-theme="siete"], [data-theme="tresd"], [data-theme="jdm"], [data-theme="granpremio"], [data-theme="hatchback"], [data-theme="venezolano"], [data-theme="chino"], [data-theme="nuclear"]) :is(.big-picture-card, .big-picture-controls) {
+  border-color: var(--t-border);
+  background: color-mix(in srgb, var(--t-surface) 88%, transparent);
+}
+
+/* Ajustes de legibilidad */
+.app-shell[data-theme="bloques08"] .sidebar .nav-item {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.app-shell[data-theme="bloques08"] .sidebar .nav-item.active {
+  background: #ffffff;
+  color: #00468c;
+}
+
+.app-shell[data-theme="bloques08"] .sidebar .nav-item.active span {
+  color: #00468c;
+}
+
+.app-shell:is([data-theme="chino"], [data-theme="venezolano"]) .track-source {
+  color: var(--t-muted);
+}

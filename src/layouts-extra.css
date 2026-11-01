@@ -1,0 +1,688 @@
+/*
+  Siete disposiciones más (Personalización > Disposición). Igual que en layouts.css, cada una
+  cambia la arquitectura de la app y la forma de la pantalla de letra.
+*/
+
+/* ---------- Esquemas en miniatura ---------- */
+.layout-preview[data-layout-preview="cabecera"] {
+  grid-template-areas: "bar bar bar" "nav main now";
+  grid-template-rows: 14% 1fr;
+}
+
+.layout-preview[data-layout-preview="dock"] {
+  grid-template-areas: "main main" "nav nav" "bar bar";
+  grid-template-columns: 1fr 0;
+  grid-template-rows: 1fr 10% 14%;
+}
+
+.layout-preview[data-layout-preview="dock"] .layout-preview-nav {
+  width: 40%;
+  justify-self: center;
+  border-radius: 99px;
+}
+
+.layout-preview[data-layout-preview="dock"] .layout-preview-now,
+.layout-preview[data-layout-preview="cine"] .layout-preview-now {
+  display: none;
+}
+
+.layout-preview[data-layout-preview="panorama"] {
+  grid-template-areas: "nav now" "nav main" "bar bar";
+  grid-template-columns: 18% 1fr;
+  grid-template-rows: 32% 1fr 14%;
+}
+
+.layout-preview[data-layout-preview="cabina"] {
+  grid-template-areas: "nav main bar" "nav main now";
+  grid-template-columns: 18% 1fr 28%;
+  grid-template-rows: 1fr 30%;
+}
+
+.layout-preview[data-layout-preview="dividida"] {
+  grid-template-areas: "nav nav" "now main" "bar bar";
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 14% 1fr 14%;
+}
+
+.layout-preview[data-layout-preview="ventanas"] {
+  gap: 7px;
+  padding: 9px;
+}
+
+.layout-preview[data-layout-preview="ventanas"] i {
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.layout-preview[data-layout-preview="ventanas"] .layout-preview-bar {
+  margin: 0 6%;
+}
+
+.layout-preview[data-layout-preview="cine"] {
+  grid-template-areas: "main main nav" "bar bar bar";
+  grid-template-columns: 1fr 0 7%;
+  padding: 6px 20%;
+  box-shadow: inset 0 9px 0 #000, inset 0 -9px 0 #000;
+}
+
+/* ---------- 6. Reproductor arriba ---------- */
+.app-shell[data-layout="cabecera"] {
+  padding-top: 83px;
+}
+
+.app-shell[data-layout="cabecera"] .player-bar {
+  top: 0;
+  bottom: auto;
+  border-top: 0;
+  border-bottom: 1px solid var(--t-border, rgba(255, 255, 255, 0.09));
+  box-shadow: 0 12px 42px rgba(0, 0, 0, 0.18);
+}
+
+.app-shell[data-layout="cabecera"] .sidebar {
+  height: calc(100vh - 83px);
+  padding-top: 20px;
+}
+
+/* En Big Picture los controles también suben */
+.app-shell[data-layout="cabecera"] .big-picture {
+  grid-template-rows: auto minmax(0, 1fr);
+  padding-top: 76px;
+}
+
+.app-shell[data-layout="cabecera"] .big-picture-controls {
+  order: -1;
+}
+
+.app-shell[data-layout="cabecera"] :is(.lyrics-layout, .vinyl-layout) {
+  padding-top: 24px;
+}
+
+/* ---------- 7. Dock flotante ---------- */
+.app-shell[data-layout="dock"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell[data-layout="dock"] .sidebar {
+  position: fixed;
+  bottom: 96px;
+  left: 50%;
+  z-index: 5;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--t-border, rgba(255, 255, 255, 0.12));
+  border-radius: 22px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
+  transform: translateX(-50%);
+}
+
+.app-shell[data-layout="dock"] :is(.sidebar-label, .sidebar-tip, .profile-copy, .profile-chevron, .nav-count),
+.app-shell[data-layout="dock"] .brand > span:last-child,
+.app-shell[data-layout="dock"] .nav-item > span {
+  display: none;
+}
+
+.app-shell[data-layout="dock"] .brand {
+  margin: 0 6px 0 0;
+}
+
+.app-shell[data-layout="dock"] :is(.sidebar-section, .sidebar-bottom) {
+  margin: 0;
+  padding: 0;
+}
+
+.app-shell[data-layout="dock"] .main-nav {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+}
+
+.app-shell[data-layout="dock"] .nav-item {
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  min-height: 46px;
+  padding: 0;
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), background 200ms ease;
+}
+
+/* Como el dock de macOS: el icono crece al pasar el ratón */
+.app-shell[data-layout="dock"] .nav-item:hover {
+  transform: translateY(-6px) scale(1.18);
+}
+
+.app-shell[data-layout="dock"] .nav-item.active::before {
+  inset: auto 50% -5px auto;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  translate: 50% 0;
+}
+
+.app-shell[data-layout="dock"] .profile-button {
+  padding: 0;
+  border-top: 0;
+}
+
+.app-shell[data-layout="dock"] .main-content {
+  padding-bottom: 80px;
+}
+
+/* Letra a la izquierda y la portada como una foto instantánea en la esquina */
+.app-shell[data-layout="dock"] .lyrics-layout {
+  grid-template-columns: minmax(0, 1fr);
+  padding-right: min(34vw, 420px);
+}
+
+.app-shell[data-layout="dock"] .lyrics-cover-panel {
+  position: absolute;
+  right: clamp(20px, 5vw, 80px);
+  bottom: 60px;
+  padding: 14px 14px 18px;
+  border-radius: 4px;
+  background: #f7f5f0;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+  rotate: 5deg;
+  animation: polaroid-in 800ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+@keyframes polaroid-in {
+  from { opacity: 0; rotate: 20deg; translate: 30% 30%; }
+}
+
+.app-shell[data-layout="dock"] .lyrics-cover-stack {
+  width: min(26vw, 38vh, 300px);
+}
+
+.app-shell[data-layout="dock"] :is(.lyrics-cover, .lyrics-cover-shine) {
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+.app-shell[data-layout="dock"] .lyrics-track-meta :is(strong, small) {
+  color: #2a2724;
+}
+
+/* ---------- 8. Panorama ---------- */
+.app-shell[data-layout="panorama"] .content-grid {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 1280px;
+}
+
+.app-shell[data-layout="panorama"] .now-playing-column {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.6fr);
+  gap: 8px 28px;
+  order: -1;
+}
+
+.app-shell[data-layout="panorama"] .now-playing-heading,
+.app-shell[data-layout="panorama"] .spotify-player-status {
+  grid-column: 1 / -1;
+}
+
+.app-shell[data-layout="panorama"] .now-playing-card {
+  grid-row: 2;
+}
+
+.app-shell[data-layout="panorama"] .spotify-player-status {
+  grid-row: 3;
+}
+
+.app-shell[data-layout="panorama"] .up-next-section {
+  grid-row: 2;
+  grid-column: 2;
+  align-self: start;
+}
+
+.app-shell[data-layout="panorama"] .now-playing-card {
+  display: grid;
+  grid-template-columns: clamp(150px, 18vw, 230px) minmax(0, 1fr);
+  grid-template-rows: 1fr auto auto;
+  column-gap: 22px;
+}
+
+.app-shell[data-layout="panorama"] .album-art-large {
+  grid-row: 1 / -1;
+  aspect-ratio: 1;
+}
+
+.app-shell[data-layout="panorama"] .now-track-details {
+  align-self: end;
+}
+
+.app-shell[data-layout="panorama"] .now-track-details h3 {
+  font-size: clamp(22px, 2.4vw, 32px);
+}
+
+.app-shell[data-layout="panorama"] .up-next-section {
+  margin-top: 0;
+}
+
+.app-shell[data-layout="panorama"] .service-prompt {
+  display: none;
+}
+
+/* La portada se vuelve una franja de cine arriba y la letra va centrada debajo */
+.app-shell[data-layout="panorama"] .lyrics-layout {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  justify-items: center;
+  gap: 10px;
+}
+
+.app-shell[data-layout="panorama"] .lyrics-cover-panel {
+  position: relative;
+  width: min(1100px, 100%);
+}
+
+.app-shell[data-layout="panorama"] .lyrics-cover-stack {
+  width: 100%;
+  aspect-ratio: 21 / 5;
+}
+
+.app-shell[data-layout="panorama"] .lyrics-cover {
+  object-position: center 35%;
+}
+
+.app-shell[data-layout="panorama"] .lyrics-track-meta {
+  position: absolute;
+  bottom: 16px;
+  left: 22px;
+  z-index: 3;
+  text-align: left;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+}
+
+.app-shell[data-layout="panorama"] .lyrics-track-meta :is(strong, small) {
+  color: #fff;
+}
+
+.app-shell[data-layout="panorama"] .lyrics-panel {
+  width: min(900px, 100%);
+}
+
+.app-shell[data-layout="panorama"] .lyrics-list {
+  max-height: calc(100vh - 420px);
+  padding: 10vh 6px 24vh;
+}
+
+.app-shell[data-layout="panorama"] .lyric-line {
+  text-align: center;
+  transform-origin: center;
+}
+
+/* ---------- 9. Cabina: el reproductor es un panel vertical a la derecha ---------- */
+.app-shell[data-layout="cabina"] {
+  grid-template-columns: 238px minmax(0, 1fr) 320px;
+}
+
+.app-shell[data-layout="cabina"] .main-content {
+  height: 100vh;
+}
+
+.app-shell[data-layout="cabina"] .now-playing-column {
+  display: none;
+}
+
+.app-shell[data-layout="cabina"] .content-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell[data-layout="cabina"] .player-bar {
+  top: 0;
+  left: auto;
+  width: 320px;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  gap: 26px;
+  padding: 28px 26px;
+  border-top: 0;
+  border-left: 1px solid var(--t-border, rgba(255, 255, 255, 0.09));
+}
+
+.app-shell[data-layout="cabina"] .player-track {
+  position: relative;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+}
+
+.app-shell[data-layout="cabina"] .player-track > img,
+.app-shell[data-layout="cabina"] .player-art-placeholder {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.4);
+}
+
+.app-shell[data-layout="cabina"] .player-track-meta {
+  padding-right: 40px;
+}
+
+.app-shell[data-layout="cabina"] .player-track-meta strong {
+  font-size: 20px;
+}
+
+.app-shell[data-layout="cabina"] .player-like {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+}
+
+.app-shell[data-layout="cabina"] .player-center,
+.app-shell[data-layout="cabina"] .progress-row {
+  width: 100%;
+}
+
+.app-shell[data-layout="cabina"] .player-volume {
+  justify-content: center;
+}
+
+/* La portada gira como un disco junto a la letra */
+.app-shell[data-layout="cabina"] .lyrics-cover-stack {
+  width: min(100%, 38vh, 380px);
+}
+
+.app-shell[data-layout="cabina"] :is(.lyrics-cover, .lyrics-cover-shine) {
+  border-radius: 50%;
+}
+
+.app-shell[data-layout="cabina"] .lyrics-cover-stack::after {
+  position: absolute;
+  inset: 41%;
+  z-index: 3;
+  border-radius: 50%;
+  background: var(--t-bg, #101013);
+  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.35);
+  content: "";
+}
+
+.app-shell[data-layout="cabina"] .big-picture-playing .lyrics-cover-entering {
+  animation: cover-enter 750ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards, vinyl-spin 9s linear 750ms infinite;
+}
+
+/* ---------- 10. Pantalla dividida ---------- */
+.app-shell[data-layout="dividida"] .content-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  max-width: none;
+}
+
+.app-shell[data-layout="dividida"] .now-playing-column {
+  position: sticky;
+  top: 0;
+  order: -1;
+  align-self: start;
+}
+
+.app-shell[data-layout="dividida"] .album-art-large {
+  aspect-ratio: 16 / 11;
+}
+
+.app-shell[data-layout="dividida"] .now-track-details h3 {
+  font-size: 26px;
+}
+
+/* La portada llena media pantalla de borde a borde */
+.app-shell[data-layout="dividida"] .big-picture-mode-lyrics {
+  padding-left: 0;
+}
+
+.app-shell[data-layout="dividida"] .lyrics-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  padding: 0 clamp(10px, 3vw, 50px) 24px 0;
+}
+
+.app-shell[data-layout="dividida"] .lyrics-cover-panel {
+  position: relative;
+  align-self: stretch;
+  margin: -40px 0 -150px;
+}
+
+.app-shell[data-layout="dividida"] .lyrics-cover-stack {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.app-shell[data-layout="dividida"] .lyrics-cover {
+  border-radius: 0;
+  box-shadow: none;
+  mask-image: linear-gradient(90deg, #000 70%, transparent);
+}
+
+.app-shell[data-layout="dividida"] .lyrics-cover-shine {
+  border-radius: 0;
+}
+
+.app-shell[data-layout="dividida"] .lyrics-track-meta {
+  position: absolute;
+  bottom: 240px;
+  left: 32px;
+  z-index: 3;
+  text-align: left;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+}
+
+.app-shell[data-layout="dividida"] .lyrics-track-meta :is(strong, small) {
+  color: #fff;
+}
+
+.app-shell[data-layout="dividida"] .big-picture-mode-lyrics .big-picture-controls {
+  position: relative;
+  z-index: 2;
+}
+
+/* ---------- 11. Ventanas flotantes ---------- */
+.app-shell[data-layout="ventanas"] {
+  gap: 12px;
+  padding: 12px 12px 107px;
+}
+
+.app-shell[data-layout="ventanas"] :is(.sidebar, .main-content) {
+  border: 1px solid var(--t-border, rgba(255, 255, 255, 0.09));
+  border-radius: 18px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.25);
+}
+
+.app-shell[data-layout="ventanas"] .main-content {
+  height: calc(100vh - 119px);
+  background: color-mix(in srgb, var(--t-surface, #1d1b22) 55%, transparent);
+}
+
+.app-shell[data-layout="ventanas"] .player-bar {
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  border: 1px solid var(--t-border, rgba(255, 255, 255, 0.09));
+  border-radius: 18px;
+}
+
+/* Portada en una tarjeta inclinada en 3D y la letra en otra ventana de cristal */
+.app-shell[data-layout="ventanas"] .lyrics-cover-stack {
+  transform: perspective(900px) rotateY(16deg) rotateX(4deg);
+  transition: transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.app-shell[data-layout="ventanas"] .lyrics-cover-stack:hover {
+  transform: perspective(900px) rotateY(0deg);
+}
+
+.app-shell[data-layout="ventanas"] .lyrics-panel {
+  height: auto;
+  padding: 0 28px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(24px);
+}
+
+.app-shell[data-layout="ventanas"] .lyrics-list {
+  max-height: calc(100vh - 260px);
+  padding: 22vh 6px 30vh;
+}
+
+/* ---------- 12. Cine ---------- */
+.app-shell[data-layout="cine"] {
+  grid-template-columns: minmax(0, 1fr) 76px;
+}
+
+.app-shell[data-layout="cine"] .sidebar {
+  order: 2;
+  border-right: 0;
+  border-left: 1px solid var(--t-border, var(--border-subtle));
+}
+
+.app-shell[data-layout="cine"] .now-playing-column {
+  display: none;
+}
+
+.app-shell[data-layout="cine"] .content-grid {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 980px;
+}
+
+/* La letra como subtítulos: franjas negras y solo la línea actual y la siguiente */
+.app-shell[data-layout="cine"] .big-picture-mode-lyrics .big-picture-backdrop::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-block: 10vh solid #000;
+  content: "";
+  animation: letterbox-in 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes letterbox-in {
+  from { border-block-width: 0; }
+}
+
+.app-shell[data-layout="cine"] .lyrics-layout {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: end;
+  padding-bottom: 6vh;
+}
+
+.app-shell[data-layout="cine"] .lyrics-cover-panel {
+  position: absolute;
+  top: 12vh;
+  left: clamp(20px, 4vw, 60px);
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.app-shell[data-layout="cine"] .lyrics-cover-stack {
+  width: 64px;
+}
+
+.app-shell[data-layout="cine"] :is(.lyrics-cover, .lyrics-cover-shine) {
+  border-radius: 8px;
+}
+
+.app-shell[data-layout="cine"] .lyrics-track-meta {
+  text-align: left;
+}
+
+.app-shell[data-layout="cine"] .lyrics-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.app-shell[data-layout="cine"] .lyrics-list {
+  display: grid;
+  height: auto;
+  max-height: none;
+  justify-items: center;
+  padding: 0;
+  overflow: visible;
+  mask-image: none;
+}
+
+.app-shell[data-layout="cine"] .lyric-line {
+  display: none;
+  text-align: center;
+  transform-origin: center;
+}
+
+.app-shell[data-layout="cine"] .lyric-line-current,
+.app-shell[data-layout="cine"] .lyric-line-current + .lyric-line {
+  display: block;
+}
+
+.app-shell[data-layout="cine"] .lyric-line-current {
+  font-size: clamp(30px, 4vw, 60px);
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  animation: subtitle-in 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.app-shell[data-layout="cine"] .lyric-line-current + .lyric-line {
+  font-size: clamp(16px, 1.8vw, 24px);
+}
+
+@keyframes subtitle-in {
+  from { opacity: 0; translate: 0 18px; }
+}
+
+/* Letra sin sincronizar: se muestra completa */
+.app-shell[data-layout="cine"] .lyrics-plain {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.app-shell[data-layout="cine"] .lyrics-plain .lyric-line {
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .app-shell[data-layout="cabina"] {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .app-shell[data-layout="cabina"] .main-content {
+    height: calc(100vh - 83px);
+  }
+
+  .app-shell[data-layout="cabina"] .player-bar {
+    top: auto;
+    left: 0;
+    width: auto;
+    grid-template-columns: minmax(205px, 1fr) minmax(280px, 1.25fr);
+    padding: 10px 24px;
+  }
+
+  .app-shell[data-layout="cabina"] .player-track {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .app-shell[data-layout="cabina"] .player-track > img,
+  .app-shell[data-layout="cabina"] .player-art-placeholder {
+    width: 43px;
+  }
+
+  .app-shell[data-layout="cabina"] .player-volume {
+    display: none;
+  }
+
+  .app-shell:is([data-layout="panorama"], [data-layout="dividida"]) .content-grid,
+  .app-shell[data-layout="panorama"] .now-playing-column,
+  .app-shell:is([data-layout="dock"], [data-layout="dividida"]) .lyrics-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-shell[data-layout="dividida"] .now-playing-column {
+    position: static;
+  }
+
+  .app-shell[data-layout="dock"] .lyrics-cover-panel {
+    display: none;
+  }
+
+  .app-shell[data-layout="dock"] .lyrics-layout {
+    padding-right: 10px;
+  }
+}

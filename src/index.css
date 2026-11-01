@@ -4643,3 +4643,522 @@ button.album-art-large:disabled {
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
 }
+
+/* Big Picture: modo vinilo (tocadiscos con la funda y la cola al lado) */
+.vinyl-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  align-items: center;
+  gap: clamp(28px, 5vw, 80px);
+  min-height: 0;
+  padding: 60px clamp(10px, 4vw, 60px) 24px;
+}
+
+.vinyl-deck {
+  --deck: min(27vw, 50vh, 440px);
+  position: relative;
+  width: calc(var(--deck) * 1.7);
+  max-width: 100%;
+  height: var(--deck);
+  justify-self: center;
+}
+
+.vinyl-sleeve {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: grid;
+  width: var(--deck);
+  height: var(--deck);
+  overflow: hidden;
+  place-items: center;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  color: var(--lyric-active);
+  animation: sleeve-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+.vinyl-sleeve img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@keyframes sleeve-in {
+  from { opacity: 0; transform: translateX(-30%) rotate(-4deg); }
+}
+
+.vinyl-record {
+  position: absolute;
+  top: 4%;
+  left: calc(var(--deck) * 0.7);
+  z-index: 1;
+  display: grid;
+  width: calc(var(--deck) * 0.92);
+  height: calc(var(--deck) * 0.92);
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 33%, rgba(255, 255, 255, 0.05) 34%, transparent 35%),
+    repeating-radial-gradient(circle, #121212 0 2px, #1d1d1d 2px 3px),
+    #111;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), inset 0 0 0 2px rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  animation: record-out 900ms cubic-bezier(0.2, 0.8, 0.2, 1) 250ms backwards, vinyl-spin 2.4s linear infinite;
+  animation-play-state: running, paused;
+}
+
+/* Reflejo de luz fijo que no gira con el disco */
+.vinyl-record::after {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 30deg, transparent 0 8%, rgba(255, 255, 255, 0.13) 12%, transparent 18% 50%, rgba(255, 255, 255, 0.1) 62%, transparent 68%);
+  content: "";
+  pointer-events: none;
+}
+
+.big-picture-playing .vinyl-record {
+  animation-play-state: running, running;
+}
+
+@keyframes record-out {
+  from { opacity: 0; translate: -40% 0; }
+}
+
+@keyframes vinyl-spin {
+  to { rotate: 360deg; }
+}
+
+.vinyl-label {
+  display: grid;
+  width: 36%;
+  height: 36%;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--t-accent, #c7a6ff);
+  box-shadow: 0 0 0 3px #0b0b0b;
+  color: #fff;
+}
+
+.vinyl-label img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vinyl-label::after {
+  position: absolute;
+  width: 3%;
+  height: 3%;
+  border-radius: 50%;
+  background: #0b0b0b;
+  content: "";
+}
+
+/* Brazo del tocadiscos: se apoya sobre el disco mientras suena */
+.vinyl-arm {
+  position: absolute;
+  top: -2%;
+  right: 0;
+  z-index: 3;
+  width: calc(var(--deck) * 0.1);
+  height: calc(var(--deck) * 0.1);
+  border-radius: 50%;
+  background: radial-gradient(circle, #ddd 0 30%, #8d8d8d 32% 60%, #5a5a5a 62%);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+  transform: rotate(-26deg);
+  transform-origin: 50% 50%;
+  transition: transform 900ms cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+
+.vinyl-arm i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: calc(var(--deck) * 0.62);
+  border-radius: 4px;
+  background: linear-gradient(90deg, #8d8d8d, #e8e8e8, #8d8d8d);
+  transform: translateX(-50%) rotate(14deg);
+  transform-origin: 50% 0;
+}
+
+.vinyl-arm i::after {
+  position: absolute;
+  bottom: -14px;
+  left: -6px;
+  width: 18px;
+  height: 26px;
+  border-radius: 3px;
+  background: #2b2b2b;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  content: "";
+  transform: rotate(-24deg);
+}
+
+.big-picture-playing .vinyl-arm {
+  transform: rotate(0deg);
+}
+
+.vinyl-info {
+  display: grid;
+  align-content: center;
+  gap: 28px;
+  min-width: 0;
+  color: var(--lyric-active);
+}
+
+.vinyl-meta {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  animation: lyrics-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 200ms backwards;
+}
+
+.vinyl-meta small,
+.vinyl-queue-title {
+  color: var(--lyric-dim);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.vinyl-meta strong {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: clamp(30px, 4.2vw, 64px);
+  font-weight: 800;
+  letter-spacing: -1.4px;
+  line-height: 1.02;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.vinyl-meta span {
+  font-size: clamp(16px, 1.6vw, 22px);
+  font-weight: 600;
+}
+
+.vinyl-meta em {
+  color: var(--lyric-dim);
+  font-size: 14px;
+  font-style: normal;
+}
+
+.vinyl-queue {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vinyl-queue-title {
+  margin-bottom: 6px;
+}
+
+.vinyl-queue li:not(.vinyl-queue-title) {
+  animation: rise-in 500ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(350ms + var(--i) * 70ms);
+}
+
+.vinyl-queue button {
+  display: grid;
+  grid-template-columns: 24px 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: background 200ms ease, transform 200ms ease;
+}
+
+.vinyl-queue button:hover {
+  background: color-mix(in srgb, var(--lyric-active) 12%, transparent);
+  transform: translateX(4px);
+}
+
+.vinyl-queue button > span:first-child,
+.vinyl-queue button > span:last-child {
+  color: var(--lyric-dim);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.vinyl-queue img,
+.vinyl-queue-art {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  object-fit: cover;
+}
+
+.vinyl-queue-meta {
+  display: grid;
+  min-width: 0;
+}
+
+.vinyl-queue-meta strong,
+.vinyl-queue-meta small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vinyl-queue-meta strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.vinyl-queue-meta small {
+  color: var(--lyric-dim);
+  font-size: 12px;
+}
+
+@media (max-width: 860px) {
+  .vinyl-layout {
+    grid-template-columns: 1fr;
+    align-content: start;
+    overflow-y: auto;
+  }
+
+  .vinyl-deck {
+    --deck: min(58vw, 34vh);
+  }
+}
+
+/* Aleatorio y repetir activos: color de acento y un punto debajo, visibles en todos los temas */
+.app-shell .playback-buttons .icon-button.control-active,
+.app-shell .big-picture-controls .big-picture-active {
+  position: relative;
+  color: var(--t-accent-text, var(--t-accent, #d0b4ff));
+}
+
+.app-shell .playback-buttons .icon-button.control-active::after,
+.app-shell .big-picture-controls .big-picture-active::after {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+  translate: -50% 0;
+}
+
+/* Big Picture: modo pulso (portada circular con un anillo de ecualizador y ondas) */
+.pulse-layout {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  place-content: center;
+  justify-items: center;
+  gap: clamp(18px, 3vh, 34px);
+  padding-top: 40px;
+}
+
+.pulse-orb {
+  --orb: min(46vh, 34vw, 420px);
+  position: relative;
+  display: grid;
+  width: var(--orb);
+  height: var(--orb);
+  place-items: center;
+}
+
+.pulse-cover {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 70%;
+  height: 70%;
+  overflow: hidden;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.12), 0 30px 80px rgba(0, 0, 0, 0.5);
+  color: var(--lyric-active);
+  cursor: pointer;
+  animation: cover-enter 750ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards, vinyl-spin 30s linear 750ms infinite;
+  animation-play-state: running, paused;
+}
+
+.big-picture-playing .pulse-cover {
+  animation-play-state: running, running;
+}
+
+.pulse-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 64 barras repartidas en círculo; cada una late con su propio ritmo */
+.pulse-ring {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.pulse-ring i {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  width: 4px;
+  height: 15%;
+  margin-left: -2px;
+  border-radius: 4px;
+  background: linear-gradient(0deg, var(--t-accent, #c7a6ff), color-mix(in srgb, var(--lyric-active) 85%, transparent));
+  opacity: 0.85;
+  transform: rotate(calc(var(--bar) * 5.625deg)) translateY(calc(var(--orb) * -0.37)) scaleY(0.3);
+  transform-origin: 50% 100%;
+  animation: pulse-bar 900ms ease-in-out infinite alternate;
+  animation-delay: calc(var(--bar) * -137ms);
+  animation-play-state: paused;
+}
+
+.big-picture-playing .pulse-ring i {
+  animation-play-state: running;
+}
+
+.pulse-ring i:nth-child(3n) { animation-duration: 650ms; }
+.pulse-ring i:nth-child(4n + 1) { animation-duration: 1150ms; }
+.pulse-ring i:nth-child(5n + 2) { animation-duration: 780ms; }
+
+@keyframes pulse-bar {
+  from { transform: rotate(calc(var(--bar) * 5.625deg)) translateY(calc(var(--orb) * -0.37)) scaleY(0.25); }
+  to { transform: rotate(calc(var(--bar) * 5.625deg)) translateY(calc(var(--orb) * -0.37)) scaleY(1); }
+}
+
+/* Ondas que se expanden desde la portada al ritmo */
+.pulse-ripples {
+  position: absolute;
+  inset: 0;
+}
+
+.pulse-ripples i {
+  position: absolute;
+  inset: 15%;
+  border: 2px solid color-mix(in srgb, var(--t-accent, #c7a6ff) 70%, transparent);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.big-picture-playing .pulse-ripples i {
+  animation: pulse-ripple 2.4s ease-out infinite;
+}
+
+.pulse-ripples i:nth-child(2) { animation-delay: 0.8s !important; }
+.pulse-ripples i:nth-child(3) { animation-delay: 1.6s !important; }
+
+@keyframes pulse-ripple {
+  0% { opacity: 0.8; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.75); }
+}
+
+.pulse-meta {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  max-width: min(760px, 90vw);
+  color: var(--lyric-active);
+  text-align: center;
+  animation: lyrics-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 200ms backwards;
+}
+
+.pulse-meta strong {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: clamp(26px, 3.4vw, 52px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pulse-meta span {
+  color: var(--lyric-dim);
+  font-size: clamp(14px, 1.4vw, 19px);
+  font-weight: 600;
+}
+
+.pulse-next {
+  position: absolute;
+  right: clamp(10px, 3vw, 40px);
+  bottom: 10px;
+  display: grid;
+  grid-template-columns: auto 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  max-width: 300px;
+  padding: 8px 12px 8px 14px;
+  border: 1px solid var(--t-border, rgba(255, 255, 255, 0.2));
+  border-radius: 14px;
+  background: var(--t-surface, rgba(0, 0, 0, 0.35));
+  color: var(--lyric-active);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  backdrop-filter: blur(18px);
+  animation: rise-in 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 400ms backwards;
+}
+
+.pulse-next > small {
+  color: var(--lyric-dim);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.pulse-next img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.pulse-next span {
+  display: grid;
+  min-width: 0;
+}
+
+.pulse-next span :is(strong, small) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pulse-next span strong {
+  font-size: 13px;
+}
+
+.pulse-next span small {
+  color: var(--lyric-dim);
+  font-size: 11px;
+}
+
+@media (max-width: 860px) {
+  .pulse-next {
+    display: none;
+  }
+}
