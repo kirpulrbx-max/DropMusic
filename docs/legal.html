@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Términos y Transparencia Legal — DropMusic</title>
-  <meta name="description" content="Cómo funciona DropMusic con Spotify, Apple Music y YouTube Music, qué se cobra y por qué no almacena ni distribuye música." />
+  <meta name="description" content="Cómo funciona DropMusic con Spotify, su licencia MIT, qué se cobra y por qué no almacena ni distribuye música." />
   <meta name="theme-color" content="#08080a" />
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,9 +18,10 @@
       <a class="brand" href="index.html"><img alt="" src="logo.svg" /><span>drop<span>music</span></span></a>
       <div class="nav-links">
         <a href="index.html#funciones">Funciones</a>
-        <a href="index.html#pantalla-completa">Pantalla completa</a>
+        <a href="index.html#servicios">Servicios</a>
         <a href="index.html#temas">Temas</a>
-        <a href="index.html#preguntas">Preguntas</a>
+        <a href="index.html#descargar">Descargas</a>
+        <a href="index.html#conectar">Conectar Spotify</a>
         <a aria-current="page" href="legal.html">Legal</a>
       </div>
       <a class="button button-primary button-small" data-download href="index.html#descargar">Descargar</a>
@@ -34,8 +35,12 @@
 
     <section id="conexion">
       <h2><span>1.</span> ¿Cómo se conecta DropMusic con Spotify, Apple Music y YouTube Music?</h2>
-      <p>DropMusic <strong>no almacena, aloja, distribuye, ni transmite ningún archivo de audio, canción o álbum</strong> en sus servidores ni en los dispositivos de los usuarios.</p>
-      <p>Nuestra aplicación funciona exclusivamente como un cliente de control y interfaz de usuario (UI/UX) de código abierto y arquitectura modular. Para reproducir música, DropMusic utiliza estrictamente las APIs oficiales y protocolos de autorización estándar (OAuth) provistos por cada plataforma (como Spotify Connect / Web Playback SDK).</p>
+      <p>DropMusic <strong>no almacena, aloja, distribuye, ni transmite ningún archivo de audio, canción o álbum</strong> en sus servidores ni en los dispositivos de los usuarios, y no vulnera derechos de autor de ningún tipo.</p>
+      <p>Nuestra aplicación funciona exclusivamente como un <strong>cliente de interfaz</strong> (UI/UX) de código abierto y arquitectura modular. Para reproducir música, DropMusic utiliza estrictamente las APIs oficiales y protocolos de autorización estándar (OAuth) provistos por cada plataforma (como la Web API y el Web Playback SDK de Spotify).</p>
+      <ul>
+        <li><strong>Spotify:</strong> disponible hoy, mediante su API oficial y autorización OAuth.</li>
+        <li><strong>Apple Music y YouTube Music:</strong> próximamente. Sus integraciones con las APIs oficiales están en desarrollo activo para las siguientes versiones.</li>
+      </ul>
     </section>
 
     <section id="cuentas">
@@ -44,20 +49,31 @@
         <li><strong>Sin piratería ni saltos de restricciones:</strong> DropMusic no ofrece música gratis ni salta los muros de pago de los servicios de streaming.</li>
         <li>Para poder reproducir contenido a través de nuestra interfaz, es un requisito obligatorio que el usuario inicie sesión con su propia cuenta oficial (requiriendo suscripción Premium activa en los servicios que lo apliquen, exactamente igual que un altavoz inteligente, un sistema de audio externo o una Smart TV).</li>
         <li>La licencia del contenido, los derechos de autor y las regalías son gestionados y cobrados directamente por los proveedores oficiales (Spotify, Apple, Google/YouTube) al usuario final. DropMusic jamás interviene en la monetización de la música.</li>
+        <li><strong>Client ID personal:</strong> debido a las políticas de cuota de desarrollador de Spotify, cada usuario puede conectar DropMusic con su propio Client ID, creado gratis en su cuenta de Spotify for Developers. Ese identificador pertenece al usuario, su uso se rige por los términos de desarrollador de Spotify, y DropMusic solo lo guarda en el propio equipo para iniciar la autorización oficial. DropMusic nunca recibe ni guarda la contraseña del usuario.</li>
+      </ul>
+    </section>
+
+    <section id="codigo-abierto">
+      <h2><span>3.</span> Código Abierto bajo Licencia MIT</h2>
+      <p>La aplicación base de DropMusic es <strong>software de código abierto</strong> publicado bajo la <a href="https://github.com/kirpulrbx-max/DropMusic/blob/main/LICENSE">licencia MIT</a>, para uso libre de la comunidad.</p>
+      <ul>
+        <li>Cualquier persona puede revisar, usar, copiar, modificar y redistribuir el código fuente, conservando el aviso de copyright y de licencia.</li>
+        <li>El código está disponible públicamente en <a href="https://github.com/kirpulrbx-max/DropMusic">github.com/kirpulrbx-max/DropMusic</a>, lo que permite verificar en todo momento que DropMusic no almacena ni distribuye audio.</li>
+        <li>Como indica la licencia MIT, el software se ofrece «tal cual», sin garantías de ningún tipo.</li>
       </ul>
     </section>
 
     <section id="freemium">
-      <h2><span>3.</span> Modelo Freemium: ¿Por qué es gratis y qué es lo que se cobra?</h2>
+      <h2><span>4.</span> Modelo Freemium: ¿Por qué es gratis y qué es lo que se cobra?</h2>
       <ul>
-        <li><strong>La Aplicación Base es 100% Gratuita:</strong> El núcleo del reproductor, la conexión segura mediante OAuth y las funciones esenciales de control se ofrecen de manera libre para su descarga.</li>
-        <li><strong>Monetización de Diseño y Personalización:</strong> Lo único sujeto a cobro dentro del modelo comercial de DropMusic son los paquetes estéticos opcionales, temas avanzados de personalización visual (como nuestra interfaz inspirada en Apple Music), layouts exclusivos y complementos cosméticos de interfaz.</li>
-        <li>Estás pagando exclusivamente por el trabajo de desarrollo de software, diseño de experiencia de usuario (UI/UX) y personalización visual, nunca por el acceso a la música.</li>
+        <li><strong>La Aplicación Base es 100% Gratuita:</strong> el núcleo del reproductor, la conexión segura mediante OAuth y todas las funciones esenciales de control son gratuitos y de código abierto, sin límites de uso.</li>
+        <li><strong>Lo único que se cobra:</strong> paquetes estéticos avanzados, temas visuales y herramientas de personalización opcionales creados por Kirpul (por ejemplo, temas avanzados, layouts exclusivos y complementos cosméticos de interfaz).</li>
+        <li>Estás pagando exclusivamente por el trabajo de desarrollo de software, diseño de experiencia de usuario (UI/UX) y personalización visual, <strong>nunca por el acceso a la música</strong>. Ningún contenido musical está detrás de un pago de DropMusic.</li>
       </ul>
     </section>
 
     <section id="marcas">
-      <h2><span>4.</span> Marcas Registradas y Descargo de Responsabilidad</h2>
+      <h2><span>5.</span> Marcas Registradas y Descargo de Responsabilidad</h2>
       <p>DropMusic es un proyecto de software independiente desarrollado bajo la marca personal <strong>Kirpul</strong>.</p>
       <ul>
         <li>Las marcas comerciales, logotipos y nombres de Spotify, Apple Music y YouTube Music pertenecen única y exclusivamente a sus respectivos propietarios legales.</li>
@@ -75,7 +91,7 @@
         <a href="index.html">Inicio</a>
         <a href="https://github.com/kirpulrbx-max/DropMusic">GitHub</a>
       </div>
-      <p class="footer-note">© <span id="year">2026</span> DropMusic · Un proyecto de Kirpul.</p>
+      <p class="footer-note">© <span id="year">2026</span> DropMusic · Un proyecto de Kirpul · Código abierto bajo <a href="https://github.com/kirpulrbx-max/DropMusic/blob/main/LICENSE">licencia MIT</a>.</p>
     </div>
   </footer>
 

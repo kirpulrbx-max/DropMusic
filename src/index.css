@@ -5265,3 +5265,82 @@ button.album-art-large:disabled {
 .update-later:hover {
   background: var(--t-hover, rgba(255, 255, 255, 0.08));
 }
+
+/* Diálogo de Spotify: configurar el Client ID propio */
+.client-id-setup {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--t-border, rgba(255, 255, 255, 0.1));
+  border-radius: 12px;
+  background: var(--t-input, rgba(255, 255, 255, 0.04));
+  font-size: 13px;
+  text-align: left;
+}
+
+.client-id-setup summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.client-id-setup p,
+.client-id-setup small {
+  display: block;
+  margin: 10px 0 0;
+  color: var(--t-muted, #a19ca8);
+}
+
+.client-id-setup ol {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.client-id-setup a {
+  color: var(--t-accent-text, var(--t-accent, #c7a6ff));
+}
+
+.client-id-setup code {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.3);
+  font-size: 12px;
+  user-select: all;
+}
+
+.client-id-copy {
+  margin-left: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--t-border, rgba(255, 255, 255, 0.15));
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+}
+
+.client-id-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.client-id-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--t-border, rgba(255, 255, 255, 0.15));
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.25);
+  color: inherit;
+  font: inherit;
+  font-family: Consolas, monospace;
+  font-size: 12px;
+}
+
+/* Con la guía del Client ID abierta, el diálogo puede no caber en pantallas bajas */
+.provider-dialog {
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}

@@ -386,6 +386,7 @@ type AppSettings = {
   tvMode: boolean
   preferredService: Provider
   jamendoClientId: string
+  spotifyClientId: string
 }
 
 type ConnectedAccount = {
@@ -399,7 +400,11 @@ type OAuthCallback = {
   error?: string
 }
 
-const spotifyClientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID
+// Client ID con el que se compiló la app. Cada usuario puede usar el suyo (Ajustes > Spotify),
+// porque Spotify limita cuántas cuentas pueden entrar con una misma app de desarrollador.
+const builtInSpotifyClientId: string = import.meta.env.VITE_SPOTIFY_CLIENT_ID ?? ''
+const spotifyRedirectUri = 'http://127.0.0.1/callback'
+const isSpotifyClientId = (value: string) => /^[a-z0-9]{32}$/i.test(value)
 const defaultJamendoClientId = import.meta.env.VITE_JAMENDO_CLIENT_ID ?? ''
 let spotifySdkPromise: Promise<void> | null = null
 const emptyTrack: Track = {
@@ -438,6 +443,7 @@ const defaults: AppSettings = {
   theme: 'original',
   preferredService: 'Spotify',
   jamendoClientId: defaultJamendoClientId,
+  spotifyClientId: '',
 }
 
 const tracks: Track[] = []
@@ -559,6 +565,9 @@ function readSettings(): AppSettings {
       jamendoClientId: typeof saved.jamendoClientId === 'string'
         ? saved.jamendoClientId.trim()
         : defaults.jamendoClientId,
+      spotifyClientId: typeof saved.spotifyClientId === 'string' && isSpotifyClientId(saved.spotifyClientId.trim())
+        ? saved.spotifyClientId.trim()
+        : defaults.spotifyClientId,
     }
   } catch (error) {
     console.error('No se pudieron leer los ajustes guardados de DropMusic.', error)
@@ -1230,19 +1239,27 @@ function ProviderDialog({
   onClose,
   onConnected,
   onDisconnected,
+  spotifyClientId,
+  personalSpotifyClientId,
+  onSpotifyClientIdChange,
 }: {
   provider: Provider
   account?: ConnectedAccount
   onClose: () => void
   onConnected: (provider: Provider, account: ConnectedAccount) => void
   onDisconnected: (provider: Provider) => void
+  spotifyClientId: string
+  personalSpotifyClientId: string
+  onSpotifyClientIdChange: (clientId: string) => void
 }) {
+  const [clientIdDraft, setClientIdDraft] = useState(personalSpotifyClientId)
+  const [redirectCopied, setRedirectCopied] = useState(false)
   const details = providers.find(({ name }) => name === provider)
   const [linkError, setLinkError] = useState('')
   const [connecting, setConnecting] = useState(false)
   const oauthUnlistenRef = useRef<(() => void) | null>(null)
   const clientId = provider === 'Spotify'
-    ? import.meta.env.VITE_SPOTIFY_CLIENT_ID
+    ? spotifyClientId
     : provider === 'YouTube Music'
       ? import.meta.env.VITE_GOOGLE_CLIENT_ID
       : ''
@@ -1374,6 +1391,31 @@ function ProviderDialog({
           <button className="provider-disconnect-button" onClick={() => onDisconnected(provider)} type="button">Desvincular cuenta</button>
         )}
         {linkError && <p className="connection-notice" role="status">{linkError}</p>}
+        {provider === 'Spotify' && (
+          <details className="client-id-setup" open={!spotifyClientId}>
+            <summary>{personalSpotifyClientId ? 'Usando tu propio Client ID' : spotifyClientId ? 'Usar mi propio Client ID (recomendado)' : 'Configura tu Client ID de Spotify'}</summary>
+            <p>Spotify limita cuántas cuentas pueden entrar con una misma app. Con tu propio Client ID, gratis, DropMusic funciona sin ese límite y tu conexión es solo tuya.</p>
+            <ol>
+              <li>Entra gratis a <a href="https://developer.spotify.com/dashboard" onClick={openProviderGuide} rel="noreferrer" target="_blank">Spotify for Developers</a> con tu cuenta.</li>
+              <li>Crea una app. En «Redirect URI» pega <code>{spotifyRedirectUri}</code> <button className="client-id-copy" onClick={() => { void navigator.clipboard.writeText(spotifyRedirectUri).then(() => setRedirectCopied(true)) }} type="button">{redirectCopied ? 'Copiado' : 'Copiar'}</button> y marca «Web API» y «Web Playback SDK».</li>
+              <li>Copia el Client ID de tu app y pégalo aquí:</li>
+            </ol>
+            <form className="client-id-form" onSubmit={(event) => {
+              event.preventDefault()
+              const value = clientIdDraft.trim()
+              if (value && !isSpotifyClientId(value)) {
+                setLinkError('El Client ID de Spotify tiene 32 letras y números. Revisa que lo copiaste completo.')
+                return
+              }
+              setLinkError('')
+              onSpotifyClientIdChange(value)
+            }}>
+              <input aria-label="Client ID de Spotify" autoComplete="off" onChange={(event) => setClientIdDraft(event.target.value)} placeholder="Pega tu Client ID" spellCheck={false} value={clientIdDraft} />
+              <button className="secondary-button" type="submit">{clientIdDraft.trim() ? 'Guardar' : 'Quitar'}</button>
+            </form>
+            {account && clientIdDraft.trim() !== personalSpotifyClientId && <small>Al cambiar el Client ID tendrás que volver a conectar Spotify.</small>}
+          </details>
+        )}
         {supportsOAuth && <a className="provider-guide-link" href={details.url} onClick={openProviderGuide} rel="noreferrer" target="_blank">Abrir guía oficial</a>}
         <p className="dialog-footnote">{details.guide}</p>
       </section>
@@ -1461,6 +1503,7 @@ function App() {
     [spotifySuggestedTracks, spotifyTracks, jamendoTracks],
   )
   const configuredJamendoClientId = settings.jamendoClientId.trim() || defaultJamendoClientId
+  const spotifyClientId = settings.spotifyClientId || builtInSpotifyClientId
   const progressDuration = activeTrack.duration
   const searchResults = useMemo(
     () => allTracks.filter((track) => `${track.title} ${track.artist} ${track.album}`.toLowerCase().includes(query)),
@@ -1527,7 +1570,7 @@ function App() {
         if (active) setSpotifyError(error instanceof Error ? error.message : String(error))
       })
     return () => { active = false }
-  }, [])
+  }, [spotifyClientId])
 
   useEffect(() => {
     const requestId = ++spotifySuggestionRequestRef.current
@@ -1545,7 +1588,7 @@ function App() {
         setSpotifySuggestionsError(error instanceof Error ? error.message : String(error))
       })
     return () => { spotifySuggestionRequestRef.current += 1 }
-  }, [connectedAccounts.Spotify])
+  }, [connectedAccounts.Spotify, spotifyClientId])
 
   useEffect(() => {
     if (!connectedAccounts.Spotify || !isTauri() || !spotifyClientId) return
@@ -1558,7 +1601,7 @@ function App() {
       .then((albums) => { if (active) setNewReleases(albums) })
       .catch((error: unknown) => console.error('No se pudieron cargar los lanzamientos de Spotify.', error))
     return () => { active = false }
-  }, [connectedAccounts.Spotify])
+  }, [connectedAccounts.Spotify, spotifyClientId])
 
   useEffect(() => {
     try {
@@ -1672,7 +1715,7 @@ function App() {
       player?.disconnect()
       if (spotifyPlayerRef.current === player) spotifyPlayerRef.current = null
     }
-  }, [connectedAccounts.Spotify])
+  }, [connectedAccounts.Spotify, spotifyClientId])
 
   useEffect(() => {
     const requestId = ++spotifySearchRequestRef.current
@@ -1705,7 +1748,7 @@ function App() {
     }, 350)
 
     return () => window.clearTimeout(timer)
-  }, [connectedAccounts.Spotify, query, search])
+  }, [connectedAccounts.Spotify, query, search, spotifyClientId])
 
   useEffect(() => {
     const requestId = ++detailRequestRef.current
@@ -1734,7 +1777,7 @@ function App() {
     }).finally(() => {
       if (requestId === detailRequestRef.current) setDetailLoading(false)
     })
-  }, [currentDetail])
+  }, [currentDetail, spotifyClientId])
 
   useEffect(() => {
     if (bigPictureMode !== 'lyrics' || !activeTrack.id || !isTauri()) return
@@ -2400,7 +2443,7 @@ function App() {
     }
   }
 
-  async function disconnectSpotify() {
+  async function disconnectSpotify(closeDialog = true) {
     try {
       await invoke('spotify_disconnect')
       setConnectedAccounts((current) => {
@@ -2428,7 +2471,7 @@ function App() {
         setActiveCatalogTrack(null)
         setIsPlaying(false)
       }
-      setSelectedProvider(null)
+      if (closeDialog) setSelectedProvider(null)
     } catch (error) {
       console.error('No se pudo desvincular la cuenta de Spotify.', error)
       setSpotifyError(error instanceof Error ? error.message : String(error))
@@ -3362,7 +3405,14 @@ function App() {
           onClose={() => setSelectedProvider(null)}
           onConnected={handleAccountConnected}
           onDisconnected={() => { void disconnectSpotify() }}
+          onSpotifyClientIdChange={(clientId) => {
+            // La sesión guardada es de otra app de Spotify: hay que volver a conectar.
+            if (clientId !== settings.spotifyClientId && connectedAccounts.Spotify) void disconnectSpotify(false)
+            updateSetting('spotifyClientId', clientId)
+          }}
+          personalSpotifyClientId={settings.spotifyClientId}
           provider={selectedProvider}
+          spotifyClientId={spotifyClientId}
         />
       )}
     </div>

@@ -3,6 +3,7 @@ name = "dropmusic"
 version = "0.1.0"
 description = "A Windows desktop music hub."
 authors = ["DropMusic contributors"]
+license = "MIT"
 edition = "2024"
 rust-version = "1.90"
 

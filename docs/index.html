@@ -21,9 +21,10 @@
       <a class="brand" href="index.html"><img alt="" src="logo.svg" /><span>drop<span>music</span></span></a>
       <div class="nav-links">
         <a href="#funciones">Funciones</a>
-        <a href="#pantalla-completa">Pantalla completa</a>
+        <a href="#servicios">Servicios</a>
         <a href="#temas">Temas</a>
-        <a href="#preguntas">Preguntas</a>
+        <a href="#descargar">Descargas</a>
+        <a href="#conectar">Conectar Spotify</a>
         <a href="legal.html">Legal</a>
       </div>
       <a class="button button-primary button-small" data-download href="#descargar">Descargar</a>
@@ -33,7 +34,7 @@
   <header class="hero">
     <div class="container">
       <div class="hero-copy">
-        <p class="eyebrow">Gratis para Windows</p>
+        <p class="eyebrow">Gratis y de código abierto</p>
         <h1>Tu música,<br /><span class="gradient-text">a tu manera.</span></h1>
         <p class="lead">DropMusic se conecta a tu cuenta de Spotify y la convierte en un reproductor que puedes vestir como quieras: temas con fondos animados, disposiciones, letras en karaoke y una pantalla completa que se mueve con cada canción.</p>
         <div class="hero-actions">
@@ -43,7 +44,7 @@
           </a>
           <a class="button button-ghost" href="#funciones">Ver funciones</a>
         </div>
-        <p class="hero-note">Windows 10 u 11 · Necesitas tu propia cuenta de Spotify Premium para reproducir.</p>
+        <p class="hero-note">Windows 10 u 11 · Licencia MIT · Necesitas tu propia cuenta de Spotify Premium para reproducir.</p>
       </div>
 
       <div class="mockup" aria-hidden="true">
@@ -118,7 +119,34 @@
     </div>
   </section>
 
-  <section class="section" id="pantalla-completa">
+  <section class="section" id="servicios">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="eyebrow">Servicios</p>
+        <h2 class="section-title">Tu cuenta, tu música</h2>
+        <p>DropMusic reproduce a través de las APIs oficiales de cada servicio y con tu propia cuenta. Hoy funciona con Spotify; los demás llegan en las próximas versiones.</p>
+      </div>
+      <div class="services">
+        <article class="service reveal">
+          <div class="service-head"><span class="service-icon service-spotify"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><span class="status status-live">Disponible</span></div>
+          <h3>Spotify</h3>
+          <p>Reproducción completa dentro de DropMusic con la API oficial, el Web Playback SDK y autorización segura OAuth. Requiere Spotify Premium.</p>
+        </article>
+        <article class="service reveal">
+          <div class="service-head"><span class="service-icon service-apple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><span class="status status-soon">Próximamente</span></div>
+          <h3>Apple Music</h3>
+          <p>La integración con su API oficial está en desarrollo activo para las siguientes versiones.</p>
+        </article>
+        <article class="service reveal">
+          <div class="service-head"><span class="service-icon service-youtube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><span class="status status-soon">Próximamente</span></div>
+          <h3>YouTube Music</h3>
+          <p>La integración está en desarrollo activo para las siguientes versiones.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="pantalla-completa">
     <div class="container">
       <div class="section-head reveal">
         <p class="eyebrow">Big Picture</p>
@@ -146,7 +174,7 @@
     </div>
   </section>
 
-  <section class="section section-alt" id="temas">
+  <section class="section" id="temas">
     <div class="container">
       <div class="section-head reveal">
         <p class="eyebrow">Personalización</p>
@@ -178,17 +206,96 @@
     </div>
   </section>
 
-  <section class="section" id="descargar">
+  <section class="section section-alt" id="descargar">
     <div class="container">
-      <div class="download reveal">
-        <img alt="Logo de DropMusic" src="logo.svg" />
-        <h2 class="section-title">Descarga DropMusic</h2>
-        <p>Gratis para Windows 10 y 11. Instálalo, vincula tu cuenta de Spotify desde Ajustes y listo.</p>
-        <a class="button button-primary" data-download href="https://github.com/kirpulrbx-max/DropMusic/releases/latest">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
-          Descargar para Windows
-        </a>
-        <p class="download-meta" id="download-meta">Instalador para Windows (64 bits)</p>
+      <div class="section-head reveal">
+        <p class="eyebrow">Descargas</p>
+        <h2 class="section-title">Instala DropMusic</h2>
+        <p>Cada versión se publica en GitHub. Las plataformas marcadas como «Próximamente» se activan aquí solas en cuanto salga su primera versión.</p>
+      </div>
+      <div class="platforms">
+        <article class="platform reveal" data-platform="escritorio">
+          <div class="platform-head"><span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg></span><div><h3>Escritorio</h3><p>Windows, macOS y Linux</p></div></div>
+          <ul class="platform-list">
+            <li data-asset="windows">
+              <span><strong>Windows 10 y 11</strong><small>Instalador .exe (64 bits)</small></span>
+              <a aria-disabled="true" class="button button-ghost button-small" data-asset-link="windows" tabindex="-1">Próximamente</a>
+            </li>
+            <li data-asset="macos">
+              <span><strong>macOS</strong><small>Imagen de disco .dmg</small></span>
+              <a aria-disabled="true" class="button button-ghost button-small" data-asset-link="macos" tabindex="-1">Próximamente</a>
+            </li>
+            <li data-asset="linux">
+              <span><strong>Linux</strong><small>AppImage o paquete .deb</small></span>
+              <a aria-disabled="true" class="button button-ghost button-small" data-asset-link="linux" tabindex="-1">Próximamente</a>
+            </li>
+          </ul>
+        </article>
+        <article class="platform reveal" data-platform="movil">
+          <div class="platform-head"><span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/></svg></span><div><h3>Móvil</h3><p>Android y iPhone</p></div></div>
+          <ul class="platform-list">
+            <li data-asset="android">
+              <span><strong>Android</strong><small>APK de instalación directa</small></span>
+              <a aria-disabled="true" class="button button-ghost button-small" data-asset-link="android" tabindex="-1">Próximamente</a>
+            </li>
+            <li data-asset="ios">
+              <span><strong>iPhone y iPad</strong><small>Beta en TestFlight</small></span>
+              <a aria-disabled="true" class="button button-ghost button-small" data-asset-link="ios" tabindex="-1">Próximamente</a>
+            </li>
+          </ul>
+        </article>
+        <article class="platform reveal" data-platform="tv">
+          <div class="platform-head"><span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="15" x="2" y="7" rx="2"/><polyline points="17 2 12 7 7 2"/></svg></span><div><h3>Smart TV</h3><p>Android TV y Google TV</p></div></div>
+          <ul class="platform-list">
+            <li data-asset="tv">
+              <span><strong>Android TV / Google TV</strong><small>Versión adaptada a la pantalla grande y al control remoto</small></span>
+              <a aria-disabled="true" class="button button-ghost button-small" data-asset-link="tv" tabindex="-1">Próximamente</a>
+            </li>
+          </ul>
+        </article>
+      </div>
+      <p class="download-meta" id="download-meta">Todas las versiones en <a href="https://github.com/kirpulrbx-max/DropMusic/releases">GitHub Releases</a>.</p>
+    </div>
+  </section>
+
+  <section class="section" id="conectar">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="eyebrow">Conectar Spotify</p>
+        <h2 class="section-title">Tu propio Client ID, en 3 pasos</h2>
+        <p>Spotify limita cuántas personas pueden entrar con una misma app de desarrollador. Por eso cada usuario conecta DropMusic con su propio Client ID: es gratis, se hace una sola vez y tu conexión queda privada, sin depender de una cuota compartida.</p>
+      </div>
+      <ol class="steps">
+        <li class="step reveal">
+          <span class="step-number">1</span>
+          <h3>Entra a Spotify for Developers</h3>
+          <p>Abre <a href="https://developer.spotify.com/dashboard" rel="noreferrer" target="_blank">developer.spotify.com/dashboard</a> e inicia sesión con tu cuenta de Spotify. Es gratis.</p>
+        </li>
+        <li class="step reveal">
+          <span class="step-number">2</span>
+          <h3>Crea tu app</h3>
+          <p>Toca «Create app», ponle cualquier nombre (por ejemplo «Mi DropMusic»), pega el Redirect URI de abajo y marca «Web API» y «Web Playback SDK».</p>
+          <div class="copy-field"><code id="redirect-uri">http://127.0.0.1/callback</code><button class="button button-ghost button-small" data-copy="redirect-uri" type="button">Copiar</button></div>
+        </li>
+        <li class="step reveal">
+          <span class="step-number">3</span>
+          <h3>Pega tu Client ID en DropMusic</h3>
+          <p>Copia el «Client ID» de tu app. En DropMusic ve a Ajustes, toca Spotify, abre «Configura tu Client ID», pégalo y luego toca «Conectar Spotify».</p>
+        </li>
+      </ol>
+      <div class="faq reveal">
+        <details>
+          <summary>¿Es seguro?</summary>
+          <p>Sí. El Client ID es un identificador público, no una contraseña. Tu inicio de sesión ocurre en la página oficial de Spotify y DropMusic nunca ve tu contraseña. La sesión queda cifrada en tu equipo.</p>
+        </details>
+        <details>
+          <summary>¿Tengo que agregar mi correo en la app que creé?</summary>
+          <p>Si usas la app con la misma cuenta con la que la creaste, normalmente no. Si quieres usarla con otra cuenta de Spotify, agrégala en «User Management» dentro de tu app en el panel de Spotify.</p>
+        </details>
+        <details>
+          <summary>Spotify me dice que la dirección de retorno no es válida</summary>
+          <p>Revisa que el Redirect URI de tu app sea exactamente <code>http://127.0.0.1/callback</code>, sin espacios y sin número de puerto. Guarda los cambios en el panel y vuelve a intentarlo.</p>
+        </details>
       </div>
     </div>
   </section>
@@ -202,7 +309,7 @@
       <div class="faq reveal">
         <details>
           <summary>¿DropMusic es gratis?</summary>
-          <p>Sí. La aplicación base es gratuita. Más adelante podrá haber paquetes estéticos opcionales; nunca se cobra por la música.</p>
+          <p>Sí. La aplicación base y su conexión con Spotify son 100% gratuitas y de código abierto bajo licencia MIT. Lo único de pago son paquetes estéticos opcionales creados por Kirpul (temas avanzados, disposiciones exclusivas y herramientas de personalización). Nunca se cobra por la música.</p>
         </details>
         <details>
           <summary>¿Necesito Spotify Premium?</summary>
@@ -229,9 +336,10 @@
       <a class="brand" href="index.html"><img alt="" src="logo.svg" /><span>drop<span>music</span></span></a>
       <div class="footer-links">
         <a href="legal.html">Términos y transparencia legal</a>
+        <a href="#conectar">Conectar Spotify</a>
         <a href="https://github.com/kirpulrbx-max/DropMusic">GitHub</a>
       </div>
-      <p class="footer-note">© <span id="year">2026</span> DropMusic · Un proyecto de Kirpul. Spotify, Apple Music y YouTube Music son marcas de sus respectivos propietarios; DropMusic no está afiliado ni respaldado por ellos.</p>
+      <p class="footer-note">© <span id="year">2026</span> DropMusic · Un proyecto de Kirpul · Código abierto bajo <a href="https://github.com/kirpulrbx-max/DropMusic/blob/main/LICENSE">licencia MIT</a>. Spotify, Apple Music y YouTube Music son marcas de sus respectivos propietarios; DropMusic no está afiliado ni respaldado por ellos.</p>
     </div>
   </footer>
 
