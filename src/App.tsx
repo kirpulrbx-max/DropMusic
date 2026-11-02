@@ -84,6 +84,7 @@ import {
   Tv,
   Upload,
   SlidersHorizontal,
+  Menu,
   Sparkles,
   Volume2,
   X,
@@ -368,6 +369,9 @@ const pulseAuras: { id: PulseAuraId; name: string; description: string }[] = [
 // Televisores inteligentes y cajas de TV: activan el modo TV solos.
 // La variante de Android TV se compila con VITE_DEVICE=tv. Dentro de una app Android el navegador no
 // siempre dice "TV", así que también cuenta un Android sin pantalla táctil ni mouse.
+// En Android las versiones nuevas se instalan con la APK; el actualizador automático es solo de escritorio.
+const isAndroidApp = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
+
 const isTvDevice = import.meta.env.VITE_DEVICE === 'tv' || (typeof navigator !== 'undefined' && (
   /Android TV|GoogleTV|SmartTV|SMART-TV|Tizen|Web0S|webOS|BRAVIA|AFT[A-Z]|CrKey/i.test(navigator.userAgent)
   || (/Android/i.test(navigator.userAgent) && window.matchMedia('(pointer: none)').matches)
@@ -1830,6 +1834,7 @@ function App() {
   const [adminMessage, setAdminMessage] = useState('')
   const [libraryTab, setLibraryTab] = useState<'local' | 'spotify'>('local')
   const [connectOpen, setConnectOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [devices, setDevices] = useState<SpotifyDevice[]>([])
   const [devicesLoading, setDevicesLoading] = useState(false)
   const [devicesError, setDevicesError] = useState('')
@@ -2281,7 +2286,7 @@ function App() {
   }
 
   async function checkForUpdates(manual: boolean) {
-    if (!isTauri()) return
+    if (!isTauri() || isAndroidApp) return
     setUpdateState({ status: 'checking' })
     try {
       const update = await check()
@@ -2337,6 +2342,12 @@ function App() {
   }, [])
 
   const tvMode = settings.tvMode || isTvDevice
+  const shellLayout: LayoutId = tvMode ? 'clasica' : effectiveLayout
+
+  // El menú del modo TV recibe el foco al abrirse para moverse en él con las flechas.
+  useEffect(() => {
+    if (menuOpen) document.querySelector<HTMLElement>('.sidebar .nav-item.active, .sidebar .nav-item')?.focus()
+  }, [menuOpen])
 
   useEffect(() => {
     if (!tvMode) return
@@ -2348,6 +2359,7 @@ function App() {
       if (['GoBack', 'BrowserBack', 'XF86Back'].includes(event.key) || (event.key === 'Backspace' && !typing)) {
         event.preventDefault()
         if (document.querySelector('.big-picture')) setBigPictureMode(null)
+        else if (document.querySelector('.menu-open')) setMenuOpen(false)
         else setDetailStack((current) => current.slice(0, -1))
         return
       }
@@ -3057,6 +3069,7 @@ function App() {
   }
 
   function selectSection(section: Section) {
+    setMenuOpen(false)
     setActiveSection(section)
     setDetailStack([])
     setSearch('')
@@ -3712,8 +3725,8 @@ function App() {
 
   return (
     <div
-      className={`app-shell min-h-screen${settings.ambientGlow ? '' : ' no-ambient'}${settings.animations ? '' : ' reduce-motion'}${activeTheme.ink ? ' theme-ink' : ''}${activeTheme.scene ? ' has-scene' : ''}${isPlaying ? ' is-playing' : ''}${effectiveAnimatedCovers ? ' animated-covers' : ''}${tvMode ? ' tv-mode' : ''}`}
-      data-layout={effectiveLayout}
+      className={`app-shell min-h-screen${settings.ambientGlow ? '' : ' no-ambient'}${settings.animations ? '' : ' reduce-motion'}${activeTheme.ink ? ' theme-ink' : ''}${activeTheme.scene ? ' has-scene' : ''}${isPlaying ? ' is-playing' : ''}${effectiveAnimatedCovers ? ' animated-covers' : ''}${tvMode ? ' tv-mode' : ''}${menuOpen ? ' menu-open' : ''}`}
+      data-layout={shellLayout}
       data-theme={effectiveTheme}
       style={{ '--ambient-color': activeTrack.color } as CSSProperties}
     >
@@ -3758,7 +3771,8 @@ function App() {
         </div>
       )}
 
-      <aside className="sidebar">
+      {menuOpen && <button aria-label="Cerrar menú" className="menu-scrim" onClick={() => setMenuOpen(false)} tabIndex={-1} type="button" />}
+      <aside aria-label={tvMode ? 'Menú' : undefined} aria-modal={menuOpen || undefined} className="sidebar" onKeyDown={(event) => { if (event.key === 'Escape') setMenuOpen(false) }} role={menuOpen ? 'dialog' : undefined}>
         <a aria-label="DropMusic, inicio" className="brand" href="#inicio">
           <span className="brand-mark brand-logo"><img alt="" src="/favicon.svg" /></span>
           <span>drop<span className="brand-light">music</span></span>
@@ -3799,6 +3813,7 @@ function App() {
 
       <main className="main-content" id="inicio" ref={mainContentRef}>
         <header className="topbar">
+          <button aria-expanded={menuOpen} aria-label="Abrir menú" className="icon-button menu-toggle" onClick={() => setMenuOpen(true)} type="button"><Menu size={22} /></button>
           <div className="breadcrumbs"><span>DROP MUSIC</span><span className="breadcrumb-slash">/</span><span>{currentDetail ? (currentDetail.kind === 'artist' ? 'ARTISTA' : 'ÁLBUM') : isSearching ? 'BUSCAR' : activeSection.toUpperCase()}</span></div>
           <div className="topbar-actions">
             <label className="search-box">
@@ -4007,7 +4022,7 @@ function App() {
                 </section>
 
                 <section aria-labelledby="update-settings-heading" className="settings-panel">
-                  <div className="settings-panel-heading"><span className="settings-icon"><RefreshCw size={17} /></span><div><h2 id="update-settings-heading">Actualizaciones</h2><p>DropMusic busca versiones nuevas al abrirse y cada 6 horas.</p></div></div>
+                  <div className="settings-panel-heading"><span className="settings-icon"><RefreshCw size={17} /></span><div><h2 id="update-settings-heading">Actualizaciones</h2><p>{isAndroidApp ? 'Las versiones nuevas para Android se descargan desde la web de DropMusic.' : 'DropMusic busca versiones nuevas al abrirse y cada 6 horas.'}</p></div></div>
                   <div className="setting-toggle-row">
                     <span>
                       <strong>Versión {appVersion || 'de desarrollo'}</strong>
@@ -4018,12 +4033,13 @@ function App() {
                           : updateState.status === 'downloading' ? `Descargando la versión ${updateState.version}…`
                           : updateState.status === 'installing' ? 'Instalando la actualización…'
                           : updateState.status === 'error' ? `No se pudo comprobar: ${updateState.error ?? 'sin conexión'}`
+                          : isAndroidApp ? 'Descarga la APK nueva e instálala encima: tus canciones y ajustes se quedan.'
                           : 'Las actualizaciones se instalan solas cuando aceptas.'}
                       </small>
                     </span>
                     {updateState.status === 'available'
                       ? <button className="primary-button" onClick={() => void installUpdate()} type="button"><Download size={15} /> Actualizar</button>
-                      : <button className="secondary-button" disabled={!isTauri() || updateState.status === 'checking' || updateState.status === 'downloading'} onClick={() => void checkForUpdates(true)} type="button"><RefreshCw size={15} /> Buscar</button>}
+                      : !isAndroidApp && <button className="secondary-button" disabled={!isTauri() || updateState.status === 'checking' || updateState.status === 'downloading'} onClick={() => void checkForUpdates(true)} type="button"><RefreshCw size={15} /> Buscar</button>}
                   </div>
                 </section>
 

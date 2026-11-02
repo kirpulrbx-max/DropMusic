@@ -16,6 +16,7 @@ mod visualizer {
     pub fn visualizer_stop() {}
 }
 
+#[cfg(windows)]
 use keyring::{Entry, Error as KeyringError};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -26,7 +27,9 @@ use std::{
 };
 use tauri::{AppHandle, Emitter};
 
+#[cfg(windows)]
 const SPOTIFY_CREDENTIAL_SERVICE: &str = "com.dropmusic.desktop";
+#[cfg(windows)]
 const SPOTIFY_CREDENTIAL_USER: &str = "spotify-oauth";
 const SPOTIFY_API_BASE: &str = "https://api.spotify.com/v1";
 const SPOTIFY_SEARCH_LIMIT: u32 = 10;
@@ -192,11 +195,13 @@ fn spotify_search_params(query: &str, offset: u32) -> [(&'static str, String); 4
     ]
 }
 
+#[cfg(windows)]
 fn spotify_credential() -> Result<Entry, String> {
     Entry::new(SPOTIFY_CREDENTIAL_SERVICE, SPOTIFY_CREDENTIAL_USER)
         .map_err(|error| format!("No se pudo acceder al almacén seguro de Windows: {error}"))
 }
 
+#[cfg(windows)]
 fn save_spotify_session(session: &SpotifySession) -> Result<(), String> {
     let credential = spotify_credential()?;
     let serialized = serde_json::to_string(session)
@@ -206,6 +211,7 @@ fn save_spotify_session(session: &SpotifySession) -> Result<(), String> {
     })
 }
 
+#[cfg(windows)]
 fn load_spotify_session() -> Result<Option<SpotifySession>, String> {
     let credential = spotify_credential()?;
     let serialized = match credential.get_password() {
@@ -222,10 +228,57 @@ fn load_spotify_session() -> Result<Option<SpotifySession>, String> {
     Ok(Some(session))
 }
 
+#[cfg(windows)]
 fn delete_spotify_session() -> Result<(), String> {
     let credential = spotify_credential()?;
     match credential.delete_credential() {
         Ok(()) | Err(KeyringError::NoEntry) => Ok(()),
+        Err(error) => Err(format!("No se pudo borrar la sesión de Spotify: {error}")),
+    }
+}
+
+// Fuera de Windows no hay un almacén de contraseñas que sobreviva al cerrar la app, así que la
+// sesión va en un archivo dentro de la carpeta privada de la app (en Android solo ella puede leerla).
+#[cfg(not(windows))]
+static SPOTIFY_SESSION_FILE: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
+
+#[cfg(not(windows))]
+fn spotify_session_file() -> Result<&'static std::path::PathBuf, String> {
+    SPOTIFY_SESSION_FILE
+        .get()
+        .ok_or_else(|| "La carpeta de datos de DropMusic no está lista.".to_owned())
+}
+
+#[cfg(not(windows))]
+fn save_spotify_session(session: &SpotifySession) -> Result<(), String> {
+    let file = spotify_session_file()?;
+    let serialized = serde_json::to_string(session)
+        .map_err(|error| format!("No se pudo preparar la sesión de Spotify: {error}"))?;
+    if let Some(folder) = file.parent() {
+        std::fs::create_dir_all(folder)
+            .map_err(|error| format!("No se pudo crear la carpeta de datos: {error}"))?;
+    }
+    std::fs::write(file, serialized)
+        .map_err(|error| format!("No se pudo guardar la sesión de Spotify: {error}"))
+}
+
+#[cfg(not(windows))]
+fn load_spotify_session() -> Result<Option<SpotifySession>, String> {
+    let serialized = match std::fs::read_to_string(spotify_session_file()?) {
+        Ok(serialized) => serialized,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(error) => return Err(format!("No se pudo leer la sesión de Spotify: {error}")),
+    };
+    let session = serde_json::from_str(&serialized)
+        .map_err(|error| format!("La sesión guardada de Spotify no es válida: {error}"))?;
+    Ok(Some(session))
+}
+
+#[cfg(not(windows))]
+fn delete_spotify_session() -> Result<(), String> {
+    match std::fs::remove_file(spotify_session_file()?) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
         Err(error) => Err(format!("No se pudo borrar la sesión de Spotify: {error}")),
     }
 }
@@ -2198,6 +2251,12 @@ pub fn run() {
         ])
         .manage(visualizer::Visualizer::default())
         .setup(|app| {
+            #[cfg(not(windows))]
+            {
+                use tauri::Manager;
+                let folder = app.path().app_data_dir()?;
+                let _ = SPOTIFY_SESSION_FILE.set(folder.join("spotify-session.json"));
+            }
             // Actualizaciones automáticas: la app busca versiones nuevas firmadas en GitHub.
             #[cfg(desktop)]
             {
