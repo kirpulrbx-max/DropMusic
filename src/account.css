@@ -569,10 +569,7 @@
 }
 
 /* ---------- Conectar: escuchar en otro dispositivo ---------- */
-.player-bar {
-  position: relative;
-}
-
+/* El aviso se ubica sobre la barra del reproductor, que ya es fixed (no hace falta posicionarla). */
 .remote-banner {
   position: absolute;
   bottom: calc(100% + 6px);
