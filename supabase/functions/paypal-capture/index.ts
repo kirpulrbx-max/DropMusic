@@ -18,17 +18,25 @@ function reply(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 }
 
-const paypalBase = Deno.env.get('PAYPAL_ENV') === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com'
-const price = Number(Deno.env.get('PRO_PRICE') ?? '5.00').toFixed(2)
+// Los secretos se limpian: al pegarlos en el panel es fácil que se cuelen espacios o comillas.
+const secret = (name: string) => (Deno.env.get(name) ?? '').trim().replace(/^["']|["']$/g, '')
+const paypalEnv = secret('PAYPAL_ENV').toLowerCase() === 'live' ? 'live' : 'sandbox'
+const paypalBase = paypalEnv === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com'
+const price = Number(secret('PRO_PRICE') || '5.00').toFixed(2)
 
 async function paypalToken() {
-  const credentials = btoa(`${Deno.env.get('PAYPAL_CLIENT_ID')}:${Deno.env.get('PAYPAL_SECRET')}`)
+  const clientId = secret('PAYPAL_CLIENT_ID')
+  const credentials = btoa(`${clientId}:${secret('PAYPAL_SECRET')}`)
   const response = await fetch(`${paypalBase}/v1/oauth2/token`, {
     method: 'POST',
     headers: { Authorization: `Basic ${credentials}`, 'Content-Type': 'application/x-www-form-urlencoded' },
     body: 'grant_type=client_credentials',
   })
-  if (!response.ok) throw new Error('PayPal rechazó las credenciales del servidor.')
+  if (!response.ok) {
+    // Sin mostrar el Secret: solo lo necesario para saber qué está mal configurado.
+    console.error(`PayPal ${paypalEnv} respondió ${response.status}: ${await response.text()} (Client ID ${clientId.slice(0, 6)}…, ${clientId.length} caracteres, Secret de ${secret('PAYPAL_SECRET').length})`)
+    throw new Error('PayPal rechazó las credenciales del servidor.')
+  }
   return (await response.json()).access_token as string
 }
 
