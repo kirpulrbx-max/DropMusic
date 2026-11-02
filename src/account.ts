@@ -74,7 +74,8 @@ export async function signIn(email: string, password: string) {
 
 // Devuelve true si la cuenta quedó lista, o false si hay que confirmar el correo primero.
 export async function signUp(email: string, password: string) {
-  const { data, error } = await supabase().auth.signUp({ email: email.trim(), password })
+  // El enlace del correo de confirmación abre la web de DropMusic, que deja la cuenta lista.
+  const { data, error } = await supabase().auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: checkoutUrl } })
   if (error) throw new Error(friendlyError(error, 'No se pudo crear la cuenta.'))
   return Boolean(data.session)
 }

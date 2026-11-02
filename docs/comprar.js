@@ -1,6 +1,6 @@
 // Página de compra de DropMusic Pro: inicia sesión con la cuenta de DropMusic (Supabase), cobra con
 // PayPal y le pide al servidor (función paypal-capture) que confirme el pago y active Pro.
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm'
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/+esm'
 
 const config = window.DROPMUSIC_CONFIG ?? {}
 const price = Number(config.proPrice || '5').toFixed(2)

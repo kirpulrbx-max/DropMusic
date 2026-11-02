@@ -39,22 +39,27 @@ as $$
   select exists (select 1 from public.profiles where id = auth.uid() and role = 'admin');
 $$;
 
+-- Solo las cuentas con sesión la usan (en las reglas de acceso); sin sesión no hace falta.
+revoke execute on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated;
+
 drop policy if exists "Cada quien lee su perfil" on public.profiles;
 create policy "Cada quien lee su perfil" on public.profiles
-  for select using (id = auth.uid() or public.is_admin());
+  for select to authenticated using (id = auth.uid() or public.is_admin());
 
 drop policy if exists "Los admin cambian planes" on public.profiles;
 create policy "Los admin cambian planes" on public.profiles
-  for update using (public.is_admin()) with check (public.is_admin());
+  for update to authenticated using (public.is_admin()) with check (public.is_admin());
 
 drop policy if exists "Cada quien ve sus pagos" on public.payments;
 create policy "Cada quien ve sus pagos" on public.payments
-  for select using (user_id = auth.uid() or public.is_admin());
+  for select to authenticated using (user_id = auth.uid() or public.is_admin());
 
 -- Un admin no puede cambiarse el rol a sí mismo ni a otros desde la app: el rol solo se toca aquí.
 create or replace function public.protect_role()
 returns trigger
 language plpgsql
+set search_path = public
 as $$
 begin
   if new.role is distinct from old.role and coalesce(auth.role(), '') in ('authenticated', 'anon') then
@@ -84,6 +89,9 @@ begin
   return new;
 end;
 $$;
+
+-- Solo la llama el trigger, nunca la API.
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created after insert on auth.users
