@@ -50,7 +50,7 @@
     macos: /\.dmg$/i,
     linux: /\.(AppImage|deb)$/i,
     android: /^(?!.*tv).*\.apk$/i,
-    tv: /tv.*\.apk$/i,
+    // Android TV queda en "Próximamente" hasta terminar la versión para el control remoto.
   }
 
   function enable(key, url, label) {
