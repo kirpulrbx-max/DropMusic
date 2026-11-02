@@ -4,6 +4,6 @@
 window.DROPMUSIC_CONFIG = {
   supabaseUrl: 'https://alfwqwswpayzipgkmzut.supabase.co',
   supabaseAnonKey: 'sb_publishable_9KMm7w2jHJb_MHyO6-4Qyw_ZQ4x6ZLo',
-  paypalClientId: 'BAAZsWrAhUPUX1ELG4zfW-AaStZY9ozhX1WsX7TxGzhdlnwiUH0W0AeMWDG1IeO5FL97tTrNEcHiivcgCA',
+  paypalClientId: 'BAApWt-aNzDSiw2an1sSBU8YOninQwAu2gTkI1FW-xA_ArI4BVIjIokGjM84gNNSwdgO0YxjHAc8p6QBbE',
   proPrice: '5.00',
 }
