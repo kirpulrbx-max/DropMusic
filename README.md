@@ -41,6 +41,17 @@ Jamendo catalog search and playback use the official Jamendo API. Create a free 
 
 Spotify limits how many accounts can sign in through one developer app, so each user can connect DropMusic with their own free Client ID: create an app in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard), add `http://127.0.0.1/callback` as Redirect URI, enable **Web API** and **Web Playback SDK**, and paste the Client ID in **Ajustes → Spotify → Configura tu Client ID**. It is stored only in this device's settings. The step-by-step guide is also on the [website](https://kirpulrbx-max.github.io/DropMusic/#conectar).
 
+## Accounts and DropMusic Pro
+
+Accounts and the Pro plan run on [Supabase](https://supabase.com) (free tier). Without it the app hides sign-in and leaves every Pro feature unlocked, which is how development builds behave.
+
+1. Create a Supabase project and run `supabase/setup.sql` in its SQL Editor. Then run your private `supabase/admin.sql` (git-ignored) to make your own account an admin with permanent Pro.
+2. In PayPal Developer > Apps & Credentials create a REST app. Deploy `supabase/functions/paypal-capture` and set its secrets `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET`, `PAYPAL_ENV` (`live` or `sandbox`) and `PRO_PRICE` (for example `5.00`). The PayPal Secret never goes in the app or the website.
+3. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to `.env.local` and fill the same values, plus the PayPal Client ID, in `docs/config.js`.
+4. In Supabase > Authentication > URL Configuration add `https://kirpulrbx-max.github.io/DropMusic/comprar.html` as a redirect URL.
+
+Free accounts get the standard interface and Spotify playback. Pro (USD 5 per payment, one month each, no automatic renewal) unlocks themes and layouts, local songs and the Vinilo and Pulso full-screen modes. Payments happen on the website (`docs/comprar.html`); the `paypal-capture` function checks the order with PayPal before it extends the account.
+
 ## License
 
 DropMusic is open source under the [MIT License](LICENSE).

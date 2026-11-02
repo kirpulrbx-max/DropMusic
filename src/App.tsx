@@ -17,6 +17,26 @@ import {
   localCoverUrl,
   type LocalTrackRecord,
 } from './localLibrary'
+import type { Session } from '@supabase/supabase-js'
+import {
+  accountsEnabled,
+  adminListProfiles,
+  adminSetPlan,
+  checkoutUrl,
+  fetchProfile,
+  getSession,
+  hasPro,
+  onSessionChange,
+  proPrice,
+  readCachedProfile,
+  sendPasswordReset,
+  signIn,
+  signOut,
+  signUp,
+  writeCachedProfile,
+  type Plan,
+  type Profile,
+} from './account'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -24,16 +44,23 @@ import {
   ArrowLeft,
   ArrowUpRight,
   AudioLines,
+  Cast,
+  Check,
   ChevronDown,
   Clock3,
+  Crown,
   Disc3,
   Download,
   FolderOpen,
   Headphones,
   Heart,
+  Laptop,
   LayoutDashboard,
   Library,
   ListMusic,
+  Lock,
+  LogOut,
+  Mail,
   Maximize2,
   Mic2,
   Minimize2,
@@ -47,9 +74,12 @@ import {
   Repeat2,
   Search,
   Settings2,
+  ShieldCheck,
   Shuffle,
   SkipBack,
   SkipForward,
+  Smartphone,
+  Speaker,
   Trash2,
   Tv,
   Upload,
@@ -60,7 +90,7 @@ import {
 } from 'lucide-react'
 
 type Provider = 'Spotify' | 'Apple Music' | 'YouTube Music'
-type Section = 'Escuchar' | 'Tu colección' | 'Favoritos' | 'Personalización' | 'Ajustes'
+type Section = 'Escuchar' | 'Tu colección' | 'Favoritos' | 'Personalización' | 'Cuenta' | 'Ajustes'
 
 type ArtistRef = { id: string; name: string }
 
@@ -217,6 +247,9 @@ type ThemeId =
   | 'volcan' | 'urbano' | 'jazz' | 'fiesta' | 'metal' | 'disco' | 'pastel' | 'setentas' | 'arcade'
   | 'y2k' | 'frutiger' | 'siete' | 'ios' | 'vibras2017' | 'tresd' | 'transparente' | 'jdm' | 'granpremio' | 'hatchback'
   | 'venezolano' | 'chino' | 'ladrillos' | 'bloques08' | 'nuclear'
+  | 'grafito' | 'lavanda' | 'esmeralda' | 'sepia' | 'tormenta' | 'atardecer' | 'eclipse' | 'otono' | 'medusas'
+  | 'reggae' | 'kpop' | 'techno' | 'country' | 'cottagecore' | 'glitch' | 'memphis' | 'acuarela' | 'muertos' | 'egipto'
+  | 'portatil' | 'rally'
 
 type ThemeCategory = 'Esenciales' | 'Cyberpunk' | 'Anime' | 'Videojuegos' | 'Ambientes' | 'Géneros' | 'Estéticas' | 'Motor' | 'Culturas'
 
@@ -291,6 +324,27 @@ const themes: ThemeOption[] = [
   { id: 'chino', name: 'Chino tradicional', vibe: 'Rojo laca y dorado, marcos de celosía, nubes doradas y faroles que se mecen.', category: 'Culturas', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #5c0f0d, #300605)', surface: 'rgba(88,16,14,0.9)', accent: '#f0c05a', text: '#fff1d8', font: 'KaiTi, STKaiti, Georgia, serif' } },
   { id: 'ladrillos', name: 'Ladrillos de juguete', vibe: 'Piezas de colores primarios con sus tetones, sobre una base gris para construir.', category: 'Videojuegos', ink: true, preview: { bg: 'radial-gradient(circle at 6px 6px, #f2f2f2 0 4px, transparent 5px) 0 0 / 12px 12px, #e4e4e4', surface: '#ffffff', accent: '#0055bf', text: '#1a1a1a', font: '"Archivo Black", Impact, sans-serif' } },
   { id: 'bloques08', name: 'Bloques clásicos', vibe: 'Los juegos de bloques online de 2008: superficies grises con tetones, cielo azul y nubes cuadradas.', category: 'Videojuegos', ink: true, scene: true, preview: { bg: 'linear-gradient(180deg, #4aa3e0, #a8dcff 70%, #59a63a 70.5%)', surface: '#f4f4f4', accent: '#0066cc', text: '#191919', font: '"Arial Black", Arial, sans-serif' } },
+  { id: 'grafito', name: 'Grafito', vibe: 'Gris carbón mate con puntitos de lápiz y un acento menta. Sobrio para concentrarse.', category: 'Esenciales', ink: false, preview: { bg: '#1b1d1f', surface: '#25282b', accent: '#6ee7b7', text: '#f1f3f4', font: 'Inter, "Segoe UI", sans-serif' } },
+  { id: 'lavanda', name: 'Lavanda', vibe: 'Claro y suave: lila, rosa empolvado y violeta, con esquinas muy redondas.', category: 'Esenciales', ink: true, preview: { bg: 'linear-gradient(135deg, #e9e1fb, #f8e3ef)', surface: '#ffffff', accent: '#7c5cd6', text: '#2a2140', font: 'Righteous, "Segoe UI", sans-serif' } },
+  { id: 'esmeralda', name: 'Esmeralda y oro', vibe: 'Verde profundo de terciopelo con filetes dorados, como un club privado.', category: 'Esenciales', ink: false, preview: { bg: 'linear-gradient(180deg, #06221a, #031510)', surface: '#0b3127', accent: '#d4af37', text: '#fbf1d0', font: 'Georgia, "Times New Roman", serif' } },
+  { id: 'sepia', name: 'Fotografía sepia', vibe: 'Como un álbum de fotos viejo: papel tostado, viñeta y portadas en sepia.', category: 'Esenciales', ink: true, preview: { bg: 'radial-gradient(circle, #f1e6cf, #d8c29a)', surface: '#f5ecd9', accent: '#7a4f22', text: '#3b2a17', font: 'Georgia, "Times New Roman", serif' } },
+  { id: 'tormenta', name: 'Tormenta eléctrica', vibe: 'Nubes oscuras que pasan, lluvia en diagonal y relámpagos que iluminan todo.', category: 'Ambientes', ink: false, scene: true, preview: { bg: 'radial-gradient(ellipse at 50% 0%, #2b3550, #0b0f18 70%)', surface: 'rgba(22,28,44,0.86)', accent: '#9cc2ff', text: '#eef4ff', font: 'Inter, "Segoe UI", sans-serif' } },
+  { id: 'atardecer', name: 'Atardecer en la playa', vibe: 'El sol se hunde en el mar, su reflejo brilla en el agua y las olas van y vienen.', category: 'Ambientes', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #3b1450, #b8436a 40%, #ff9a5a 60%, #10213f 61%)', surface: 'rgba(62,28,54,0.85)', accent: '#ff8f6b', text: '#fff2e8', font: 'Righteous, "Segoe UI", sans-serif' } },
+  { id: 'eclipse', name: 'Eclipse', vibe: 'Una corona de luz detrás de la luna, polvo de estrellas y botones como píldoras.', category: 'Ambientes', ink: false, scene: true, preview: { bg: 'radial-gradient(circle at 75% 35%, #000 0 14%, #ffc878 15%, #12102a 22%, #04040a 60%)', surface: 'rgba(18,16,30,0.86)', accent: '#ffc878', text: '#fff6e6', font: 'Inter, "Segoe UI", sans-serif' } },
+  { id: 'otono', name: 'Otoño', vibe: 'Crema cálida con hojas naranjas, rojas y doradas que caen girando.', category: 'Ambientes', ink: true, scene: true, preview: { bg: 'linear-gradient(180deg, #fbe9cf, #f3d3a8)', surface: '#fffbf4', accent: '#c4551e', text: '#3b2214', font: 'Georgia, "Times New Roman", serif' } },
+  { id: 'medusas', name: 'Medusas', vibe: 'Aguas profundas con medusas de neón que suben flotando y mueven sus tentáculos.', category: 'Ambientes', ink: false, scene: true, preview: { bg: 'radial-gradient(ellipse at 50% 0%, #142a66, #050b1f 70%)', surface: 'rgba(14,22,56,0.84)', accent: '#f39bff', text: '#fdf0ff', font: 'Inter, "Segoe UI", sans-serif' } },
+  { id: 'reggae', name: 'Reggae roots', vibe: 'Rojo, amarillo y verde en franjas que ondulan con el ritmo, y humo que sube.', category: 'Géneros', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #12160d 70%, #e1261c 70% 80%, #ffd200 80% 90%, #2fb24c 90%)', surface: 'rgba(30,36,20,0.88)', accent: '#2fb24c', text: '#fffbe2', font: 'Righteous, "Segoe UI", sans-serif' } },
+  { id: 'kpop', name: 'Escenario K-pop', vibe: 'Focos que barren el escenario, títulos en degradado y lightsticks que se agitan.', category: 'Géneros', ink: false, scene: true, preview: { bg: 'radial-gradient(ellipse at 50% 120%, #4a1460, #120818 65%)', surface: 'rgba(34,14,46,0.86)', accent: '#ff5fbe', text: '#fff0fa', font: '"Archivo Black", Impact, sans-serif' } },
+  { id: 'techno', name: 'Rave techno', vibe: 'Negro total, láseres verdes que barren la pista y un estrobo al compás.', category: 'Géneros', ink: false, scene: true, preview: { bg: 'conic-gradient(from 180deg at 50% 100%, #050505 0 40%, #39ff88 41%, #050505 42% 58%, #3ce9ff 59%, #050505 60%)', surface: 'rgba(16,16,16,0.9)', accent: '#39ff88', text: '#eafff2', font: 'Rajdhani, "Segoe UI", sans-serif' } },
+  { id: 'country', name: 'Rancho country', vibe: 'Tablas de madera, cuero con costuras y letras de cartel del oeste.', category: 'Géneros', ink: false, preview: { bg: 'repeating-linear-gradient(90deg, #2c1c12 0 30px, #24170e 30px 32px)', surface: '#3d2818', accent: '#e8b05c', text: '#fff1dc', font: 'Rajdhani, "Segoe UI", sans-serif' } },
+  { id: 'cottagecore', name: 'Cottagecore', vibe: 'Una casita de campo: verde salvia, crema, letra en cursiva y florecitas flotando.', category: 'Estéticas', ink: true, scene: true, preview: { bg: 'linear-gradient(180deg, #f8f3e6, #ece5cf)', surface: '#fffcf4', accent: '#6e8c64', text: '#33402d', font: 'Georgia, "Times New Roman", serif' } },
+  { id: 'glitch', name: 'Glitch', vibe: 'Señal rota: títulos que tiemblan en rojo y cian, bandas que saltan y líneas de escaneo.', category: 'Estéticas', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #0a0a0d 40%, #ff0050 40% 43%, #0a0a0d 43% 60%, #00f0ff 60% 62%, #0a0a0d 62%)', surface: 'rgba(20,20,26,0.9)', accent: '#ff0050', text: '#ffffff', font: '"Archivo Black", Impact, sans-serif' } },
+  { id: 'memphis', name: 'Memphis', vibe: 'Diseño de los 80: figuras geométricas de colores, bordes negros y sombras duras.', category: 'Estéticas', ink: true, scene: true, preview: { bg: 'radial-gradient(circle at 20% 25%, #ffe066 0 12%, transparent 13%), linear-gradient(135deg, transparent 70%, #4fd1c5 70%), #fffaf0', surface: '#ffffff', accent: '#ff4f8b', text: '#1a1a2e', font: '"Archivo Black", Impact, sans-serif' } },
+  { id: 'acuarela', name: 'Acuarela', vibe: 'Manchas de pintura que se expanden y se mezclan sobre papel blanco.', category: 'Estéticas', ink: true, scene: true, preview: { bg: 'radial-gradient(circle at 20% 20%, #9cc3f0aa, transparent 45%), radial-gradient(circle at 80% 40%, #f3a6c0aa, transparent 45%), radial-gradient(circle at 50% 90%, #f7d58aaa, transparent 45%), #fbf8f3', surface: '#ffffff', accent: '#4f78bf', text: '#26303f', font: 'Georgia, "Times New Roman", serif' } },
+  { id: 'muertos', name: 'Día de Muertos', vibe: 'Papel picado de colores, pétalos de cempasúchil cayendo y velas encendidas.', category: 'Culturas', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #e91e63 0 8%, #ff9800 8% 14%, #2a0f3d 14%, #1a0b26)', surface: 'rgba(44,18,60,0.88)', accent: '#ff9800', text: '#fff3e0', font: 'Righteous, "Segoe UI", sans-serif' } },
+  { id: 'egipto', name: 'Antiguo Egipto', vibe: 'Oro y lapislázuli, pirámides bajo la luna y arena que sopla por el desierto.', category: 'Culturas', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #0e1a3a 0 60%, #c99a48 60% 64%, #3a2b14 64%)', surface: 'rgba(22,36,76,0.88)', accent: '#e6be5a', text: '#fff5d8', font: 'Georgia, "Times New Roman", serif' } },
+  { id: 'portatil', name: 'Portátil verde', vibe: 'La pantalla verde de las consolas de bolsillo de los 90: cuatro tonos, píxeles y portadas en verde.', category: 'Videojuegos', ink: true, preview: { bg: '#9bbc0f', surface: '#a7c41a', accent: '#306230', text: '#0f380f', font: '"Press Start 2P", monospace' } },
+  { id: 'rally', name: 'Rally en la tierra', vibe: 'Camino de tierra, polvo que levantan las ruedas y árboles que pasan volando.', category: 'Motor', ink: false, scene: true, preview: { bg: 'linear-gradient(180deg, #5a7fa0 0 34%, #b8956a 34% 38%, #7a5a36 38%, #3a2a18)', surface: 'rgba(40,32,24,0.9)', accent: '#00a0e6', text: '#fff6e2', font: 'Rajdhani, "Segoe UI", sans-serif' } },
   { id: 'nuclear', name: 'Planta nuclear', vibe: 'Amarillo de peligro y verde radiactivo, el símbolo girando y partículas que brillan.', category: 'Videojuegos', ink: false, scene: true, preview: { bg: 'radial-gradient(circle, #1f2a12, #0a0d07 70%)', surface: '#181c10', accent: '#7cff3a', text: '#f3ffe8', font: 'Rajdhani, "Segoe UI", sans-serif' } },
 ]
 
@@ -506,6 +560,7 @@ const navigation: { label: Section; icon: LucideIcon }[] = [
   { label: 'Tu colección', icon: Library },
   { label: 'Favoritos', icon: Heart },
   { label: 'Personalización', icon: Palette },
+  { label: 'Cuenta', icon: Crown },
   { label: 'Ajustes', icon: Settings2 },
 ]
 
@@ -530,24 +585,28 @@ function hueFromText(text: string) {
   return hash
 }
 
-const providers: { name: Provider; description: string; url: string; guide: string }[] = [
+// Apple Music y YouTube Music todavía no se pueden vincular: se muestran como "Próximamente".
+const providers: { name: Provider; description: string; url: string; guide: string; available: boolean }[] = [
   {
     name: 'Spotify',
     description: 'Busca música y reprodúcela aquí mismo con el reproductor oficial de Spotify. La reproducción integrada requiere Spotify Premium.',
     url: 'https://developer.spotify.com/dashboard',
     guide: 'Spotify Web Playback SDK · requiere Premium',
+    available: true,
   },
   {
     name: 'Apple Music',
-    description: 'MusicKit requiere credenciales de desarrollador de Apple y autorización oficial.',
+    description: 'Próximamente. Estamos preparando la conexión con Apple Music.',
     url: 'https://developer.apple.com/musickit/',
     guide: 'Documentación de Apple MusicKit',
+    available: false,
   },
   {
     name: 'YouTube Music',
-    description: 'Vincula tu cuenta Google con OAuth. Google no ofrece una API pública para controlar YouTube Music.',
+    description: 'Próximamente. Estamos preparando la conexión con YouTube Music.',
     url: 'https://console.cloud.google.com/apis/credentials',
     guide: 'Google Cloud OAuth',
+    available: false,
   },
 ]
 
@@ -556,6 +615,7 @@ const pages: Record<Section, { title: string; subtitle: string }> = {
   'Tu colección': { title: 'Todo lo que guardas.', subtitle: 'Álbumes, playlists y momentos que vuelven contigo.' },
   Favoritos: { title: 'Lo que siempre vuelve.', subtitle: 'Tus canciones favoritas, reunidas en un solo lugar.' },
   Personalización: { title: 'Hazla tuya.', subtitle: 'Elige el estilo con el que se ve y se siente DropMusic.' },
+  Cuenta: { title: 'Tu cuenta y tu plan.', subtitle: 'Inicia sesión, mira tu plan y desbloquea DropMusic Pro.' },
   Ajustes: { title: 'A tu manera.', subtitle: 'Ajusta el sonido, el ambiente y tus servicios.' },
 }
 
@@ -579,7 +639,7 @@ function readSettings(): AppSettings {
       bandGains: Array.isArray(saved.bandGains) && saved.bandGains.length === bandFrequencies.length
         ? saved.bandGains.map((gain) => Math.min(12, Math.max(-12, Number(gain) || 0)))
         : defaults.bandGains,
-      preferredService: providers.some(({ name }) => name === saved.preferredService)
+      preferredService: providers.some(({ name, available }) => available && name === saved.preferredService)
         ? saved.preferredService!
         : defaults.preferredService,
       jamendoClientId: typeof saved.jamendoClientId === 'string'
@@ -1036,6 +1096,7 @@ function BigPicturePlayer({
   onToggleRepeat,
   onVolume,
   pulseAura,
+  immersiveLocked,
 }: {
   track: Track
   previousTracks: Track[]
@@ -1057,6 +1118,7 @@ function BigPicturePlayer({
   onToggleRepeat: () => void
   onVolume: (volume: number) => void
   pulseAura: PulseAuraId
+  immersiveLocked: boolean
 }) {
   const orbRef = useRef<HTMLDivElement>(null)
   const [liveAudio, setLiveAudio] = useState(false)
@@ -1131,8 +1193,8 @@ function BigPicturePlayer({
       <div aria-label="Formato de pantalla completa" className="big-picture-modes" role="group">
         <button aria-pressed={mode === 'carousel'} data-mode="carousel" onClick={() => onModeChange('carousel')} type="button"><Disc3 size={15} /> Carrusel</button>
         <button aria-pressed={mode === 'lyrics'} data-mode="lyrics" onClick={() => onModeChange('lyrics')} type="button"><Mic2 size={15} /> Letra</button>
-        <button aria-pressed={mode === 'vinilo'} data-mode="vinilo" onClick={() => onModeChange('vinilo')} type="button"><Radio size={15} /> Vinilo</button>
-        <button aria-pressed={mode === 'pulso'} data-mode="pulso" onClick={() => onModeChange('pulso')} type="button"><Activity size={15} /> Pulso</button>
+        <button aria-pressed={mode === 'vinilo'} data-mode="vinilo" onClick={() => onModeChange('vinilo')} type="button"><Radio size={15} /> Vinilo{immersiveLocked && <Lock aria-label="Pro" size={11} />}</button>
+        <button aria-pressed={mode === 'pulso'} data-mode="pulso" onClick={() => onModeChange('pulso')} type="button"><Activity size={15} /> Pulso{immersiveLocked && <Lock aria-label="Pro" size={11} />}</button>
       </div>
       <button aria-label="Salir de Big Picture" className="big-picture-close" onClick={onClose} type="button"><Minimize2 size={18} /></button>
 
@@ -1475,6 +1537,213 @@ function ProviderDialog({
   )
 }
 
+type SpotifyDevice = { id: string; name: string; kind: string; isActive: boolean; volume: number | null; supportsVolume: boolean }
+type SpotifyRemoteState = { deviceId: string; deviceName: string; isPlaying: boolean; progressMs: number; volume: number | null; track: SpotifyTrackResult | null }
+
+function deviceIcon(kind: string): LucideIcon {
+  const type = kind.toLowerCase()
+  if (type === 'tv' || type === 'castvideo' || type === 'stb') return Tv
+  if (type === 'smartphone' || type === 'tablet') return Smartphone
+  if (type === 'computer') return Laptop
+  return Speaker
+}
+
+const deviceKinds: Record<string, string> = {
+  tv: 'Televisor', castvideo: 'Chromecast', castaudio: 'Chromecast de audio', stb: 'Decodificador de TV',
+  smartphone: 'Celular', tablet: 'Tableta', computer: 'Computadora', speaker: 'Parlante',
+  avr: 'Receptor de audio', gameconsole: 'Consola', automobile: 'Auto', smartwatch: 'Reloj',
+}
+
+const proFeatures: { icon: LucideIcon; title: string; text: string }[] = [
+  { icon: Palette, title: 'Personalización total', text: `${themes.length} temas, ${layouts.length} disposiciones, auras de Pulso y portadas animadas.` },
+  { icon: Upload, title: 'Tus canciones locales', text: 'Sube y organiza tu propia música para escucharla sin internet.' },
+  { icon: Disc3, title: 'Modo inmersivo', text: 'El vinilo girando y el Pulso de la música a pantalla completa.' },
+]
+
+const freeFeatures = ['La interfaz estándar de DropMusic', 'Reproducción completa con Spotify', 'Búsqueda, mezclas, letras y Conectar']
+const freeLimits = ['Sin personalización visual', 'Sin canciones locales', 'Vinilo y Pulso bloqueados']
+
+function AuthForm({ onDone, onSkip }: { onDone: () => void; onSkip?: () => void }) {
+  const [mode, setMode] = useState<'entrar' | 'crear' | 'recuperar'>('entrar')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
+
+  async function submit() {
+    setBusy(true)
+    setError('')
+    setInfo('')
+    try {
+      if (mode === 'entrar') {
+        await signIn(email, password)
+        onDone()
+      } else if (mode === 'crear') {
+        if (await signUp(email, password)) onDone()
+        else {
+          setInfo('Te enviamos un correo para confirmar tu cuenta. Ábrelo y después inicia sesión aquí.')
+          setMode('entrar')
+        }
+      } else {
+        await sendPasswordReset(email)
+        setInfo('Te enviamos un enlace para crear una contraseña nueva.')
+      }
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : String(failure))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form className="auth-form" onSubmit={(event) => { event.preventDefault(); void submit() }}>
+      {mode !== 'recuperar' && (
+        <div aria-label="Entrar o crear cuenta" className="auth-tabs" role="tablist">
+          <button aria-selected={mode === 'entrar'} onClick={() => { setMode('entrar'); setError('') }} role="tab" type="button">Iniciar sesión</button>
+          <button aria-selected={mode === 'crear'} onClick={() => { setMode('crear'); setError('') }} role="tab" type="button">Crear cuenta</button>
+        </div>
+      )}
+      <label className="auth-field">
+        <span><Mail size={13} /> Correo</span>
+        <input autoComplete="email" onChange={(event) => setEmail(event.target.value)} placeholder="tu@correo.com" required type="email" value={email} />
+      </label>
+      {mode !== 'recuperar' && (
+        <label className="auth-field">
+          <span><Lock size={13} /> Contraseña</span>
+          <input autoComplete={mode === 'crear' ? 'new-password' : 'current-password'} minLength={6} onChange={(event) => setPassword(event.target.value)} placeholder={mode === 'crear' ? 'Mínimo 6 caracteres' : 'Tu contraseña'} required type="password" value={password} />
+        </label>
+      )}
+      {error && <p className="auth-error" role="alert">{error}</p>}
+      {info && <p className="auth-info" role="status">{info}</p>}
+      <button className="primary-button auth-submit" disabled={busy} type="submit">
+        {busy ? 'Un momento…' : mode === 'entrar' ? 'Iniciar sesión' : mode === 'crear' ? 'Crear mi cuenta' : 'Enviarme el enlace'}
+      </button>
+      <div className="auth-links">
+        {mode === 'recuperar'
+          ? <button onClick={() => setMode('entrar')} type="button">Volver a iniciar sesión</button>
+          : <button onClick={() => { setMode('recuperar'); setError('') }} type="button">¿Olvidaste tu contraseña?</button>}
+        {onSkip && <button onClick={onSkip} type="button">Seguir sin cuenta</button>}
+      </div>
+    </form>
+  )
+}
+
+function AuthDialog({ reason, onClose, onSkip }: { reason: string; onClose: () => void; onSkip?: () => void }) {
+  return (
+    <div className="dialog-backdrop account-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) (onSkip ?? onClose)() }} role="presentation">
+      <section aria-labelledby="auth-title" aria-modal="true" className="provider-dialog auth-dialog" role="dialog">
+        <button aria-label="Cerrar" className="icon-button dialog-close" onClick={onSkip ?? onClose} type="button"><X size={18} /></button>
+        <div className="dialog-mark auth-mark"><img alt="" src="/favicon.svg" /></div>
+        <p className="eyebrow">TU CUENTA DROPMUSIC</p>
+        <h2 id="auth-title">Bienvenido a DropMusic</h2>
+        <p className="dialog-copy">{reason || 'Con tu cuenta guardas tu plan y lo usas en la PC, el celular y el TV. También puedes seguir sin cuenta con el plan gratuito.'}</p>
+        <AuthForm onDone={onClose} onSkip={onSkip} />
+      </section>
+    </div>
+  )
+}
+
+function UpgradeDialog({ feature, signedIn, onBuy, onClose }: { feature: string; signedIn: boolean; onBuy: () => void; onClose: () => void }) {
+  return (
+    <div className="dialog-backdrop account-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }} role="presentation">
+      <section aria-labelledby="upgrade-title" aria-modal="true" className="provider-dialog upgrade-dialog" role="dialog">
+        <button aria-label="Cerrar" className="icon-button dialog-close" onClick={onClose} type="button"><X size={18} /></button>
+        <div className="dialog-mark pro-mark"><Crown size={22} /></div>
+        <p className="eyebrow">DROPMUSIC PRO</p>
+        <h2 id="upgrade-title">{feature} es parte de Pro</h2>
+        <p className="dialog-copy">Desbloquea todo DropMusic por ${proPrice} al mes.</p>
+        <ul className="pro-feature-list">
+          {proFeatures.map(({ icon: Icon, title, text }) => (
+            <li key={title}><span><Icon size={16} /></span><div><strong>{title}</strong><small>{text}</small></div></li>
+          ))}
+        </ul>
+        <button className="primary-button dialog-action" onClick={onBuy} type="button">
+          <Crown size={15} /> {!accountsEnabled ? 'Disponible muy pronto' : signedIn ? `Obtener Pro · ${proPrice}/mes` : 'Inicia sesión para obtener Pro'}
+        </button>
+        <p className="dialog-footnote">Pago seguro con PayPal o tarjeta. Cada pago suma un mes, sin renovaciones automáticas.</p>
+      </section>
+    </div>
+  )
+}
+
+function ConnectPanel({
+  spotifyLinked,
+  devices,
+  loading,
+  error,
+  localDeviceId,
+  remoteDeviceId,
+  onRefresh,
+  onSelect,
+  onLinkSpotify,
+  onClose,
+}: {
+  spotifyLinked: boolean
+  devices: SpotifyDevice[]
+  loading: boolean
+  error: string
+  localDeviceId: string
+  remoteDeviceId: string
+  onRefresh: () => void
+  onSelect: (device: { id: string; name: string }) => void
+  onLinkSpotify: () => void
+  onClose: () => void
+}) {
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [onClose])
+  const others = devices.filter((device) => device.id !== localDeviceId)
+
+  return (
+    <section aria-labelledby="connect-title" className="connect-panel" role="dialog">
+      <header className="connect-header">
+        <div><p className="eyebrow">CONECTAR</p><h3 id="connect-title">Escuchar en otro dispositivo</h3></div>
+        {spotifyLinked && <button aria-label="Buscar dispositivos otra vez" className="icon-button" disabled={loading} onClick={onRefresh} type="button"><RefreshCw className={loading ? 'spin' : ''} size={15} /></button>}
+        <button aria-label="Cerrar" className="icon-button" onClick={onClose} type="button"><X size={16} /></button>
+      </header>
+      {!spotifyLinked ? (
+        <div className="connect-empty">
+          <span><Cast size={22} /></span>
+          <p>Vincula Spotify para pasar la música a tu TV, tus parlantes u otro equipo y controlarla desde aquí.</p>
+          <button className="primary-button" onClick={onLinkSpotify} type="button">Conectar Spotify</button>
+        </div>
+      ) : (
+        <>
+          <ul className="connect-list">
+            <li>
+              <button aria-pressed={!remoteDeviceId} className="connect-device" disabled={!localDeviceId} onClick={() => onSelect({ id: localDeviceId, name: 'Este equipo' })} type="button">
+                <Laptop size={20} />
+                <span><strong>Este equipo</strong><small>{!localDeviceId ? 'Conectando el reproductor…' : !remoteDeviceId ? 'Sonando aquí' : 'DropMusic'}</small></span>
+                {!remoteDeviceId && localDeviceId && <Check className="connect-check" size={16} />}
+              </button>
+            </li>
+            {others.map((device) => {
+              const Icon = deviceIcon(device.kind)
+              const active = device.id === remoteDeviceId
+              return (
+                <li key={device.id}>
+                  <button aria-pressed={active} className="connect-device" onClick={() => onSelect(device)} type="button">
+                    <Icon size={20} />
+                    <span><strong>{device.name}</strong><small>{active ? 'Sonando aquí · lo controlas desde DropMusic' : deviceKinds[device.kind.toLowerCase()] ?? 'Dispositivo'}</small></span>
+                    {active && <AudioLines className="connect-check" size={16} />}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+          {loading && others.length === 0 && <p className="connect-hint">Buscando dispositivos…</p>}
+          {!loading && others.length === 0 && <p className="connect-hint">No vemos otros dispositivos. Abre Spotify en tu TV, celular o parlante con la misma cuenta y pulsa actualizar.</p>}
+          {error && <p className="connect-error" role="status">{error}</p>}
+          <p className="connect-footnote">Funciona con Spotify Premium, como el botón Conectar de Spotify. Las canciones locales y de Jamendo siguen sonando en este equipo.</p>
+        </>
+      )}
+    </section>
+  )
+}
+
 function App() {
   const [settings, setSettings] = useState(readSettings)
   const [activeSection, setActiveSection] = useState<Section>('Escuchar')
@@ -1551,6 +1820,29 @@ function App() {
   const mainContentRef = useRef<HTMLElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const currentDetail = detailStack.at(-1) ?? null
+  const [accountUser, setAccountUser] = useState<{ id: string; email: string } | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(() => accountsEnabled ? readCachedProfile() : null)
+  const [authDialog, setAuthDialog] = useState<{ reason: string; skippable: boolean } | null>(null)
+  const [upgradeFeature, setUpgradeFeature] = useState('')
+  const [accountMessage, setAccountMessage] = useState('')
+  const [adminSearch, setAdminSearch] = useState('')
+  const [adminProfiles, setAdminProfiles] = useState<Profile[]>([])
+  const [adminMessage, setAdminMessage] = useState('')
+  const [libraryTab, setLibraryTab] = useState<'local' | 'spotify'>('local')
+  const [connectOpen, setConnectOpen] = useState(false)
+  const [devices, setDevices] = useState<SpotifyDevice[]>([])
+  const [devicesLoading, setDevicesLoading] = useState(false)
+  const [devicesError, setDevicesError] = useState('')
+  const [remoteDevice, setRemoteDevice] = useState<{ id: string; name: string } | null>(null)
+  // Dispositivo de Spotify Connect donde suena la música (el TV, por ejemplo). Null: suena aquí.
+  const remoteDeviceRef = useRef<{ id: string; name: string } | null>(null)
+  const remoteSyncRef = useRef<(state: SpotifyRemoteState) => void>(() => {})
+  // Sin servidor de cuentas (versiones de prueba) todo queda desbloqueado.
+  const isPro = !accountsEnabled || hasPro(profile)
+  const isAdmin = profile?.role === 'admin'
+  const effectiveTheme: ThemeId = isPro ? settings.theme : 'original'
+  const effectiveLayout: LayoutId = isPro ? settings.layout : 'clasica'
+  const effectiveAnimatedCovers = isPro && settings.animatedCovers
 
   const activeTrack = activeCatalogTrack ?? tracks.find((track) => track.id === activeTrackId) ?? emptyTrack
   const query = search.trim().toLowerCase()
@@ -1567,9 +1859,11 @@ function App() {
     () => allTracks.filter((track) => `${track.title} ${track.artist} ${track.album}`.toLowerCase().includes(query)),
     [allTracks, query],
   )
+  // La biblioteca de Spotify va aparte de los archivos locales para no mezclarlas.
+  const spotifyLibraryTracks = useMemo(() => allTracks.filter((track) => track.source === 'Spotify'), [allTracks])
   const albums = useMemo(
-    () => allTracks.filter((track, index, list) => list.findIndex((item) => item.album === track.album) === index),
-    [allTracks],
+    () => spotifyLibraryTracks.filter((track, index, list) => list.findIndex((item) => item.album === track.album) === index),
+    [spotifyLibraryTracks],
   )
   const featuredTracks = useMemo(
     () => [...spotifySuggestedTracks, ...spotifyTracks, ...jamendoTracks, ...localTracks]
@@ -1584,6 +1878,53 @@ function App() {
   const updateSetting = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     setSettings((current) => ({ ...current, [key]: value }))
   }
+
+  // Cuenta: restaura la sesión guardada y sigue los cambios (entrar, salir, renovar el token).
+  useEffect(() => {
+    if (!accountsEnabled) return
+    let active = true
+    const apply = (session: Session | null) => {
+      if (!active) return
+      const user = session?.user
+      setAccountUser(user ? { id: user.id, email: user.email ?? '' } : null)
+      if (!user) {
+        setProfile(null)
+        writeCachedProfile(null)
+        return
+      }
+      void fetchProfile(user.id).then((next) => {
+        if (!active) return
+        setProfile(next)
+        writeCachedProfile(next)
+      }).catch((error: unknown) => console.error('No se pudo cargar tu cuenta de DropMusic.', error))
+    }
+    void getSession().then((session) => {
+      apply(session)
+      let skipped = false
+      try { skipped = window.localStorage.getItem('dropmusic-auth-skipped') === '1' } catch { skipped = false }
+      if (active && !session && !skipped) setAuthDialog({ reason: '', skippable: true })
+    }).catch((error: unknown) => console.error('No se pudo restaurar tu sesión de DropMusic.', error))
+    const stop = onSessionChange(apply)
+    return () => {
+      active = false
+      stop()
+    }
+  }, [])
+
+  const refreshProfile = useCallback(async () => {
+    if (!accountUser) return
+    const next = await fetchProfile(accountUser.id)
+    setProfile(next)
+    writeCachedProfile(next)
+  }, [accountUser])
+
+  // Al volver a la app (por ejemplo, después de pagar en la web) se revisa el plan.
+  useEffect(() => {
+    if (!accountUser) return
+    const handleFocus = () => { void refreshProfile().catch(() => {}) }
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [accountUser, refreshProfile])
 
   useEffect(() => {
     try {
@@ -1711,7 +2052,7 @@ function App() {
       })
       player.addListener('player_state_changed', (state) => {
         if (!active) return
-        if (!state) return
+        if (!state || remoteDeviceRef.current) return
         const track = state.track_window.current_track
         // Spotify no avisa cuando termina una canción: pasa de sonando a pausado en la posición 0.
         // Casi nunca manda estados a mitad de canción, así que el último suele tener posición 0;
@@ -1870,7 +2211,7 @@ function App() {
   }, [bigPictureMode, activeTrack.id, activeTrack.title, activeTrack.artist, activeTrack.artists, activeTrack.album, activeTrack.duration])
 
   useEffect(() => {
-    const seeThrough = settings.theme === 'transparente'
+    const seeThrough = effectiveTheme === 'transparente'
     document.documentElement.classList.toggle('see-through', seeThrough)
     if (!isTauri()) return
     // Cristal acrílico de Windows: difumina el escritorio detrás de la ventana transparente.
@@ -1883,7 +2224,7 @@ function App() {
     } catch (error) {
       console.error('No se pudo acceder a la ventana.', error)
     }
-  }, [settings.theme])
+  }, [effectiveTheme])
 
   useEffect(() => {
     let active = true
@@ -2120,6 +2461,11 @@ function App() {
   useEffect(() => {
     spotifyVolumeRef.current = settings.volume / 100
     if (audioRef.current) audioRef.current.volume = settings.volume / 100
+    if (remoteDeviceRef.current) {
+      // En otro dispositivo el volumen se manda por la API; se espera a que sueltes la barra.
+      const timer = window.setTimeout(() => remoteControl('volume', settings.volume), 400)
+      return () => window.clearTimeout(timer)
+    }
     if (spotifyPlayerRef.current) {
       void spotifyPlayerRef.current.setVolume(settings.volume / 100).catch((error: unknown) => {
         console.error('No se pudo cambiar el volumen de Spotify.', error)
@@ -2166,7 +2512,7 @@ function App() {
   }, [activeTrack, isPlaying])
 
   useEffect(() => {
-    if (activeTrack.source !== 'Spotify' || !isPlaying || !activeTrack.duration || elapsedSeconds < activeTrack.duration) return
+    if (remoteDevice || activeTrack.source !== 'Spotify' || !isPlaying || !activeTrack.duration || elapsedSeconds < activeTrack.duration) return
     const trackId = activeTrack.id
     const timer = window.setInterval(() => {
       void spotifyPlayerRef.current?.getCurrentState().then((state) => {
@@ -2180,7 +2526,7 @@ function App() {
       }).catch((error: unknown) => console.error('No se pudo consultar el estado de Spotify.', error))
     }, 2000)
     return () => window.clearInterval(timer)
-  }, [activeTrack.source, activeTrack.id, activeTrack.duration, isPlaying, elapsedSeconds])
+  }, [remoteDevice, activeTrack.source, activeTrack.id, activeTrack.duration, isPlaying, elapsedSeconds])
 
   function prepareAudio() {
     const audio = audioRef.current
@@ -2223,7 +2569,8 @@ function App() {
   }
 
   function startSpotifyTrack(spotifyTrack: Track, addToHistory = true) {
-    if (!spotifyPlayerRef.current || !spotifyDeviceId || !spotifyClientId) {
+    const remote = remoteDeviceRef.current
+    if (!spotifyClientId || (!remote && (!spotifyPlayerRef.current || !spotifyDeviceId))) {
       setSpotifyPlayerError('El reproductor de Spotify todavía está conectando. Inténtalo de nuevo en unos segundos.')
       return
     }
@@ -2239,17 +2586,20 @@ function App() {
     setActiveTrackId(spotifyTrack.id)
     setElapsedSeconds(0)
     setIsPlaying(true)
-    void spotifyPlayerRef.current.activateElement().catch((error: unknown) => {
-      console.error('No se pudo activar el reproductor integrado de Spotify.', error)
-    })
+    const deviceId = remote?.id ?? spotifyDeviceId
+    if (!remote) {
+      void spotifyPlayerRef.current?.activateElement().catch((error: unknown) => {
+        console.error('No se pudo activar el reproductor integrado de Spotify.', error)
+      })
+    }
     void invoke('spotify_start_playback', {
       clientId: spotifyClientId,
-      deviceId: spotifyDeviceId,
+      deviceId,
       trackId: spotifyTrack.id.replace(/^spotify:/, ''),
     }).then(() => {
       setSpotifyPlayerError('')
       // La repetición la maneja DropMusic; si Spotify tuviera la suya activa, la canción nunca terminaría.
-      void invoke('spotify_set_playback_option', { clientId: spotifyClientId, deviceId: spotifyDeviceId, option: 'repeat', enabled: false })
+      void invoke('spotify_set_playback_option', { clientId: spotifyClientId, deviceId, option: 'repeat', enabled: false })
         .catch((error: unknown) => console.error('No se pudo quitar la repetición de Spotify.', error))
     }).catch((error: unknown) => {
       console.error(`No se pudo reproducir ${spotifyTrack.title} en DropMusic.`, error)
@@ -2376,6 +2726,10 @@ function App() {
   function playPreviousSpotifyTrack() {
     const history = spotifyHistoryRef.current
     if (history.length < 2) {
+      if (remoteDeviceRef.current) {
+        remoteControl('seek', 0)
+        return
+      }
       void spotifyPlayerRef.current?.seek(0).catch((error: unknown) => {
         console.error('No se pudo volver al inicio de la canción.', error)
       })
@@ -2464,6 +2818,11 @@ function App() {
       return
     }
     if (activeTrack.source === 'Spotify') {
+      if (remoteDeviceRef.current) {
+        remoteControl(isPlaying ? 'pause' : 'play')
+        setIsPlaying(!isPlaying)
+        return
+      }
       if (!spotifyPlayerRef.current) {
         setSpotifyPlayerError('El reproductor de Spotify no está conectado.')
         return
@@ -2537,6 +2896,157 @@ function App() {
     trackEndRef.current = handleTrackEnd
   })
 
+  function changeRemoteDevice(device: { id: string; name: string } | null) {
+    remoteDeviceRef.current = device
+    setRemoteDevice(device)
+  }
+
+  function remoteControl(action: 'play' | 'pause' | 'next' | 'previous' | 'volume' | 'seek', value?: number) {
+    const device = remoteDeviceRef.current
+    if (!device || !spotifyClientId) return
+    void invoke('spotify_remote_control', { clientId: spotifyClientId, deviceId: device.id, action, value: value ?? null })
+      .catch((error: unknown) => {
+        console.error('No se pudo controlar el otro dispositivo.', error)
+        setSpotifyPlayerError(error instanceof Error ? error.message : String(error))
+      })
+  }
+
+  async function loadDevices() {
+    if (!connectedAccounts.Spotify || !spotifyClientId || !isTauri()) return
+    setDevicesLoading(true)
+    setDevicesError('')
+    try {
+      setDevices(await invoke<SpotifyDevice[]>('spotify_list_devices', { clientId: spotifyClientId }))
+    } catch (error) {
+      setDevicesError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setDevicesLoading(false)
+    }
+  }
+
+  function toggleConnect() {
+    if (!connectOpen) void loadDevices()
+    setConnectOpen(!connectOpen)
+  }
+
+  // Pasa lo que suena a otro dispositivo (o lo trae de vuelta a este equipo).
+  async function selectDevice(device: { id: string; name: string }) {
+    if (!spotifyClientId) return
+    const toLocal = device.id === spotifyDeviceId
+    if (toLocal ? !remoteDeviceRef.current : device.id === remoteDeviceRef.current?.id) return
+    const spotifyPlaying = activeTrack.source === 'Spotify' && isPlaying
+    setDevicesError('')
+    try {
+      await invoke('spotify_transfer_playback', { clientId: spotifyClientId, deviceId: device.id, play: spotifyPlaying })
+      if (!toLocal && activeTrack.source && activeTrack.source !== 'Spotify') setIsPlaying(false)
+      spotifyStartedAtRef.current = Date.now()
+      changeRemoteDevice(toLocal ? null : { id: device.id, name: device.name })
+      setDevices((current) => current.map((item) => ({ ...item, isActive: item.id === device.id })))
+    } catch (error) {
+      setDevicesError(error instanceof Error ? error.message : String(error))
+    }
+  }
+
+  // Sigue lo que pasa en el otro dispositivo: posición, pausa, fin de la canción o si alguien la cambió allá.
+  function syncRemoteState(state: SpotifyRemoteState) {
+    if (state.deviceId && state.deviceId === spotifyDeviceId) {
+      changeRemoteDevice(null)
+      return
+    }
+    if (state.deviceId && state.deviceId !== remoteDeviceRef.current?.id) changeRemoteDevice({ id: state.deviceId, name: state.deviceName })
+    if (Date.now() - spotifyStartedAtRef.current < 4000) return
+    if (activeTrack.source && activeTrack.source !== 'Spotify') return
+    const track = state.track
+    if (!track) return
+    const nearEnd = activeTrack.duration > 0 && elapsedSeconds >= activeTrack.duration - 4
+    if (track.id === activeTrack.id) {
+      if (!state.isPlaying && state.progressMs === 0 && nearEnd && spotifyEndedIdRef.current !== track.id) {
+        spotifyEndedIdRef.current = track.id
+        handleTrackEnd()
+        return
+      }
+      setElapsedSeconds(Math.floor(state.progressMs / 1000))
+      setIsPlaying(state.isPlaying)
+      return
+    }
+    if (nearEnd && activeTrack.id && spotifyEndedIdRef.current !== activeTrack.id) {
+      spotifyEndedIdRef.current = activeTrack.id
+      handleTrackEnd()
+      return
+    }
+    const next = toSpotifyTrack(track)
+    setActiveCatalogTrack(next)
+    setActiveTrackId(next.id)
+    setElapsedSeconds(Math.floor(state.progressMs / 1000))
+    setIsPlaying(state.isPlaying)
+  }
+
+  useEffect(() => {
+    remoteSyncRef.current = syncRemoteState
+  })
+
+  useEffect(() => {
+    if (!remoteDevice || !spotifyClientId) return
+    let active = true
+    const poll = () => {
+      void invoke<SpotifyRemoteState | null>('spotify_get_remote_state', { clientId: spotifyClientId })
+        .then((state) => { if (active && state) remoteSyncRef.current(state) })
+        .catch((error: unknown) => console.error('No se pudo leer el otro dispositivo.', error))
+    }
+    poll()
+    const timer = window.setInterval(poll, 3000)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+    }
+  }, [remoteDevice, spotifyClientId])
+
+  // Devuelve true si se puede usar; si no, ofrece el plan Pro.
+  function requirePro(feature: string) {
+    if (isPro) return true
+    setUpgradeFeature(feature)
+    return false
+  }
+
+  function buyPro() {
+    if (!accountsEnabled) return
+    setUpgradeFeature('')
+    if (!accountUser) {
+      setAuthDialog({ reason: 'Inicia sesión o crea tu cuenta para obtener DropMusic Pro. Tu plan queda guardado en ella.', skippable: false })
+      return
+    }
+    setAccountMessage('Termina el pago en la página que se abrió. Al volver, DropMusic revisa tu plan solo.')
+    if (isTauri()) void openUrl(checkoutUrl).catch((error: unknown) => console.error('No se pudo abrir la página de compra.', error))
+    else window.open(checkoutUrl, '_blank', 'noopener')
+  }
+
+  async function loadAdminProfiles() {
+    setAdminMessage('')
+    try {
+      const list = await adminListProfiles(adminSearch)
+      setAdminProfiles(list)
+      if (list.length === 0) setAdminMessage('No hay cuentas con ese correo.')
+    } catch (error) {
+      setAdminMessage(error instanceof Error ? error.message : String(error))
+    }
+  }
+
+  async function changeUserPlan(item: Profile, plan: Plan) {
+    try {
+      await adminSetPlan(item.id, plan)
+      setAdminProfiles((current) => current.map((entry) => entry.id === item.id ? { ...entry, plan, proUntil: null } : entry))
+      setAdminMessage(`${item.email} ahora tiene el plan ${plan === 'pro' ? 'Pro' : 'Gratis'}.`)
+    } catch (error) {
+      setAdminMessage(error instanceof Error ? error.message : String(error))
+    }
+  }
+
+  useEffect(() => {
+    if (activeSection === 'Cuenta' && isAdmin) void loadAdminProfiles()
+    // Solo al entrar a la sección.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSection, isAdmin])
+
   function toggleFavorite(id: string) {
     setFavoriteIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id])
   }
@@ -2556,6 +3066,7 @@ function App() {
   }
 
   function connectProvider(provider: Provider) {
+    if (!providers.find(({ name }) => name === provider)?.available) return
     setSelectedProvider(provider)
   }
 
@@ -2590,6 +3101,8 @@ function App() {
       setSpotifyPlayerReady(false)
       setSpotifyDeviceId('')
       setSpotifyPlayerStatus('')
+      changeRemoteDevice(null)
+      setDevices([])
       spotifyRadioRef.current = createSpotifyRadio(null)
       spotifyHistoryRef.current = []
       setRadioSeed('')
@@ -2662,7 +3175,9 @@ function App() {
 
   function seekTo(time: number) {
     setElapsedSeconds(time)
-    if (activeTrack.source === 'Spotify') {
+    if (activeTrack.source === 'Spotify' && remoteDeviceRef.current) {
+      remoteControl('seek', Math.round(time * 1000))
+    } else if (activeTrack.source === 'Spotify') {
       void spotifyPlayerRef.current?.seek(time * 1000).catch((error: unknown) => {
         console.error('No se pudo cambiar la posición de reproducción de Spotify.', error)
         setSpotifyPlayerError(error instanceof Error ? error.message : String(error))
@@ -2982,9 +3497,100 @@ function App() {
     )
   }
 
+  function renderAccount() {
+    const formatDate = (value: string) => new Date(value).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })
+    return (
+      <div className="account-page">
+        <section aria-labelledby="account-heading" className="settings-panel account-panel">
+          {!accountsEnabled ? (
+            <div className="account-status">
+              <span className="account-avatar"><Sparkles size={20} /></span>
+              <div><h2 id="account-heading">Las cuentas llegan muy pronto</h2><p>Mientras tanto, en esta versión todas las funciones Pro están abiertas para ti.</p></div>
+            </div>
+          ) : accountUser ? (
+            <>
+              <div className="account-status">
+                <span className="account-avatar">{(accountUser.email[0] ?? 'D').toUpperCase()}</span>
+                <div>
+                  <h2 id="account-heading">{accountUser.email}</h2>
+                  <p>{isAdmin ? 'Administrador de DropMusic · Pro sin vencimiento' : isPro ? profile?.proUntil ? `Pro activo hasta el ${formatDate(profile.proUntil)}` : 'Pro activo' : 'Plan gratuito'}</p>
+                </div>
+                <span className={`plan-badge${isPro ? ' plan-badge-pro' : ''}`}>{isAdmin ? <><ShieldCheck size={12} /> ADMIN</> : isPro ? <><Crown size={12} /> PRO</> : 'GRATIS'}</span>
+              </div>
+              <div className="account-actions">
+                <button className="secondary-button" onClick={() => { void refreshProfile().then(() => setAccountMessage('Tu plan está al día.')).catch((error: unknown) => setAccountMessage(error instanceof Error ? error.message : String(error))) }} type="button"><RefreshCw size={14} /> Comprobar mi plan</button>
+                <button className="secondary-button" onClick={() => { void signOut(); setAccountMessage('') }} type="button"><LogOut size={14} /> Cerrar sesión</button>
+              </div>
+              {accountMessage && <p className="local-message" role="status">{accountMessage}</p>}
+            </>
+          ) : (
+            <div className="account-login">
+              <div>
+                <p className="eyebrow">TU CUENTA</p>
+                <h2 id="account-heading">Inicia sesión en DropMusic</h2>
+                <p>Tu plan queda guardado en tu cuenta y lo usas en la PC, el celular y el TV.</p>
+              </div>
+              <AuthForm onDone={() => setAccountMessage('')} />
+            </div>
+          )}
+        </section>
+
+        <section aria-labelledby="plans-heading" className="plans-section">
+          <div className="section-heading"><div><p className="eyebrow">PLANES</p><h2 id="plans-heading">Elige cómo escuchar</h2></div></div>
+          <div className="plan-grid">
+            <article className={`plan-card${!isPro ? ' plan-card-current' : ''}`}>
+              <header><h3>Gratis</h3><p className="plan-price"><strong>$0</strong><span>/mes</span></p></header>
+              <ul>{freeFeatures.map((feature) => <li key={feature}><Check size={14} /> {feature}</li>)}</ul>
+              <ul className="plan-limits">{freeLimits.map((limit) => <li key={limit}><Lock size={13} /> {limit}</li>)}</ul>
+              <span className="plan-current">{!isPro ? 'Tu plan actual' : 'Incluido en Pro'}</span>
+            </article>
+            <article className={`plan-card plan-card-pro${isPro && accountsEnabled ? ' plan-card-current' : ''}`}>
+              <span className="plan-ribbon"><Crown size={12} /> RECOMENDADO</span>
+              <header><h3>Pro</h3><p className="plan-price"><strong>${proPrice}</strong><span>/mes</span></p></header>
+              <ul>
+                <li><Check size={14} /> Todo lo del plan Gratis</li>
+                {proFeatures.map(({ title, text }) => <li key={title}><Check size={14} /> <span><strong>{title}</strong><small>{text}</small></span></li>)}
+              </ul>
+              {!accountsEnabled
+                ? <span className="plan-current">Disponible muy pronto</span>
+                : isAdmin
+                  ? <span className="plan-current">Incluido por ser admin</span>
+                  : <button className="primary-button" onClick={buyPro} type="button"><Crown size={15} /> {isPro ? 'Sumar otro mes' : 'Obtener Pro'}</button>}
+            </article>
+          </div>
+          <p className="settings-disclaimer">Pagas con PayPal o tarjeta en la web de DropMusic. Cada pago suma un mes de Pro, sin renovaciones automáticas. El precio puede cambiar con el tiempo; lo que ya pagaste se respeta.</p>
+        </section>
+
+        {isAdmin && (
+          <section aria-labelledby="admin-heading" className="settings-panel admin-panel">
+            <div className="settings-panel-heading">
+              <span className="settings-icon"><ShieldCheck size={17} /></span>
+              <div><h2 id="admin-heading">Administración</h2><p>Busca una cuenta por su correo y cambia su plan. Un Pro dado desde aquí no vence.</p></div>
+            </div>
+            <form className="admin-search" onSubmit={(event) => { event.preventDefault(); void loadAdminProfiles() }}>
+              <input aria-label="Buscar cuentas por correo" onChange={(event) => setAdminSearch(event.target.value)} placeholder="Buscar por correo" value={adminSearch} />
+              <button className="secondary-button" type="submit"><Search size={14} /> Buscar</button>
+            </form>
+            {adminMessage && <p className="local-message" role="status">{adminMessage}</p>}
+            <ul className="admin-list">
+              {adminProfiles.map((item) => (
+                <li key={item.id}>
+                  <span><strong>{item.email}</strong><small>{item.role === 'admin' ? 'Admin' : hasPro(item) ? `Pro${item.proUntil ? ` hasta el ${formatDate(item.proUntil)}` : ''}` : 'Gratis'}</small></span>
+                  {item.role !== 'admin' && (
+                    <button className="secondary-button" onClick={() => { void changeUserPlan(item, hasPro(item) ? 'free' : 'pro') }} type="button">{hasPro(item) ? 'Quitar Pro' : 'Dar Pro'}</button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+    )
+  }
+
   function renderPersonalization() {
-    const current = themes.find(({ id }) => id === settings.theme) ?? themes[0]
-    const currentLayout = layouts.find(({ id }) => id === settings.layout) ?? layouts[0]
+    const current = themes.find(({ id }) => id === effectiveTheme) ?? themes[0]
+    const currentLayout = layouts.find(({ id }) => id === effectiveLayout) ?? layouts[0]
     const showThemes = personalizationTab === 'temas'
     return (
       <section aria-labelledby="personalization-heading" className="personalization-page">
@@ -2995,6 +3601,13 @@ function App() {
           <h2 id="personalization-heading">{showThemes ? current.name : currentLayout.name}</h2>
           <p>{showThemes ? current.vibe : currentLayout.description}</p>
         </div>
+        {!isPro && (
+          <div className="pro-banner">
+            <span className="pro-banner-icon"><Crown size={18} /></span>
+            <span><strong>La personalización es parte de DropMusic Pro</strong><small>Mira todos los estilos. Para aplicarlos, obtén Pro por ${proPrice} al mes.</small></span>
+            <button className="primary-button" onClick={() => setUpgradeFeature('La personalización')} type="button">Obtener Pro</button>
+          </div>
+        )}
         <div aria-label="Qué personalizar" className="personalization-tabs" role="tablist">
           <button aria-selected={showThemes} onClick={() => setPersonalizationTab('temas')} role="tab" type="button">
             <Palette size={18} /><span><strong>Temas</strong><small>{themes.length} estilos de color y fondo</small></span>
@@ -3006,13 +3619,13 @@ function App() {
         {!showThemes && (
         <div aria-label="Disposición de DropMusic" className="layout-grid" role="radiogroup">
           {layouts.map((layout) => {
-            const selected = layout.id === settings.layout
+            const selected = layout.id === effectiveLayout
             return (
               <button
                 aria-checked={selected}
                 className={`layout-card${selected ? ' theme-card-active' : ''}`}
                 key={layout.id}
-                onClick={() => updateSetting('layout', layout.id)}
+                onClick={() => { if (requirePro('La personalización')) updateSetting('layout', layout.id) }}
                 role="radio"
                 type="button"
               >
@@ -3020,7 +3633,7 @@ function App() {
                   <i className="layout-preview-nav" /><i className="layout-preview-main" /><i className="layout-preview-now" /><i className="layout-preview-bar" />
                 </span>
                 <span className="theme-card-copy"><strong>{layout.name}</strong><small>{layout.description}</small></span>
-                <span className="theme-card-state">{selected ? 'Activa' : 'Usar'}</span>
+                <span className="theme-card-state">{selected ? 'Activa' : isPro ? 'Usar' : <Lock size={12} />}</span>
               </button>
             )
           })}
@@ -3034,7 +3647,7 @@ function App() {
               <strong>Portadas animadas</strong>
               <small>Las portadas se mueven despacio y tienen un brillo que las recorre. Spotify no comparte sus videos de portada con otras apps, así que el movimiento lo crea DropMusic.</small>
             </span>
-            <label className="toggle-switch"><input aria-label="Portadas animadas" checked={settings.animatedCovers} onChange={(event) => updateSetting('animatedCovers', event.target.checked)} type="checkbox" /><span /></label>
+            <label className="toggle-switch"><input aria-label="Portadas animadas" checked={effectiveAnimatedCovers} onChange={(event) => { if (requirePro('La personalización')) updateSetting('animatedCovers', event.target.checked) }} type="checkbox" /><span /></label>
           </div>
         </div>
         <div aria-label="Filtrar temas" className="chip-row theme-filters" role="group">
@@ -3044,13 +3657,13 @@ function App() {
         </div>
         <div aria-label="Temas de DropMusic" className="theme-grid" key={themeFilter} role="radiogroup">
           {themes.filter((theme) => themeFilter === 'Todos' || theme.category === themeFilter).map((theme) => {
-            const selected = theme.id === settings.theme
+            const selected = theme.id === effectiveTheme
             return (
               <button
                 aria-checked={selected}
                 className={`theme-card${selected ? ' theme-card-active' : ''}`}
                 key={theme.id}
-                onClick={() => updateSetting('theme', theme.id)}
+                onClick={() => { if (requirePro('La personalización')) updateSetting('theme', theme.id) }}
                 role="radio"
                 type="button"
               >
@@ -3077,7 +3690,7 @@ function App() {
                   <strong>{theme.name}</strong>
                   <small>{theme.vibe}</small>
                 </span>
-                <span className="theme-card-state">{selected ? 'Activo' : 'Aplicar'}</span>
+                <span className="theme-card-state">{selected ? 'Activo' : isPro ? 'Aplicar' : <Lock size={12} />}</span>
               </button>
             )
           })}
@@ -3088,7 +3701,7 @@ function App() {
     )
   }
 
-  const activeTheme = themes.find(({ id }) => id === settings.theme) ?? themes[0]
+  const activeTheme = themes.find(({ id }) => id === effectiveTheme) ?? themes[0]
   const playerNotice = playbackError || spotifyPlayerError
   const upcomingTracks = activeTrack.source === 'Spotify'
     ? radioQueue
@@ -3099,9 +3712,9 @@ function App() {
 
   return (
     <div
-      className={`app-shell min-h-screen${settings.ambientGlow ? '' : ' no-ambient'}${settings.animations ? '' : ' reduce-motion'}${activeTheme.ink ? ' theme-ink' : ''}${activeTheme.scene ? ' has-scene' : ''}${isPlaying ? ' is-playing' : ''}${settings.animatedCovers ? ' animated-covers' : ''}${tvMode ? ' tv-mode' : ''}`}
-      data-layout={settings.layout}
-      data-theme={settings.theme}
+      className={`app-shell min-h-screen${settings.ambientGlow ? '' : ' no-ambient'}${settings.animations ? '' : ' reduce-motion'}${activeTheme.ink ? ' theme-ink' : ''}${activeTheme.scene ? ' has-scene' : ''}${isPlaying ? ' is-playing' : ''}${effectiveAnimatedCovers ? ' animated-covers' : ''}${tvMode ? ' tv-mode' : ''}`}
+      data-layout={effectiveLayout}
+      data-theme={effectiveTheme}
       style={{ '--ambient-color': activeTrack.color } as CSSProperties}
     >
       <div aria-hidden="true" className="ambient-glow" />
@@ -3109,7 +3722,7 @@ function App() {
         {activeTrack.artwork && <img alt="" key={activeTrack.artwork} src={activeTrack.artwork} />}
       </div>
       {activeTheme.scene && themeScene}
-      {settings.animatedCovers && coverMotionFilter}
+      {effectiveAnimatedCovers && coverMotionFilter}
       <audio
         crossOrigin="anonymous"
         onEnded={handleTrackEnd}
@@ -3173,8 +3786,13 @@ function App() {
             <p>Música de verdad. <span>Spotify y Jamendo en un solo lugar.</span></p>
             <button aria-label="Buscar música" className="tip-arrow" onClick={() => searchInputRef.current?.focus()} type="button"><ArrowUpRight size={15} /></button>
           </div>
-          <button className="profile-button" onClick={() => selectSection('Ajustes')} type="button">
-            <span className="avatar">D</span><span className="profile-copy"><strong>DropMusic</strong><small>Preferencias de escucha</small></span><ChevronDown className="profile-chevron" size={16} />
+          <button className="profile-button" onClick={() => selectSection('Cuenta')} type="button">
+            <span className={`avatar${isPro && accountsEnabled ? ' avatar-pro' : ''}`}>{(accountUser?.email[0] ?? 'D').toUpperCase()}</span>
+            <span className="profile-copy">
+              <strong>{accountUser?.email ?? (accountsEnabled ? 'Inicia sesión' : 'DropMusic')}</strong>
+              <small>{!accountsEnabled ? 'Todo desbloqueado' : isAdmin ? 'Administrador · Pro' : isPro ? 'Plan Pro' : 'Plan gratuito'}</small>
+            </span>
+            <ChevronDown className="profile-chevron" size={16} />
           </button>
         </div>
       </aside>
@@ -3221,6 +3839,17 @@ function App() {
 
             {activeSection === 'Tu colección' ? (
               <>
+                {connectedAccounts.Spotify && (
+                  <div aria-label="Qué parte de tu colección ver" className="library-tabs" role="tablist">
+                    <button aria-selected={libraryTab === 'local'} onClick={() => setLibraryTab('local')} role="tab" type="button">
+                      <FolderOpen size={18} /><span><strong>Archivos locales</strong><small>{localTracks.length} {localTracks.length === 1 ? 'canción' : 'canciones'} en este equipo</small></span>
+                    </button>
+                    <button aria-selected={libraryTab === 'spotify'} onClick={() => setLibraryTab('spotify')} role="tab" type="button">
+                      <Music2 size={18} /><span><strong>Tu biblioteca de Spotify</strong><small>{connectedAccounts.Spotify.name}</small></span>
+                    </button>
+                  </div>
+                )}
+                {(!connectedAccounts.Spotify || libraryTab === 'local') ? (
                 <section
                   aria-labelledby="local-heading"
                   className={`local-library${localDragging ? ' local-dragging' : ''}`}
@@ -3233,11 +3862,11 @@ function App() {
                   onDrop={(event) => {
                     event.preventDefault()
                     setLocalDragging(false)
-                    void importLocalFiles(event.dataTransfer.files)
+                    if (requirePro('La importación de canciones locales')) void importLocalFiles(event.dataTransfer.files)
                   }}
                 >
                   <div className="section-heading">
-                    <div><p className="eyebrow">MODO LOCAL</p><h2 id="local-heading">Tu música en este equipo</h2></div>
+                    <div><p className="eyebrow">ARCHIVOS LOCALES {!isPro && <span className="pro-chip"><Crown size={10} /> PRO</span>}</p><h2 id="local-heading">Tu música en este equipo</h2></div>
                     <span className="track-count">{localTracks.length} {localTracks.length === 1 ? 'canción' : 'canciones'}</span>
                   </div>
                   <div className="local-drop">
@@ -3248,8 +3877,8 @@ function App() {
                       {localImport && <span aria-hidden="true" className="local-progress"><i style={{ width: `${(localImport.done / localImport.total) * 100}%` }} /></span>}
                     </div>
                     <div className="local-actions">
-                      <button className="primary-button" disabled={Boolean(localImport)} onClick={() => localFileInputRef.current?.click()} type="button"><Upload size={15} /> Subir canciones</button>
-                      <button className="secondary-button" disabled={Boolean(localImport)} onClick={() => localFolderInputRef.current?.click()} type="button"><FolderOpen size={15} /> Subir carpeta</button>
+                      <button className="primary-button" disabled={Boolean(localImport)} onClick={() => { if (requirePro('La importación de canciones locales')) localFileInputRef.current?.click() }} type="button">{isPro ? <Upload size={15} /> : <Lock size={14} />} Subir canciones</button>
+                      <button className="secondary-button" disabled={Boolean(localImport)} onClick={() => { if (requirePro('La importación de canciones locales')) localFolderInputRef.current?.click() }} type="button">{isPro ? <FolderOpen size={15} /> : <Lock size={14} />} Subir carpeta</button>
                     </div>
                     <input accept={['audio/*', ...localAudioExtensions].join(',')} hidden multiple onChange={(event) => { if (event.target.files) void importLocalFiles(event.target.files); event.target.value = '' }} ref={localFileInputRef} type="file" />
                     <input hidden multiple onChange={(event) => { if (event.target.files) void importLocalFiles(event.target.files); event.target.value = '' }} ref={(input) => { localFolderInputRef.current = input; input?.setAttribute('webkitdirectory', '') }} type="file" />
@@ -3266,13 +3895,15 @@ function App() {
                     />
                   )}
                 </section>
-                <section aria-label="Resumen de la colección" className="collection-summary">
+                ) : (
+                <>
+                <section aria-label="Resumen de tu biblioteca de Spotify" className="collection-summary">
                   <span className="collection-stat"><Disc3 size={18} /><strong>{albums.length}</strong><small>álbumes y EPs</small></span>
-                  <span className="collection-stat"><Music2 size={18} /><strong>{allTracks.length}</strong><small>canciones cargadas</small></span>
+                  <span className="collection-stat"><Music2 size={18} /><strong>{spotifyLibraryTracks.length}</strong><small>canciones de Spotify</small></span>
                   <span className="collection-stat"><Heart size={18} /><strong>{favoriteIds.length}</strong><small>favoritos</small></span>
                 </section>
                 <section aria-labelledby="collection-heading" className="recent-section">
-                  <div className="section-heading"><div><p className="eyebrow">TU BIBLIOTECA</p><h2 id="collection-heading">{search ? 'Resultados' : 'Álbumes y sencillos'}</h2></div><span className="track-count">{albums.length} lanzamientos</span></div>
+                  <div className="section-heading"><div><p className="eyebrow">TU BIBLIOTECA DE SPOTIFY</p><h2 id="collection-heading">{search ? 'Resultados' : 'Álbumes y sencillos'}</h2></div><span className="track-count">{albums.length} lanzamientos</span></div>
                   <div className="album-grid">
                     {albums.filter((album) => `${album.album} ${album.artist}`.toLowerCase().includes(query)).map((album) => (
                       <button className="album-card" key={`${album.source ?? 'apple'}:${album.album}`} onClick={() => album.albumId ? openDetail({ kind: 'album', id: album.albumId }) : playTrack(album.id)} type="button">
@@ -3282,11 +3913,13 @@ function App() {
                   </div>
                 </section>
                 <section aria-labelledby="songs-heading" className="collection-songs">
-                  <div className="section-heading"><div><p className="eyebrow">TU MÚSICA</p><h2 id="songs-heading">Canciones</h2></div><span className="track-count">{searchResults.length} canciones</span></div>
-                  {searchResults.length > 0
-                    ? renderTracks(searchResults)
-                    : <div className="empty-search"><Library size={20} /><p>Busca música o conecta un servicio para llenar tu colección.</p></div>}
+                  <div className="section-heading"><div><p className="eyebrow">DE SPOTIFY</p><h2 id="songs-heading">Canciones</h2></div><span className="track-count">{spotifyLibraryTracks.length} canciones</span></div>
+                  {spotifyLibraryTracks.length > 0
+                    ? renderTracks(spotifyLibraryTracks.filter((track) => `${track.title} ${track.artist} ${track.album}`.toLowerCase().includes(query)))
+                    : <div className="empty-search"><Library size={20} /><p>Tus canciones de Spotify aparecen aquí cuando terminen de cargar.</p></div>}
                 </section>
+                </>
+                )}
               </>
             ) : activeSection === 'Favoritos' ? (
               <section aria-labelledby="favorites-heading" className="favorites-page">
@@ -3299,6 +3932,8 @@ function App() {
                   </div>
                 )}
               </section>
+            ) : activeSection === 'Cuenta' ? (
+              renderAccount()
             ) : activeSection === 'Personalización' ? (
               renderPersonalization()
             ) : activeSection === 'Ajustes' ? (
@@ -3308,17 +3943,17 @@ function App() {
                     <span className="settings-icon"><Headphones size={17} /></span><div><h2 id="connections-heading">Servicios de música</h2><p>Vincula tus cuentas sin compartir contraseñas con DropMusic.</p></div>
                   </div>
                   <div className="provider-card-list">
-                    {providers.map(({ name, description }) => (
-                      <article className="provider-card" key={name}>
+                    {providers.map(({ name, description, available }) => (
+                      <article className={`provider-card${available ? '' : ' provider-card-soon'}`} key={name}>
                         <div className={`provider-card-logo provider-logo-${name === 'Apple Music' ? 'apple' : name === 'YouTube Music' ? 'youtube' : 'spotify'}`}><Music2 size={18} /></div>
-                        <div className="provider-card-copy"><h3>{name}</h3><p>{description}</p><span><span className={`connection-status-dot${connectedAccounts[name] ? ' connection-status-dot-connected' : ''}`} /> {connectedAccounts[name]?.name ?? 'Sin vincular'}</span></div>
-                        <button className="secondary-button" onClick={() => connectProvider(name)} type="button">
-                          {connectedAccounts[name] ? 'Gestionar' : 'Conectar'} <ArrowUpRight size={14} />
-                        </button>
+                        <div className="provider-card-copy"><h3>{name}</h3><p>{description}</p><span><span className={`connection-status-dot${connectedAccounts[name] ? ' connection-status-dot-connected' : ''}`} /> {available ? connectedAccounts[name]?.name ?? 'Sin vincular' : 'Próximamente'}</span></div>
+                        {available
+                          ? <button className="secondary-button" onClick={() => connectProvider(name)} type="button">{connectedAccounts[name] ? 'Gestionar' : 'Conectar'} <ArrowUpRight size={14} /></button>
+                          : <span className="soon-badge">Próximamente</span>}
                       </article>
                     ))}
                   </div>
-                  <p className="settings-disclaimer">Spotify Web Playback SDK reproduce las canciones aquí mismo con una cuenta Premium y los permisos autorizados. YouTube Music no ofrece una API pública de reproducción; Apple Music requiere configurar MusicKit.</p>
+                  <p className="settings-disclaimer">Spotify Web Playback SDK reproduce las canciones aquí mismo con una cuenta Premium y los permisos autorizados. Apple Music y YouTube Music llegarán en una próxima versión.</p>
                   <label className="jamendo-client-field">
                     <span><strong>Client ID de Jamendo</strong><small>Clave pública de aplicación; se guarda solo en este dispositivo.</small></span>
                     <input
@@ -3396,7 +4031,7 @@ function App() {
                   <div className="settings-panel-heading"><span className="settings-icon"><Activity size={17} /></span><div><h2 id="aura-settings-heading">Aura de Pulso</h2><p>Cómo se mueve la luz alrededor de la portada en Big Picture &gt; Pulso. Sigue lo que suena en tu PC.</p></div></div>
                   <div aria-label="Aura de Pulso" className="aura-grid" role="radiogroup">
                     {pulseAuras.map((aura) => (
-                      <button aria-checked={settings.pulseAura === aura.id} className={`aura-card${settings.pulseAura === aura.id ? ' aura-card-active' : ''}`} key={aura.id} onClick={() => updateSetting('pulseAura', aura.id)} role="radio" type="button">
+                      <button aria-checked={settings.pulseAura === aura.id} className={`aura-card${settings.pulseAura === aura.id ? ' aura-card-active' : ''}`} key={aura.id} onClick={() => { if (requirePro('Las auras de Pulso')) updateSetting('pulseAura', aura.id) }} role="radio" type="button">
                         <span aria-hidden="true" className="aura-preview" data-aura-preview={aura.id}><i /><i /><i /><i /><i /><i /><b /></span>
                         <span><strong>{aura.name}</strong><small>{aura.description}</small></span>
                       </button>
@@ -3409,7 +4044,7 @@ function App() {
                   <label className="setting-select-row">
                     <span><strong>Servicio preferido</strong><small>Fuente sugerida cuando vincules tu cuenta.</small></span>
                     <select onChange={(event) => updateSetting('preferredService', event.target.value as Provider)} value={settings.preferredService}>
-                      {providers.map(({ name }) => <option key={name} value={name}>{name}</option>)}
+                      {providers.map(({ name, available }) => <option disabled={!available} key={name} value={name}>{available ? name : `${name} (próximamente)`}</option>)}
                     </select>
                   </label>
                   <div className="setting-toggle-row">
@@ -3517,7 +4152,8 @@ function App() {
         </div>
       </main>
 
-      <footer aria-label="Controles del reproductor" className="player-bar">
+      <footer aria-label="Controles del reproductor" className={`player-bar${remoteDevice ? ' player-bar-remote' : ''}`}>
+        {remoteDevice && <span className="remote-banner" role="status"><Cast size={12} /> Sonando en {remoteDevice.name}</span>}
         <div className="player-track">
           <button aria-label={activeTrack.source ? `Abrir ${activeTrack.title} en pantalla completa` : 'Nada sonando'} className="player-track-open" disabled={!activeTrack.source} onClick={() => setBigPictureMode('carousel')} type="button">
             {activeTrack.artwork
@@ -3543,19 +4179,39 @@ function App() {
         </div>
         <div className="player-volume">
           <Volume2 size={17} /><input aria-label="Volumen" className="range-input volume-input" max="100" min="0" onChange={(event) => updateSetting('volume', Number(event.target.value))} style={{ '--range-progress': `${settings.volume}%` } as CSSProperties} type="range" value={settings.volume} />
+          <button aria-expanded={connectOpen} aria-label="Conectar a un dispositivo" className={`icon-button connect-button${remoteDevice ? ' control-active' : ''}`} onClick={toggleConnect} title="Conectar a un dispositivo" type="button"><Cast size={16} /></button>
           <button aria-label="Ver la letra en pantalla completa" className="icon-button" disabled={!activeTrack.source} onClick={() => setBigPictureMode('lyrics')} title="Letra" type="button"><Mic2 size={16} /></button>
           <button aria-label="Abrir reproductor Big Picture" className="icon-button" disabled={!activeTrack.source} onClick={() => setBigPictureMode('carousel')} title="Big Picture" type="button"><Maximize2 size={16} /></button>
         </div>
       </footer>
+
+      {connectOpen && (
+        <ConnectPanel
+          devices={devices}
+          error={devicesError}
+          loading={devicesLoading}
+          localDeviceId={spotifyDeviceId}
+          onClose={() => setConnectOpen(false)}
+          onLinkSpotify={() => { setConnectOpen(false); connectProvider('Spotify') }}
+          onRefresh={() => { void loadDevices() }}
+          onSelect={(device) => { void selectDevice(device) }}
+          remoteDeviceId={remoteDevice?.id ?? ''}
+          spotifyLinked={Boolean(connectedAccounts.Spotify)}
+        />
+      )}
 
       {bigPictureMode && activeTrack.source && (
         <BigPicturePlayer
           elapsed={elapsedSeconds}
           isPlaying={isPlaying}
           lyrics={lyrics}
-          mode={bigPictureMode}
+          immersiveLocked={!isPro}
+          mode={isPro || bigPictureMode === 'carousel' || bigPictureMode === 'lyrics' ? bigPictureMode : 'carousel'}
           onClose={() => setBigPictureMode(null)}
-          onModeChange={setBigPictureMode}
+          onModeChange={(mode) => {
+            if ((mode === 'vinilo' || mode === 'pulso') && !requirePro('El modo inmersivo')) return
+            setBigPictureMode(mode)
+          }}
           onPlay={playTrack}
           onSeek={seekTo}
           onSkip={skipTrack}
@@ -3587,6 +4243,21 @@ function App() {
           personalSpotifyClientId={settings.spotifyClientId}
           provider={selectedProvider}
           spotifyClientId={spotifyClientId}
+        />
+      )}
+
+      {upgradeFeature && (
+        <UpgradeDialog feature={upgradeFeature} onBuy={buyPro} onClose={() => setUpgradeFeature('')} signedIn={Boolean(accountUser)} />
+      )}
+
+      {authDialog && (
+        <AuthDialog
+          onClose={() => setAuthDialog(null)}
+          onSkip={authDialog.skippable ? () => {
+            try { window.localStorage.setItem('dropmusic-auth-skipped', '1') } catch { /* sin almacenamiento: se volverá a preguntar */ }
+            setAuthDialog(null)
+          } : undefined}
+          reason={authDialog.reason}
         />
       )}
     </div>

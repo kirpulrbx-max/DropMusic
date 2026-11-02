@@ -1576,6 +1576,211 @@ async fn spotify_set_playback_option(
     save_spotify_session(&session)
 }
 
+/// Envío autenticado (PUT/POST) a la API web de Spotify, renovando el token una vez si caducó.
+async fn spotify_api_send(
+    client_id: &str,
+    method: reqwest::Method,
+    path: &str,
+    params: &[(&str, String)],
+    body: Option<serde_json::Value>,
+    action: &str,
+) -> Result<(), String> {
+    let mut session = usable_spotify_session(client_id)
+        .await?
+        .ok_or_else(|| format!("Vincula tu cuenta de Spotify para {action}."))?;
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(20))
+        .build()
+        .map_err(|error| format!("No se pudo preparar Spotify: {error}"))?;
+    let url = format!("{SPOTIFY_API_BASE}{path}");
+    let request = |token: &str| {
+        let builder = client
+            .request(method.clone(), &url)
+            .bearer_auth(token)
+            .query(params);
+        match &body {
+            Some(body) => builder.json(body),
+            None => builder.header(reqwest::header::CONTENT_LENGTH, 0),
+        }
+    };
+    let mut response = request(&session.access_token)
+        .send()
+        .await
+        .map_err(|error| format!("No se pudo {action}: {error}"))?;
+    if response.status().as_u16() == 401 {
+        refresh_spotify_session(&client, &mut session).await?;
+        response = request(&session.access_token)
+            .send()
+            .await
+            .map_err(|error| format!("No se pudo {action}: {error}"))?;
+    }
+    let status = response.status();
+    if status.is_success() {
+        return save_spotify_session(&session);
+    }
+    let body: serde_json::Value = response.json().await.unwrap_or(serde_json::Value::Null);
+    log::error!("Spotify respondió con HTTP {status} al intentar {action}.");
+    let detail = spotify_error_message(&body)
+        .map(|message| format!(": {}", message.chars().take(240).collect::<String>()))
+        .unwrap_or_default();
+    Err(match status.as_u16() {
+        401 => "La sesión de Spotify dejó de ser válida. Vuelve a vincularla.".into(),
+        403 => format!("Spotify no permitió {action}. Hace falta Spotify Premium{detail}"),
+        404 => "Ese dispositivo ya no está disponible. Abre Spotify en él y actualiza la lista.".into(),
+        429 => "Spotify limitó temporalmente las consultas. Espera un momento e inténtalo de nuevo.".into(),
+        _ => format!("No se pudo {action} (HTTP {status}){detail}"),
+    })
+}
+
+fn validate_device_id(device_id: &str) -> Result<(), String> {
+    if device_id.is_empty() || device_id.len() > 200 || device_id.chars().any(char::is_control) {
+        return Err("Ese dispositivo de Spotify no es válido.".into());
+    }
+    Ok(())
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SpotifyDevice {
+    id: String,
+    name: String,
+    kind: String,
+    is_active: bool,
+    volume: Option<u32>,
+    supports_volume: bool,
+}
+
+/// Dispositivos de Spotify Connect: televisores, parlantes, celulares y otras apps abiertas.
+#[tauri::command]
+async fn spotify_list_devices(client_id: String) -> Result<Vec<SpotifyDevice>, String> {
+    let body = spotify_api_get(&client_id, "/me/player/devices", &[], "ver tus dispositivos").await?;
+    let devices = body
+        .get("devices")
+        .and_then(serde_json::Value::as_array)
+        .map(|devices| {
+            devices
+                .iter()
+                .filter_map(|device| {
+                    Some(SpotifyDevice {
+                        id: device.get("id")?.as_str()?.to_owned(),
+                        name: device.get("name")?.as_str()?.chars().take(120).collect(),
+                        kind: device
+                            .get("type")
+                            .and_then(serde_json::Value::as_str)
+                            .unwrap_or("Unknown")
+                            .to_owned(),
+                        is_active: device
+                            .get("is_active")
+                            .and_then(serde_json::Value::as_bool)
+                            .unwrap_or(false),
+                        volume: device
+                            .get("volume_percent")
+                            .and_then(serde_json::Value::as_u64)
+                            .map(|volume| volume.min(100) as u32),
+                        supports_volume: device
+                            .get("supports_volume")
+                            .and_then(serde_json::Value::as_bool)
+                            .unwrap_or(true),
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    Ok(devices)
+}
+
+/// Pasa la reproducción a otro dispositivo, como el botón "Conectar a un dispositivo" de Spotify.
+#[tauri::command]
+async fn spotify_transfer_playback(client_id: String, device_id: String, play: bool) -> Result<(), String> {
+    validate_device_id(&device_id)?;
+    spotify_api_send(
+        &client_id,
+        reqwest::Method::PUT,
+        "/me/player",
+        &[],
+        Some(serde_json::json!({ "device_ids": [device_id], "play": play })),
+        "pasar la música a ese dispositivo",
+    )
+    .await
+}
+
+/// Controla lo que suena en otro dispositivo (el televisor, por ejemplo) desde DropMusic.
+#[tauri::command]
+async fn spotify_remote_control(
+    client_id: String,
+    device_id: String,
+    action: String,
+    value: Option<u32>,
+) -> Result<(), String> {
+    validate_device_id(&device_id)?;
+    let device = ("device_id", device_id);
+    let (method, path, params) = match action.as_str() {
+        "play" => (reqwest::Method::PUT, "/me/player/play", vec![device]),
+        "pause" => (reqwest::Method::PUT, "/me/player/pause", vec![device]),
+        "next" => (reqwest::Method::POST, "/me/player/next", vec![device]),
+        "previous" => (reqwest::Method::POST, "/me/player/previous", vec![device]),
+        "volume" => (
+            reqwest::Method::PUT,
+            "/me/player/volume",
+            vec![device, ("volume_percent", value.unwrap_or(50).min(100).to_string())],
+        ),
+        "seek" => (
+            reqwest::Method::PUT,
+            "/me/player/seek",
+            vec![device, ("position_ms", value.unwrap_or(0).to_string())],
+        ),
+        _ => return Err("Ese control remoto no es válido.".into()),
+    };
+    spotify_api_send(&client_id, method, path, &params, None, "controlar ese dispositivo").await
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SpotifyRemoteState {
+    device_id: String,
+    device_name: String,
+    is_playing: bool,
+    progress_ms: u64,
+    volume: Option<u32>,
+    track: Option<SpotifyTrack>,
+}
+
+/// Qué suena ahora y en qué dispositivo, para seguir el televisor desde la laptop.
+#[tauri::command]
+async fn spotify_get_remote_state(client_id: String) -> Result<Option<SpotifyRemoteState>, String> {
+    let body = spotify_api_get(&client_id, "/me/player", &[], "ver qué está sonando").await?;
+    let Some(device) = body.get("device") else {
+        return Ok(None);
+    };
+    Ok(Some(SpotifyRemoteState {
+        device_id: device
+            .get("id")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .to_owned(),
+        device_name: device
+            .get("name")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .chars()
+            .take(120)
+            .collect(),
+        is_playing: body
+            .get("is_playing")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false),
+        progress_ms: body
+            .get("progress_ms")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0),
+        volume: device
+            .get("volume_percent")
+            .and_then(serde_json::Value::as_u64)
+            .map(|volume| volume.min(100) as u32),
+        track: body.get("item").and_then(|item| parse_spotify_track(item, None)),
+    }))
+}
+
 fn spotify_skip_endpoint(direction: &str) -> Result<&'static str, String> {
     match direction {
         "next" => Ok("/me/player/next"),
@@ -1974,6 +2179,10 @@ pub fn run() {
             spotify_start_playback,
             spotify_set_playback_option,
             spotify_skip_track,
+            spotify_list_devices,
+            spotify_transfer_playback,
+            spotify_remote_control,
+            spotify_get_remote_state,
             spotify_search_tracks,
             spotify_search_catalog,
             spotify_get_artist,

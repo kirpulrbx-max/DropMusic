@@ -25,3 +25,7 @@ src-tauri/target-verification
 *.njsproj
 *.sln
 *.sw?
+
+# Correo de la cuenta admin (no se publica)
+supabase/admin.sql
+supabase/.temp

@@ -1,0 +1,1287 @@
+/*
+  Veinte temas nuevos (versión 0.2). Igual que los demás, los fondos animados se dibujan con CSS
+  sobre .theme-scene (seis <i> más ::before y ::after) y se detienen con Ajustes > Animaciones.
+*/
+
+/* =========================================================
+   Esenciales
+   ========================================================= */
+
+/* ---------- Grafito ---------- */
+.app-shell[data-theme="grafito"] {
+  --t-bg: #1b1d1f;
+  --t-bg-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.04) 1px, transparent 0) 0 0 / 18px 18px, #1b1d1f;
+  --t-chrome: rgba(30, 32, 35, 0.96);
+  --t-surface: #25282b;
+  --t-hover: rgba(110, 231, 183, 0.07);
+  --t-input: #202326;
+  --t-muted: #a6adb4;
+  --t-label: #6ee7b7;
+  --t-accent: #6ee7b7;
+  --t-accent-ink: #062016;
+  --t-accent-soft: rgba(110, 231, 183, 0.12);
+  --t-border: #34383c;
+  --t-track: #383c41;
+  --t-radius: 8px;
+  --t-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+  --t-font: Inter, "Segoe UI", sans-serif;
+  --t-head-font: Inter, "Segoe UI", sans-serif;
+}
+
+/* ---------- Lavanda ---------- */
+.app-shell[data-theme="lavanda"] {
+  --t-bg: #f1edfa;
+  --t-bg-image: radial-gradient(ellipse at 10% 0%, rgba(167, 139, 250, 0.22), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(244, 171, 214, 0.25), transparent 50%), #f1edfa;
+  --t-chrome: rgba(248, 245, 255, 0.94);
+  --t-surface: #ffffff;
+  --t-dialog: #ffffff;
+  --t-hover: rgba(124, 92, 214, 0.08);
+  --t-input: #f7f4fe;
+  --t-text: #2a2140;
+  --t-muted: #5f5578;
+  --t-label: #7c5cd6;
+  --t-accent: #7c5cd6;
+  --t-accent-ink: #ffffff;
+  --t-accent-text: #6646c4;
+  --t-accent-soft: rgba(124, 92, 214, 0.12);
+  --t-border: #e1d9f3;
+  --t-track: #ddd3f2;
+  --t-radius: 16px;
+  --t-shadow: 0 12px 30px rgba(80, 50, 150, 0.09);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: Righteous, "Segoe UI", sans-serif;
+}
+
+/* ---------- Esmeralda y oro ---------- */
+.app-shell[data-theme="esmeralda"] {
+  --t-bg: #06221a;
+  --t-bg-image: radial-gradient(ellipse at 85% -10%, rgba(212, 175, 55, 0.16), transparent 50%), linear-gradient(180deg, #06221a, #031510);
+  --t-chrome: rgba(5, 30, 23, 0.95);
+  --t-surface: #0b3127;
+  --t-hover: rgba(212, 175, 55, 0.09);
+  --t-input: #08281f;
+  --t-muted: #a9c8bd;
+  --t-label: #d4af37;
+  --t-accent: #d4af37;
+  --t-accent-ink: #1d1503;
+  --t-accent-soft: rgba(212, 175, 55, 0.13);
+  --t-border: rgba(212, 175, 55, 0.22);
+  --t-track: #154537;
+  --t-radius: 4px;
+  --t-shadow: 0 14px 32px rgba(0, 0, 0, 0.4);
+  --t-font: Georgia, "Times New Roman", serif;
+  --t-head-font: Georgia, "Times New Roman", serif;
+  --t-lyric: #fbf1d0;
+}
+
+.app-shell[data-theme="esmeralda"] :is(.now-playing-card, .settings-panel, .personalization-hero) {
+  outline: 1px solid rgba(212, 175, 55, 0.25);
+  outline-offset: -6px;
+}
+
+/* ---------- Fotografía sepia ---------- */
+.app-shell[data-theme="sepia"] {
+  --t-bg: #ece0c8;
+  --t-bg-image: radial-gradient(ellipse at center, transparent 55%, rgba(90, 60, 25, 0.22)), #ece0c8;
+  --t-chrome: #e4d5b8;
+  --t-surface: #f5ecd9;
+  --t-dialog: #f5ecd9;
+  --t-hover: rgba(110, 72, 32, 0.08);
+  --t-input: #f8f1e2;
+  --t-text: #3b2a17;
+  --t-muted: #6c573d;
+  --t-label: #8b5e2b;
+  --t-accent: #7a4f22;
+  --t-accent-ink: #fbf4e6;
+  --t-accent-text: #7a4f22;
+  --t-accent-soft: rgba(122, 79, 34, 0.12);
+  --t-border: rgba(110, 72, 32, 0.22);
+  --t-track: #d8c6a4;
+  --t-radius: 3px;
+  --t-shadow: 0 8px 18px rgba(80, 50, 20, 0.14);
+  --t-font: Georgia, "Times New Roman", serif;
+  --t-head-font: Georgia, "Times New Roman", serif;
+}
+
+.app-shell[data-theme="sepia"] :is(img, .album-art-large > img, .featured-image) {
+  filter: sepia(0.75) contrast(1.05) saturate(0.8);
+}
+
+/* =========================================================
+   Ambientes
+   ========================================================= */
+
+/* ---------- Tormenta eléctrica ---------- */
+.app-shell[data-theme="tormenta"] {
+  --t-bg: #0b0f18;
+  --t-veil: rgba(10, 14, 24, 0.45);
+  --t-chrome: rgba(12, 16, 28, 0.93);
+  --t-surface: rgba(22, 28, 44, 0.86);
+  --t-hover: rgba(150, 190, 255, 0.08);
+  --t-input: rgba(0, 0, 0, 0.3);
+  --t-muted: #a9b5cc;
+  --t-label: #9cc2ff;
+  --t-accent: #9cc2ff;
+  --t-accent-ink: #0a1226;
+  --t-accent-soft: rgba(156, 194, 255, 0.13);
+  --t-border: rgba(156, 194, 255, 0.16);
+  --t-track: #222c44;
+  --t-radius: 12px;
+  --t-shadow: 0 16px 34px rgba(0, 0, 0, 0.4);
+  --t-font: Inter, "Segoe UI", sans-serif;
+  --t-lyric: #eef4ff;
+}
+
+.app-shell[data-theme="tormenta"] .theme-scene {
+  background: radial-gradient(ellipse at 50% -20%, #2b3550, #0b0f18 70%);
+}
+
+/* Destellos del relámpago */
+.app-shell[data-theme="tormenta"] .theme-scene::before {
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 10%, rgba(210, 225, 255, 0.55), transparent 60%);
+  opacity: 0;
+  animation: storm-flash 9s infinite;
+}
+
+.app-shell[data-theme="tormenta"] .theme-scene::after {
+  inset: -10% 0 0;
+  background: repeating-linear-gradient(105deg, transparent 0 14px, rgba(180, 200, 240, 0.14) 14px 15px);
+  background-size: 200px 200px;
+  animation: storm-rain 0.6s linear infinite;
+}
+
+@keyframes storm-flash {
+  0%, 62%, 66%, 70%, 100% { opacity: 0; }
+  63%, 68% { opacity: 1; }
+}
+
+@keyframes storm-rain {
+  to { background-position: -60px 200px; }
+}
+
+/* Rayos */
+.app-shell[data-theme="tormenta"] .theme-scene i:nth-child(-n + 2) {
+  top: 0;
+  width: 6px;
+  height: 42vh;
+  background: linear-gradient(180deg, #f2f6ff, rgba(160, 190, 255, 0.4));
+  clip-path: polygon(50% 0, 100% 0, 40% 38%, 90% 38%, 10% 100%, 45% 50%, 0 50%);
+  filter: drop-shadow(0 0 10px #b7cdff);
+  opacity: 0;
+  animation: storm-bolt 9s infinite;
+}
+
+.app-shell[data-theme="tormenta"] .theme-scene i:nth-child(1) { left: 28%; width: 60px; }
+.app-shell[data-theme="tormenta"] .theme-scene i:nth-child(2) { left: 72%; width: 40px; height: 30vh; animation-delay: -4.4s; }
+
+@keyframes storm-bolt {
+  0%, 62%, 67%, 100% { opacity: 0; }
+  63%, 65% { opacity: 1; }
+}
+
+/* Nubes */
+.app-shell[data-theme="tormenta"] .theme-scene i:nth-child(n + 3) {
+  top: -6vh;
+  width: 40vw;
+  height: 22vh;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(60, 70, 95, 0.75), transparent 70%);
+  filter: blur(8px);
+  animation: storm-clouds 40s linear infinite;
+}
+
+.app-shell[data-theme="tormenta"] .theme-scene i:nth-child(3) { left: -10%; }
+.app-shell[data-theme="tormenta"] .theme-scene i:nth-child(4) { left: 25%; top: -2vh; animation-delay: -12s; }
+.app-shell[data-theme="tormenta"] .theme-scene i:nth-child(5) { left: 55%; animation-delay: -24s; }
+.app-shell[data-theme="tormenta"] .theme-scene i:nth-child(6) { left: 85%; top: -4vh; animation-delay: -32s; }
+
+@keyframes storm-clouds {
+  from { translate: -12vw 0; }
+  to { translate: 12vw 0; }
+}
+
+/* ---------- Atardecer en la playa ---------- */
+.app-shell[data-theme="atardecer"] {
+  --t-bg: #2a1630;
+  --t-veil: rgba(40, 18, 40, 0.35);
+  --t-chrome: rgba(46, 20, 44, 0.9);
+  --t-surface: rgba(62, 28, 54, 0.85);
+  --t-hover: rgba(255, 170, 110, 0.1);
+  --t-input: rgba(0, 0, 0, 0.25);
+  --t-muted: #f0c9c0;
+  --t-label: #ffc078;
+  --t-accent: #ff8f6b;
+  --t-accent-ink: #2b0c08;
+  --t-accent-soft: rgba(255, 143, 107, 0.15);
+  --t-border: rgba(255, 192, 120, 0.2);
+  --t-track: #5a2a4a;
+  --t-radius: 20px;
+  --t-shadow: 0 16px 34px rgba(30, 6, 20, 0.4);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: Righteous, "Segoe UI", sans-serif;
+  --t-lyric: #fff2e8;
+}
+
+.app-shell[data-theme="atardecer"] .theme-scene {
+  background: linear-gradient(180deg, #3b1450 0%, #b8436a 38%, #ff9a5a 58%, #2b4a7a 60%, #10213f 100%);
+}
+
+/* El sol que se pone sobre el horizonte */
+.app-shell[data-theme="atardecer"] .theme-scene::before {
+  left: 50%;
+  top: 42%;
+  width: 22vw;
+  height: 22vw;
+  margin-left: -11vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe08a, #ff9a5a 70%);
+  box-shadow: 0 0 80px 30px rgba(255, 160, 90, 0.45);
+  mask-image: linear-gradient(180deg, #000 64%, transparent 64%);
+  animation: sun-set 30s ease-in-out infinite alternate;
+}
+
+@keyframes sun-set {
+  from { translate: 0 -4vh; }
+  to { translate: 0 5vh; }
+}
+
+/* Reflejo del sol en el agua */
+.app-shell[data-theme="atardecer"] .theme-scene::after {
+  left: 40%;
+  right: 40%;
+  top: 60%;
+  bottom: 8%;
+  background: repeating-linear-gradient(180deg, rgba(255, 190, 110, 0.55) 0 3px, transparent 3px 11px);
+  mask-image: radial-gradient(ellipse at 50% 0%, #000, transparent 75%);
+  animation: water-shimmer 3s ease-in-out infinite alternate;
+}
+
+@keyframes water-shimmer {
+  from { transform: scaleX(0.85); opacity: 0.7; }
+  to { transform: scaleX(1.15); opacity: 1; }
+}
+
+/* Olas */
+.app-shell[data-theme="atardecer"] .theme-scene i {
+  left: -20%;
+  width: 140%;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 220, 190, 0.35);
+  animation: wave-roll 7s ease-in-out infinite alternate;
+}
+
+.app-shell[data-theme="atardecer"] .theme-scene i:nth-child(1) { top: 66%; }
+.app-shell[data-theme="atardecer"] .theme-scene i:nth-child(2) { top: 72%; animation-delay: -2s; }
+.app-shell[data-theme="atardecer"] .theme-scene i:nth-child(3) { top: 79%; animation-delay: -4s; }
+.app-shell[data-theme="atardecer"] .theme-scene i:nth-child(4) { top: 87%; animation-delay: -1s; }
+.app-shell[data-theme="atardecer"] .theme-scene i:nth-child(5) { top: 94%; animation-delay: -5s; }
+.app-shell[data-theme="atardecer"] .theme-scene i:nth-child(6) { top: 20%; left: 70%; width: 26px; height: 9px; border-radius: 0; background: none; border-top: 2px solid rgba(40, 10, 30, 0.7); border-radius: 50% 50% 0 0; animation: gull-fly 18s linear infinite; }
+
+@keyframes wave-roll {
+  from { translate: -4% 0; }
+  to { translate: 4% 0; }
+}
+
+@keyframes gull-fly {
+  from { translate: 30vw 0; }
+  to { translate: -90vw -6vh; }
+}
+
+/* ---------- Eclipse ---------- */
+.app-shell[data-theme="eclipse"] {
+  --t-bg: #04040a;
+  --t-veil: rgba(4, 4, 10, 0.4);
+  --t-chrome: rgba(8, 8, 16, 0.94);
+  --t-surface: rgba(18, 16, 30, 0.86);
+  --t-hover: rgba(255, 200, 120, 0.08);
+  --t-input: rgba(0, 0, 0, 0.35);
+  --t-muted: #b4adc4;
+  --t-label: #ffc878;
+  --t-accent: #ffc878;
+  --t-accent-ink: #1d1203;
+  --t-accent-soft: rgba(255, 200, 120, 0.12);
+  --t-border: rgba(255, 200, 120, 0.16);
+  --t-track: #24203a;
+  --t-radius: 999px;
+  --t-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --t-font: Inter, "Segoe UI", sans-serif;
+  --t-head-font: Inter, "Segoe UI", sans-serif;
+  --t-lyric: #fff6e6;
+}
+
+.app-shell[data-theme="eclipse"] :is(.now-playing-card, .settings-panel, .theme-card, .personalization-hero, .featured-card, .top-result-card) {
+  border-radius: 22px;
+}
+
+.app-shell[data-theme="eclipse"] :is(h1, h2) {
+  font-weight: 200;
+  letter-spacing: 0.04em;
+}
+
+.app-shell[data-theme="eclipse"] .theme-scene {
+  background: radial-gradient(circle at 78% 30%, #12102a, #04040a 60%);
+}
+
+/* La corona de luz del sol detrás de la luna */
+.app-shell[data-theme="eclipse"] .theme-scene::before {
+  right: 10vw;
+  top: 12vh;
+  width: 30vh;
+  height: 30vh;
+  border-radius: 50%;
+  background: #04040a;
+  box-shadow: 0 0 0 2px rgba(255, 230, 180, 0.9), 0 0 40px 10px rgba(255, 200, 120, 0.55), 0 0 120px 40px rgba(255, 150, 80, 0.25);
+  animation: corona-breathe 6s ease-in-out infinite alternate;
+}
+
+.app-shell[data-theme="eclipse"] .theme-scene::after {
+  right: calc(10vw + 2vh);
+  top: calc(12vh - 2vh);
+  width: 6vh;
+  height: 6vh;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff6dc, transparent 65%);
+  animation: diamond-ring 6s ease-in-out infinite alternate;
+}
+
+@keyframes corona-breathe {
+  from { filter: brightness(0.85); }
+  to { filter: brightness(1.25); }
+}
+
+@keyframes diamond-ring {
+  from { opacity: 0.2; transform: scale(0.6); }
+  to { opacity: 1; transform: scale(1.2); }
+}
+
+/* Polvo de estrellas */
+.app-shell[data-theme="eclipse"] .theme-scene i {
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 12vw 8vh #fff, 30vw 40vh rgba(255, 255, 255, 0.6), 48vw 18vh #fff, 66vw 70vh rgba(255, 255, 255, 0.5), 20vw 80vh #fff, 85vw 55vh rgba(255, 255, 255, 0.7);
+  animation: star-twinkle 4s ease-in-out infinite alternate;
+}
+
+.app-shell[data-theme="eclipse"] .theme-scene i:nth-child(1) { left: 2%; top: 4%; }
+.app-shell[data-theme="eclipse"] .theme-scene i:nth-child(2) { left: 9%; top: 22%; animation-delay: -1s; }
+.app-shell[data-theme="eclipse"] .theme-scene i:nth-child(3) { left: 4%; top: 48%; animation-delay: -2s; }
+.app-shell[data-theme="eclipse"] .theme-scene i:nth-child(4) { left: 14%; top: 12%; animation-delay: -3s; }
+.app-shell[data-theme="eclipse"] .theme-scene i:nth-child(5) { left: 6%; top: 34%; animation-delay: -1.5s; }
+.app-shell[data-theme="eclipse"] .theme-scene i:nth-child(6) { left: 11%; top: 2%; animation-delay: -2.5s; }
+
+@keyframes star-twinkle {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+
+/* ---------- Otoño ---------- */
+.app-shell[data-theme="otono"] {
+  --t-bg: #f6ead8;
+  --t-veil: rgba(248, 237, 220, 0.55);
+  --t-chrome: rgba(250, 240, 226, 0.94);
+  --t-surface: rgba(255, 251, 244, 0.92);
+  --t-dialog: #fffbf4;
+  --t-hover: rgba(196, 85, 30, 0.08);
+  --t-input: #fffaf2;
+  --t-text: #3b2214;
+  --t-muted: #6e4c36;
+  --t-label: #b5481c;
+  --t-accent: #c4551e;
+  --t-accent-ink: #fff6ec;
+  --t-accent-text: #a8420f;
+  --t-accent-soft: rgba(196, 85, 30, 0.12);
+  --t-border: rgba(150, 80, 30, 0.2);
+  --t-track: #ecd3b4;
+  --t-radius: 14px;
+  --t-shadow: 0 12px 28px rgba(110, 50, 10, 0.1);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: Georgia, "Times New Roman", serif;
+}
+
+.app-shell[data-theme="otono"] .theme-scene {
+  background: linear-gradient(180deg, #fbe9cf, #f3d3a8);
+}
+
+.app-shell[data-theme="otono"] .theme-scene i {
+  top: -40px;
+  width: 22px;
+  height: 22px;
+  border-radius: 0 70% 0 70%;
+  background: linear-gradient(135deg, #e06a1f, #b53a12);
+  animation: leaf-fall 13s linear infinite;
+}
+
+.app-shell[data-theme="otono"] .theme-scene i:nth-child(1) { left: 6%; }
+.app-shell[data-theme="otono"] .theme-scene i:nth-child(2) { left: 22%; background: linear-gradient(135deg, #f0b129, #d0761c); animation-duration: 16s; animation-delay: -5s; }
+.app-shell[data-theme="otono"] .theme-scene i:nth-child(3) { left: 41%; width: 16px; height: 16px; animation-duration: 11s; animation-delay: -8s; }
+.app-shell[data-theme="otono"] .theme-scene i:nth-child(4) { left: 58%; background: linear-gradient(135deg, #9c2f18, #6e1d0e); animation-duration: 18s; animation-delay: -2s; }
+.app-shell[data-theme="otono"] .theme-scene i:nth-child(5) { left: 76%; background: linear-gradient(135deg, #f0b129, #d0761c); animation-delay: -10s; }
+.app-shell[data-theme="otono"] .theme-scene i:nth-child(6) { left: 91%; width: 18px; height: 18px; animation-duration: 14s; animation-delay: -6s; }
+
+@keyframes leaf-fall {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+  10% { opacity: 0.9; }
+  50% { transform: translate(-40px, 55vh) rotate(200deg); }
+  100% { opacity: 0; transform: translate(30px, 112vh) rotate(420deg); }
+}
+
+/* ---------- Medusas ---------- */
+.app-shell[data-theme="medusas"] {
+  --t-bg: #050b1f;
+  --t-veil: rgba(5, 11, 31, 0.42);
+  --t-chrome: rgba(6, 12, 34, 0.93);
+  --t-surface: rgba(14, 22, 56, 0.84);
+  --t-hover: rgba(240, 130, 255, 0.08);
+  --t-input: rgba(0, 0, 0, 0.3);
+  --t-muted: #b5b7dd;
+  --t-label: #f39bff;
+  --t-accent: #f39bff;
+  --t-accent-ink: #2a0634;
+  --t-accent-soft: rgba(243, 155, 255, 0.13);
+  --t-border: rgba(243, 155, 255, 0.17);
+  --t-track: #1d2656;
+  --t-radius: 22px;
+  --t-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+  --t-font: Inter, "Segoe UI", sans-serif;
+  --t-lyric: #fdf0ff;
+}
+
+.app-shell[data-theme="medusas"] .theme-scene {
+  background: radial-gradient(ellipse at 50% 0%, #142a66, #050b1f 70%);
+}
+
+.app-shell[data-theme="medusas"] .theme-scene i {
+  bottom: -30vh;
+  width: 90px;
+  height: 70px;
+  border-radius: 50% 50% 20% 20% / 70% 70% 30% 30%;
+  background: radial-gradient(ellipse at 50% 35%, rgba(255, 200, 255, 0.85), rgba(200, 90, 255, 0.35) 60%, transparent 75%);
+  box-shadow: 0 0 40px rgba(230, 120, 255, 0.45);
+  animation: jelly-swim 22s ease-in-out infinite;
+}
+
+/* Tentáculos */
+.app-shell[data-theme="medusas"] .theme-scene i::after {
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  top: 80%;
+  height: 120px;
+  content: "";
+  background: repeating-linear-gradient(90deg, rgba(240, 170, 255, 0.45) 0 2px, transparent 2px 9px);
+  mask-image: linear-gradient(180deg, #000, transparent);
+  animation: jelly-tentacles 3s ease-in-out infinite alternate;
+}
+
+.app-shell[data-theme="medusas"] .theme-scene i:nth-child(1) { left: 8%; }
+.app-shell[data-theme="medusas"] .theme-scene i:nth-child(2) { left: 30%; scale: 0.6; animation-duration: 28s; animation-delay: -9s; filter: hue-rotate(-60deg); }
+.app-shell[data-theme="medusas"] .theme-scene i:nth-child(3) { left: 52%; scale: 0.8; animation-delay: -15s; }
+.app-shell[data-theme="medusas"] .theme-scene i:nth-child(4) { left: 70%; scale: 0.5; animation-duration: 26s; animation-delay: -4s; filter: hue-rotate(80deg); }
+.app-shell[data-theme="medusas"] .theme-scene i:nth-child(5) { left: 86%; scale: 0.7; animation-delay: -19s; filter: hue-rotate(-30deg); }
+.app-shell[data-theme="medusas"] .theme-scene i:nth-child(6) { left: 42%; scale: 0.4; animation-duration: 32s; animation-delay: -24s; filter: hue-rotate(140deg); }
+
+@keyframes jelly-swim {
+  0% { transform: translate(0, 0) scaleY(1); opacity: 0; }
+  8% { opacity: 1; }
+  25% { transform: translate(20px, -35vh) scaleY(0.85); }
+  50% { transform: translate(-25px, -70vh) scaleY(1.05); }
+  75% { transform: translate(15px, -105vh) scaleY(0.88); }
+  100% { transform: translate(0, -140vh) scaleY(1); opacity: 0; }
+}
+
+@keyframes jelly-tentacles {
+  from { transform: skewX(-8deg); }
+  to { transform: skewX(8deg); }
+}
+
+/* =========================================================
+   Géneros
+   ========================================================= */
+
+/* ---------- Reggae roots ---------- */
+.app-shell[data-theme="reggae"] {
+  --t-bg: #12160d;
+  --t-veil: rgba(18, 22, 13, 0.5);
+  --t-chrome: rgba(20, 24, 14, 0.94);
+  --t-surface: rgba(30, 36, 20, 0.88);
+  --t-hover: rgba(255, 210, 0, 0.08);
+  --t-input: rgba(0, 0, 0, 0.3);
+  --t-muted: #c9cfae;
+  --t-label: #ffd200;
+  --t-accent: #2fb24c;
+  --t-accent-ink: #03170a;
+  --t-accent-soft: rgba(47, 178, 76, 0.15);
+  --t-border: rgba(255, 210, 0, 0.18);
+  --t-track: #2e3820;
+  --t-radius: 14px;
+  --t-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: Righteous, "Segoe UI", sans-serif;
+  --t-lyric: #fffbe2;
+}
+
+.app-shell[data-theme="reggae"] :is(.now-playing-card, .settings-panel, .personalization-hero) {
+  border-top: 6px solid transparent;
+  border-image: linear-gradient(90deg, #e1261c 0 33%, #ffd200 33% 66%, #2fb24c 66%) 1;
+}
+
+.app-shell[data-theme="reggae"] .theme-scene {
+  background: linear-gradient(180deg, #12160d, #1d2512);
+}
+
+/* Las tres franjas que ondulan con el ritmo */
+.app-shell[data-theme="reggae"] .theme-scene i:nth-child(-n + 3) {
+  left: -10%;
+  width: 120%;
+  height: 7vh;
+  bottom: 0;
+  border-radius: 50% 50% 0 0;
+  opacity: 0.55;
+  animation: roots-wave 4s ease-in-out infinite alternate;
+}
+
+.app-shell[data-theme="reggae"] .theme-scene i:nth-child(1) { bottom: 14vh; background: #e1261c; }
+.app-shell[data-theme="reggae"] .theme-scene i:nth-child(2) { bottom: 7vh; background: #ffd200; animation-delay: -1.3s; }
+.app-shell[data-theme="reggae"] .theme-scene i:nth-child(3) { bottom: 0; background: #2fb24c; animation-delay: -2.6s; }
+
+.app-shell[data-theme="reggae"].is-playing .theme-scene i:nth-child(-n + 3) {
+  animation-duration: 0.9s;
+}
+
+@keyframes roots-wave {
+  from { transform: translateX(-3%) scaleY(0.8); }
+  to { transform: translateX(3%) scaleY(1.2); }
+}
+
+/* Humo que sube */
+.app-shell[data-theme="reggae"] .theme-scene i:nth-child(n + 4) {
+  bottom: 20vh;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200, 220, 170, 0.12), transparent 70%);
+  animation: smoke-rise 14s ease-out infinite;
+}
+
+.app-shell[data-theme="reggae"] .theme-scene i:nth-child(4) { left: 15%; }
+.app-shell[data-theme="reggae"] .theme-scene i:nth-child(5) { left: 50%; animation-delay: -5s; }
+.app-shell[data-theme="reggae"] .theme-scene i:nth-child(6) { left: 80%; animation-delay: -10s; }
+
+@keyframes smoke-rise {
+  from { opacity: 0.9; transform: translateY(0) scale(0.6); }
+  to { opacity: 0; transform: translateY(-60vh) scale(2.2); }
+}
+
+/* ---------- Escenario K-pop ---------- */
+.app-shell[data-theme="kpop"] {
+  --t-bg: #120818;
+  --t-veil: rgba(18, 8, 24, 0.4);
+  --t-chrome: rgba(22, 10, 30, 0.92);
+  --t-surface: rgba(34, 14, 46, 0.86);
+  --t-hover: rgba(255, 95, 190, 0.1);
+  --t-input: rgba(0, 0, 0, 0.3);
+  --t-muted: #dbb8e6;
+  --t-label: #7ee8ff;
+  --t-accent: #ff5fbe;
+  --t-accent-ink: #2e0420;
+  --t-accent-soft: rgba(255, 95, 190, 0.15);
+  --t-border: rgba(255, 95, 190, 0.22);
+  --t-track: #3a1a4a;
+  --t-radius: 18px;
+  --t-shadow: 0 0 30px rgba(255, 95, 190, 0.12);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: "Archivo Black", Impact, sans-serif;
+  --t-lyric: #fff0fa;
+}
+
+.app-shell[data-theme="kpop"] :is(h1, h2) {
+  background: linear-gradient(90deg, #ff5fbe, #7ee8ff);
+  background-clip: text;
+  color: transparent;
+}
+
+.app-shell[data-theme="kpop"] .theme-scene {
+  background: radial-gradient(ellipse at 50% 120%, #4a1460, #120818 65%);
+}
+
+/* Focos del escenario */
+.app-shell[data-theme="kpop"] .theme-scene::before,
+.app-shell[data-theme="kpop"] .theme-scene::after {
+  top: -10vh;
+  width: 30vw;
+  height: 110vh;
+  background: linear-gradient(180deg, rgba(126, 232, 255, 0.28), transparent 80%);
+  clip-path: polygon(45% 0, 55% 0, 100% 100%, 0 100%);
+  transform-origin: 50% 0;
+  animation: spot-swing 5s ease-in-out infinite alternate;
+}
+
+.app-shell[data-theme="kpop"] .theme-scene::before { left: 10vw; }
+.app-shell[data-theme="kpop"] .theme-scene::after { right: 10vw; background: linear-gradient(180deg, rgba(255, 95, 190, 0.3), transparent 80%); animation-delay: -2.5s; }
+
+@keyframes spot-swing {
+  from { transform: rotate(-18deg); }
+  to { transform: rotate(18deg); }
+}
+
+/* Lightsticks del público */
+.app-shell[data-theme="kpop"] .theme-scene i {
+  bottom: -2vh;
+  width: 10px;
+  height: 46px;
+  border-radius: 6px 6px 3px 3px;
+  background: linear-gradient(180deg, #fff 0 22%, #ff5fbe 22% 30%, #444 30%);
+  box-shadow: 0 -8px 22px rgba(255, 95, 190, 0.8);
+  transform-origin: 50% 100%;
+  animation: lightstick-wave 1.4s ease-in-out infinite alternate;
+}
+
+.app-shell[data-theme="kpop"] .theme-scene i:nth-child(1) { left: 8%; }
+.app-shell[data-theme="kpop"] .theme-scene i:nth-child(2) { left: 24%; animation-delay: -0.4s; box-shadow: 0 -8px 22px rgba(126, 232, 255, 0.8); }
+.app-shell[data-theme="kpop"] .theme-scene i:nth-child(3) { left: 40%; animation-delay: -0.8s; }
+.app-shell[data-theme="kpop"] .theme-scene i:nth-child(4) { left: 58%; animation-delay: -0.2s; box-shadow: 0 -8px 22px rgba(126, 232, 255, 0.8); }
+.app-shell[data-theme="kpop"] .theme-scene i:nth-child(5) { left: 75%; animation-delay: -1s; }
+.app-shell[data-theme="kpop"] .theme-scene i:nth-child(6) { left: 91%; animation-delay: -0.6s; box-shadow: 0 -8px 22px rgba(126, 232, 255, 0.8); }
+
+.app-shell[data-theme="kpop"].is-playing .theme-scene i {
+  animation-duration: 0.5s;
+}
+
+@keyframes lightstick-wave {
+  from { transform: rotate(-22deg); }
+  to { transform: rotate(22deg); }
+}
+
+/* ---------- Rave techno ---------- */
+.app-shell[data-theme="techno"] {
+  --t-bg: #050505;
+  --t-veil: rgba(5, 5, 5, 0.45);
+  --t-chrome: rgba(8, 8, 8, 0.95);
+  --t-surface: rgba(16, 16, 16, 0.9);
+  --t-hover: rgba(57, 255, 136, 0.08);
+  --t-input: #0b0b0b;
+  --t-muted: #b0b8b2;
+  --t-label: #39ff88;
+  --t-accent: #39ff88;
+  --t-accent-ink: #001a0b;
+  --t-accent-soft: rgba(57, 255, 136, 0.12);
+  --t-border: rgba(57, 255, 136, 0.2);
+  --t-track: #1f2a22;
+  --t-radius: 0;
+  --t-shadow: none;
+  --t-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-head-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-lyric: #eafff2;
+}
+
+.app-shell[data-theme="techno"] :is(h1, h2) {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.app-shell[data-theme="techno"] .theme-scene {
+  background: #050505;
+}
+
+/* Láseres que barren la pista desde abajo */
+.app-shell[data-theme="techno"] .theme-scene i {
+  bottom: -5vh;
+  left: 50%;
+  width: 2px;
+  height: 130vh;
+  background: linear-gradient(0deg, #39ff88, transparent 85%);
+  box-shadow: 0 0 10px #39ff88;
+  transform-origin: 50% 100%;
+  animation: laser-sweep 6s ease-in-out infinite alternate;
+}
+
+.app-shell[data-theme="techno"] .theme-scene i:nth-child(1) { --from: -55deg; --to: -10deg; }
+.app-shell[data-theme="techno"] .theme-scene i:nth-child(2) { --from: -35deg; --to: 15deg; animation-delay: -1s; }
+.app-shell[data-theme="techno"] .theme-scene i:nth-child(3) { --from: -15deg; --to: 35deg; animation-delay: -2s; background: linear-gradient(0deg, #3ce9ff, transparent 85%); box-shadow: 0 0 10px #3ce9ff; }
+.app-shell[data-theme="techno"] .theme-scene i:nth-child(4) { --from: 10deg; --to: -30deg; animation-delay: -3s; }
+.app-shell[data-theme="techno"] .theme-scene i:nth-child(5) { --from: 30deg; --to: -15deg; animation-delay: -4s; background: linear-gradient(0deg, #3ce9ff, transparent 85%); box-shadow: 0 0 10px #3ce9ff; }
+.app-shell[data-theme="techno"] .theme-scene i:nth-child(6) { --from: 55deg; --to: 5deg; animation-delay: -5s; }
+
+@keyframes laser-sweep {
+  from { transform: rotate(var(--from)); }
+  to { transform: rotate(var(--to)); }
+}
+
+/* Estrobo al compás mientras suena */
+.app-shell[data-theme="techno"] .theme-scene::before {
+  inset: 0;
+  background: rgba(255, 255, 255, 0.05);
+  opacity: 0;
+}
+
+.app-shell[data-theme="techno"].is-playing .theme-scene::before {
+  animation: strobe 0.47s steps(1) infinite;
+}
+
+@keyframes strobe {
+  0% { opacity: 1; }
+  25% { opacity: 0; }
+}
+
+/* ---------- Rancho country ---------- */
+.app-shell[data-theme="country"] {
+  --t-bg: #2c1c12;
+  --t-bg-image: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 120px), repeating-linear-gradient(0deg, rgba(255, 220, 170, 0.03) 0 3px, transparent 3px 9px), #2c1c12;
+  --t-chrome: rgba(40, 26, 16, 0.96);
+  --t-surface: #3d2818;
+  --t-hover: rgba(232, 176, 92, 0.09);
+  --t-input: #33210f;
+  --t-muted: #e8d5b8;
+  --t-label: #e8b05c;
+  --t-accent: #e8b05c;
+  --t-accent-ink: #2a1806;
+  --t-accent-soft: rgba(232, 176, 92, 0.13);
+  --t-border: rgba(232, 176, 92, 0.22);
+  --t-track: #573a22;
+  --t-radius: 6px;
+  --t-shadow: 0 12px 26px rgba(0, 0, 0, 0.4);
+  --t-font: Georgia, "Times New Roman", serif;
+  --t-head-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-lyric: #fff1dc;
+}
+
+.app-shell[data-theme="country"] :is(h1, h2) {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Costura de cuero en los paneles */
+.app-shell[data-theme="country"] :is(.now-playing-card, .settings-panel, .personalization-hero, .featured-card) {
+  outline: 2px dashed rgba(232, 176, 92, 0.35);
+  outline-offset: -7px;
+}
+
+/* =========================================================
+   Estéticas
+   ========================================================= */
+
+/* ---------- Cottagecore ---------- */
+.app-shell[data-theme="cottagecore"] {
+  --t-bg: #f4efe2;
+  --t-veil: rgba(246, 241, 229, 0.55);
+  --t-chrome: rgba(247, 242, 231, 0.94);
+  --t-surface: rgba(255, 252, 244, 0.93);
+  --t-dialog: #fffcf4;
+  --t-hover: rgba(110, 140, 100, 0.09);
+  --t-input: #fffcf5;
+  --t-text: #33402d;
+  --t-muted: #5d6b55;
+  --t-label: #8a6a9a;
+  --t-accent: #6e8c64;
+  --t-accent-ink: #fbfff6;
+  --t-accent-text: #566f4d;
+  --t-accent-soft: rgba(110, 140, 100, 0.13);
+  --t-border: rgba(110, 140, 100, 0.22);
+  --t-track: #dfe2cc;
+  --t-radius: 20px;
+  --t-shadow: 0 12px 26px rgba(70, 80, 50, 0.08);
+  --t-font: Georgia, "Times New Roman", serif;
+  --t-head-font: Georgia, "Times New Roman", serif;
+}
+
+.app-shell[data-theme="cottagecore"] :is(h1, h2) {
+  font-style: italic;
+}
+
+.app-shell[data-theme="cottagecore"] .theme-scene {
+  background: radial-gradient(circle at 1px 1px, rgba(110, 140, 100, 0.12) 1.5px, transparent 0) 0 0 / 26px 26px, linear-gradient(180deg, #f8f3e6, #ece5cf);
+}
+
+/* Florecitas que flotan */
+.app-shell[data-theme="cottagecore"] .theme-scene i {
+  bottom: -30px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f6d365 0 22%, transparent 24%), conic-gradient(from 0deg, #f4b6c8 0 15%, transparent 15% 20%, #f4b6c8 20% 35%, transparent 35% 40%, #f4b6c8 40% 55%, transparent 55% 60%, #f4b6c8 60% 75%, transparent 75% 80%, #f4b6c8 80% 95%, transparent 95%);
+  animation: flower-float 16s ease-in-out infinite;
+}
+
+.app-shell[data-theme="cottagecore"] .theme-scene i:nth-child(1) { left: 7%; }
+.app-shell[data-theme="cottagecore"] .theme-scene i:nth-child(2) { left: 25%; filter: hue-rotate(200deg); animation-delay: -6s; }
+.app-shell[data-theme="cottagecore"] .theme-scene i:nth-child(3) { left: 44%; width: 12px; height: 12px; animation-delay: -11s; }
+.app-shell[data-theme="cottagecore"] .theme-scene i:nth-child(4) { left: 62%; filter: hue-rotate(250deg); animation-duration: 19s; animation-delay: -3s; }
+.app-shell[data-theme="cottagecore"] .theme-scene i:nth-child(5) { left: 80%; width: 22px; height: 22px; animation-delay: -9s; }
+.app-shell[data-theme="cottagecore"] .theme-scene i:nth-child(6) { left: 93%; filter: hue-rotate(160deg); animation-duration: 14s; animation-delay: -13s; }
+
+@keyframes flower-float {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+  12% { opacity: 0.85; }
+  50% { transform: translate(30px, -55vh) rotate(160deg); }
+  100% { opacity: 0; transform: translate(-20px, -112vh) rotate(320deg); }
+}
+
+/* ---------- Glitch ---------- */
+.app-shell[data-theme="glitch"] {
+  --t-bg: #0a0a0d;
+  --t-veil: rgba(10, 10, 13, 0.45);
+  --t-chrome: rgba(12, 12, 16, 0.95);
+  --t-surface: rgba(20, 20, 26, 0.9);
+  --t-hover: rgba(255, 0, 80, 0.09);
+  --t-input: #0e0e12;
+  --t-muted: #b1b1bd;
+  --t-label: #00f0ff;
+  --t-accent: #ff0050;
+  --t-accent-ink: #ffffff;
+  --t-accent-soft: rgba(255, 0, 80, 0.13);
+  --t-border: rgba(0, 240, 255, 0.2);
+  --t-track: #24242e;
+  --t-radius: 0;
+  --t-shadow: 3px 0 0 rgba(255, 0, 80, 0.35), -3px 0 0 rgba(0, 240, 255, 0.35);
+  --t-font: "VT323", Consolas, monospace;
+  --t-head-font: "Archivo Black", Impact, sans-serif;
+  --t-lyric: #ffffff;
+}
+
+.app-shell[data-theme="glitch"] :is(h1, h2) {
+  text-shadow: 2px 0 #ff0050, -2px 0 #00f0ff;
+  animation: glitch-jitter 3.2s steps(1) infinite;
+}
+
+@keyframes glitch-jitter {
+  0%, 92%, 100% { transform: none; }
+  93% { transform: translate(3px, -1px) skewX(8deg); }
+  95% { transform: translate(-3px, 1px); }
+  97% { transform: translate(1px, 2px) skewX(-6deg); }
+}
+
+.app-shell[data-theme="glitch"] .theme-scene {
+  background: #0a0a0d;
+}
+
+/* Bandas de imagen rota que saltan por la pantalla */
+.app-shell[data-theme="glitch"] .theme-scene i {
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, transparent 10%, rgba(255, 0, 80, 0.5) 10% 32%, transparent 32% 48%, rgba(0, 240, 255, 0.45) 48% 70%, transparent 70%);
+  opacity: 0;
+  animation: glitch-band 4s steps(1) infinite;
+}
+
+.app-shell[data-theme="glitch"] .theme-scene i:nth-child(1) { top: 12%; }
+.app-shell[data-theme="glitch"] .theme-scene i:nth-child(2) { top: 31%; height: 14px; animation-delay: -0.7s; }
+.app-shell[data-theme="glitch"] .theme-scene i:nth-child(3) { top: 47%; animation-delay: -1.9s; }
+.app-shell[data-theme="glitch"] .theme-scene i:nth-child(4) { top: 63%; height: 3px; animation-delay: -2.6s; }
+.app-shell[data-theme="glitch"] .theme-scene i:nth-child(5) { top: 78%; height: 10px; animation-delay: -3.3s; }
+.app-shell[data-theme="glitch"] .theme-scene i:nth-child(6) { top: 90%; animation-delay: -1.2s; }
+
+@keyframes glitch-band {
+  0%, 88%, 100% { opacity: 0; transform: none; }
+  89% { opacity: 1; transform: translateX(-12%); }
+  92% { opacity: 1; transform: translateX(9%); }
+  95% { opacity: 0.6; transform: translateX(-4%); }
+}
+
+/* Líneas de escaneo */
+.app-shell[data-theme="glitch"] .theme-scene::before {
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px);
+}
+
+/* ---------- Memphis ---------- */
+.app-shell[data-theme="memphis"] {
+  --t-bg: #fffaf0;
+  --t-veil: rgba(255, 250, 240, 0.55);
+  --t-chrome: rgba(255, 251, 243, 0.95);
+  --t-surface: #ffffff;
+  --t-dialog: #ffffff;
+  --t-hover: rgba(255, 90, 140, 0.09);
+  --t-input: #ffffff;
+  --t-text: #1a1a2e;
+  --t-muted: #4a4a63;
+  --t-label: #0099cc;
+  --t-accent: #ff4f8b;
+  --t-accent-ink: #ffffff;
+  --t-accent-text: #a8104a;
+  --t-accent-soft: rgba(255, 79, 139, 0.12);
+  --t-border: #1a1a2e;
+  --t-track: #ffe066;
+  --t-radius: 0;
+  --t-shadow: 5px 5px 0 #1a1a2e;
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: "Archivo Black", Impact, sans-serif;
+}
+
+.app-shell[data-theme="memphis"] :is(.now-playing-card, .settings-panel, .personalization-hero, .theme-card, .featured-card) {
+  border: 2px solid #1a1a2e;
+}
+
+.app-shell[data-theme="memphis"] .theme-scene {
+  background: #fffaf0;
+}
+
+.app-shell[data-theme="memphis"] .theme-scene::before {
+  inset: 0;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 14px, rgba(26, 26, 46, 0.06) 14px 16px);
+}
+
+/* Figuras geométricas de colores que giran despacio */
+.app-shell[data-theme="memphis"] .theme-scene i {
+  width: 70px;
+  height: 70px;
+  animation: memphis-spin 24s linear infinite;
+}
+
+.app-shell[data-theme="memphis"] .theme-scene i:nth-child(1) { left: 6%; top: 12%; border-radius: 50%; background: #ffe066; border: 3px solid #1a1a2e; }
+.app-shell[data-theme="memphis"] .theme-scene i:nth-child(2) { left: 86%; top: 18%; background: #4fd1c5; clip-path: polygon(50% 0, 100% 100%, 0 100%); animation-direction: reverse; }
+.app-shell[data-theme="memphis"] .theme-scene i:nth-child(3) { left: 70%; top: 72%; width: 120px; height: 24px; background: repeating-linear-gradient(90deg, #ff4f8b 0 12px, transparent 12px 20px); }
+.app-shell[data-theme="memphis"] .theme-scene i:nth-child(4) { left: 14%; top: 78%; width: 90px; height: 30px; border-top: 6px solid #0099cc; border-radius: 50% 50% 0 0; animation-duration: 30s; }
+.app-shell[data-theme="memphis"] .theme-scene i:nth-child(5) { left: 46%; top: 6%; width: 40px; height: 40px; background: #ff4f8b; animation-direction: reverse; }
+.app-shell[data-theme="memphis"] .theme-scene i:nth-child(6) { left: 92%; top: 88%; width: 50px; height: 50px; border-radius: 50%; border: 6px dotted #1a1a2e; }
+
+@keyframes memphis-spin {
+  to { rotate: 360deg; }
+}
+
+/* ---------- Acuarela ---------- */
+.app-shell[data-theme="acuarela"] {
+  --t-bg: #fbf8f3;
+  --t-veil: rgba(251, 248, 243, 0.5);
+  --t-chrome: rgba(252, 250, 246, 0.92);
+  --t-surface: rgba(255, 255, 255, 0.88);
+  --t-dialog: #ffffff;
+  --t-hover: rgba(80, 120, 190, 0.08);
+  --t-input: rgba(255, 255, 255, 0.95);
+  --t-text: #26303f;
+  --t-muted: #55606f;
+  --t-label: #c0567a;
+  --t-accent: #4f78bf;
+  --t-accent-ink: #ffffff;
+  --t-accent-text: #3d63a6;
+  --t-accent-soft: rgba(79, 120, 191, 0.12);
+  --t-border: rgba(79, 120, 191, 0.18);
+  --t-track: #e2e6ee;
+  --t-radius: 24px 18px 26px 16px;
+  --t-shadow: 0 14px 30px rgba(60, 80, 120, 0.08);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: Georgia, "Times New Roman", serif;
+}
+
+.app-shell[data-theme="acuarela"] .theme-scene {
+  background: #fbf8f3;
+}
+
+/* Manchas de pintura que se expanden y se mezclan */
+.app-shell[data-theme="acuarela"] .theme-scene i {
+  width: 38vw;
+  height: 38vw;
+  border-radius: 46% 54% 40% 60% / 55% 45% 60% 40%;
+  filter: blur(30px);
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  animation: paint-bloom 20s ease-in-out infinite alternate;
+}
+
+.app-shell[data-theme="acuarela"] .theme-scene i:nth-child(1) { left: -8%; top: -10%; background: #9cc3f0; }
+.app-shell[data-theme="acuarela"] .theme-scene i:nth-child(2) { right: -10%; top: 5%; background: #f3a6c0; animation-delay: -5s; }
+.app-shell[data-theme="acuarela"] .theme-scene i:nth-child(3) { left: 30%; bottom: -20%; background: #f7d58a; animation-delay: -10s; }
+.app-shell[data-theme="acuarela"] .theme-scene i:nth-child(4) { left: 55%; top: 35%; width: 26vw; height: 26vw; background: #a9dfc4; animation-delay: -14s; }
+.app-shell[data-theme="acuarela"] .theme-scene i:nth-child(5) { left: 8%; top: 50%; width: 22vw; height: 22vw; background: #c6b3ef; animation-delay: -7s; }
+.app-shell[data-theme="acuarela"] .theme-scene i:nth-child(6) { display: none; }
+
+@keyframes paint-bloom {
+  from { transform: scale(0.85) rotate(0deg); border-radius: 46% 54% 40% 60% / 55% 45% 60% 40%; }
+  to { transform: scale(1.15) rotate(25deg); border-radius: 60% 40% 55% 45% / 40% 60% 45% 55%; }
+}
+
+/* Textura de papel */
+.app-shell[data-theme="acuarela"] .theme-scene::after {
+  inset: 0;
+  background: repeating-radial-gradient(circle at 30% 40%, transparent 0 2px, rgba(120, 100, 80, 0.025) 2px 3px);
+}
+
+/* =========================================================
+   Culturas
+   ========================================================= */
+
+/* ---------- Día de Muertos ---------- */
+.app-shell[data-theme="muertos"] {
+  --t-bg: #1a0b26;
+  --t-veil: rgba(26, 11, 38, 0.45);
+  --t-chrome: rgba(30, 12, 42, 0.94);
+  --t-surface: rgba(44, 18, 60, 0.88);
+  --t-hover: rgba(255, 152, 0, 0.1);
+  --t-input: rgba(0, 0, 0, 0.3);
+  --t-muted: #dcc0e6;
+  --t-label: #ff9800;
+  --t-accent: #ff9800;
+  --t-accent-ink: #2a1300;
+  --t-accent-soft: rgba(255, 152, 0, 0.14);
+  --t-border: rgba(255, 152, 0, 0.22);
+  --t-track: #42205a;
+  --t-radius: 14px;
+  --t-shadow: 0 14px 32px rgba(0, 0, 0, 0.4);
+  --t-font: "Segoe UI", sans-serif;
+  --t-head-font: Righteous, "Segoe UI", sans-serif;
+  --t-lyric: #fff3e0;
+}
+
+.app-shell[data-theme="muertos"] .theme-scene {
+  background: radial-gradient(ellipse at 50% 120%, rgba(255, 120, 0, 0.3), transparent 55%), linear-gradient(180deg, #2a0f3d, #1a0b26);
+}
+
+/* Papel picado colgando arriba */
+.app-shell[data-theme="muertos"] .theme-scene::before {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 70px;
+  background: radial-gradient(circle at 35px 28px, rgba(26, 11, 38, 0.9) 0 7px, transparent 8px) 0 0 / 70px 100%, linear-gradient(90deg, #e91e63 0 25%, #ff9800 25% 50%, #9c27b0 50% 75%, #00bcd4 75%) 0 0 / 280px 100%;
+  clip-path: polygon(0 0, 100% 0, 100% 80%, 97.5% 100%, 95% 80%, 92.5% 100%, 90% 80%, 87.5% 100%, 85% 80%, 82.5% 100%, 80% 80%, 77.5% 100%, 75% 80%, 72.5% 100%, 70% 80%, 67.5% 100%, 65% 80%, 62.5% 100%, 60% 80%, 57.5% 100%, 55% 80%, 52.5% 100%, 50% 80%, 47.5% 100%, 45% 80%, 42.5% 100%, 40% 80%, 37.5% 100%, 35% 80%, 32.5% 100%, 30% 80%, 27.5% 100%, 25% 80%, 22.5% 100%, 20% 80%, 17.5% 100%, 15% 80%, 12.5% 100%, 10% 80%, 7.5% 100%, 5% 80%, 2.5% 100%, 0 80%);
+  opacity: 0.85;
+  transform-origin: 50% 0;
+  animation: papel-sway 5s ease-in-out infinite alternate;
+}
+
+@keyframes papel-sway {
+  from { transform: skewX(-2deg); }
+  to { transform: skewX(2deg); }
+}
+
+/* Pétalos de cempasúchil y velas */
+.app-shell[data-theme="muertos"] .theme-scene i:nth-child(-n + 4) {
+  top: -30px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50% 0;
+  background: #ff9800;
+  animation: leaf-fall 12s linear infinite;
+}
+
+.app-shell[data-theme="muertos"] .theme-scene i:nth-child(1) { left: 12%; }
+.app-shell[data-theme="muertos"] .theme-scene i:nth-child(2) { left: 38%; background: #ffb300; animation-delay: -4s; }
+.app-shell[data-theme="muertos"] .theme-scene i:nth-child(3) { left: 63%; animation-duration: 15s; animation-delay: -8s; }
+.app-shell[data-theme="muertos"] .theme-scene i:nth-child(4) { left: 86%; background: #ffb300; animation-delay: -2s; }
+
+.app-shell[data-theme="muertos"] .theme-scene i:nth-child(n + 5) {
+  bottom: 4vh;
+  width: 16px;
+  height: 46px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #fff3e0, #e8d5b5);
+}
+
+.app-shell[data-theme="muertos"] .theme-scene i:nth-child(n + 5)::before {
+  position: absolute;
+  left: 50%;
+  top: -22px;
+  width: 12px;
+  height: 20px;
+  margin-left: -6px;
+  content: "";
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: radial-gradient(ellipse at 50% 70%, #fff6c2, #ff9800 70%);
+  box-shadow: 0 0 22px 6px rgba(255, 152, 0, 0.5);
+  animation: candle-flicker 0.18s ease-in-out infinite alternate;
+}
+
+.app-shell[data-theme="muertos"] .theme-scene i:nth-child(5) { left: 6%; }
+.app-shell[data-theme="muertos"] .theme-scene i:nth-child(6) { right: 6%; height: 34px; }
+
+@keyframes candle-flicker {
+  from { transform: scale(1) rotate(-2deg); }
+  to { transform: scale(1.08, 0.94) rotate(2deg); }
+}
+
+/* ---------- Antiguo Egipto ---------- */
+.app-shell[data-theme="egipto"] {
+  --t-bg: #0e1a3a;
+  --t-veil: rgba(14, 26, 58, 0.42);
+  --t-chrome: rgba(14, 24, 54, 0.94);
+  --t-surface: rgba(22, 36, 76, 0.88);
+  --t-hover: rgba(230, 190, 90, 0.1);
+  --t-input: rgba(0, 0, 0, 0.3);
+  --t-muted: #c9cbe0;
+  --t-label: #e6be5a;
+  --t-accent: #e6be5a;
+  --t-accent-ink: #1e1503;
+  --t-accent-soft: rgba(230, 190, 90, 0.14);
+  --t-border: rgba(230, 190, 90, 0.25);
+  --t-track: #24356a;
+  --t-radius: 2px;
+  --t-shadow: 0 14px 32px rgba(0, 0, 0, 0.4);
+  --t-font: Georgia, "Times New Roman", serif;
+  --t-head-font: Georgia, "Times New Roman", serif;
+  --t-lyric: #fff5d8;
+}
+
+.app-shell[data-theme="egipto"] :is(h1, h2) {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.app-shell[data-theme="egipto"] :is(.now-playing-card, .settings-panel, .personalization-hero) {
+  border-bottom: 6px solid transparent;
+  border-image: repeating-linear-gradient(90deg, #e6be5a 0 10px, #2a4ea8 10px 20px, #c0392b 20px 30px) 6;
+}
+
+.app-shell[data-theme="egipto"] .theme-scene {
+  background: linear-gradient(180deg, #0e1a3a 0 60%, #3a2b14 60%, #1c140a);
+}
+
+/* Pirámides y luna */
+.app-shell[data-theme="egipto"] .theme-scene::before {
+  left: 8vw;
+  bottom: 40%;
+  width: 46vw;
+  height: 26vh;
+  background: linear-gradient(110deg, #c99a48 50%, #8a6328 50%);
+  clip-path: polygon(0 100%, 30% 0, 60% 100%, 62% 100%, 80% 40%, 100% 100%);
+}
+
+.app-shell[data-theme="egipto"] .theme-scene::after {
+  right: 12vw;
+  top: 10vh;
+  width: 9vh;
+  height: 9vh;
+  border-radius: 50%;
+  background: #fbefcf;
+  box-shadow: 0 0 40px 10px rgba(251, 239, 207, 0.25);
+}
+
+/* Arena que sopla por el desierto */
+.app-shell[data-theme="egipto"] .theme-scene i {
+  left: -20%;
+  width: 40vw;
+  height: 2px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, transparent, rgba(230, 190, 90, 0.5), transparent);
+  animation: sand-blow 6s linear infinite;
+}
+
+.app-shell[data-theme="egipto"] .theme-scene i:nth-child(1) { top: 66%; }
+.app-shell[data-theme="egipto"] .theme-scene i:nth-child(2) { top: 72%; animation-delay: -1s; animation-duration: 8s; }
+.app-shell[data-theme="egipto"] .theme-scene i:nth-child(3) { top: 79%; animation-delay: -3s; }
+.app-shell[data-theme="egipto"] .theme-scene i:nth-child(4) { top: 85%; animation-delay: -4.5s; animation-duration: 7s; }
+.app-shell[data-theme="egipto"] .theme-scene i:nth-child(5) { top: 91%; animation-delay: -2s; }
+.app-shell[data-theme="egipto"] .theme-scene i:nth-child(6) { top: 96%; animation-delay: -5s; animation-duration: 9s; }
+
+@keyframes sand-blow {
+  from { translate: 0 0; opacity: 0; }
+  20% { opacity: 1; }
+  to { translate: 140vw -2vh; opacity: 0; }
+}
+
+/* =========================================================
+   Videojuegos y Motor
+   ========================================================= */
+
+/* ---------- Portátil verde ---------- */
+.app-shell[data-theme="portatil"] {
+  --t-bg: #9bbc0f;
+  --t-bg-image: repeating-linear-gradient(0deg, rgba(15, 56, 15, 0.06) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(15, 56, 15, 0.06) 0 1px, transparent 1px 3px), #9bbc0f;
+  --t-chrome: #8bac0f;
+  --t-surface: #a7c41a;
+  --t-dialog: #a7c41a;
+  --t-hover: rgba(15, 56, 15, 0.12);
+  --t-input: #b4cf2a;
+  --t-text: #0f380f;
+  --t-muted: #234f1e;
+  --t-label: #0f380f;
+  --t-accent: #306230;
+  --t-accent-ink: #9bbc0f;
+  --t-accent-text: #0f380f;
+  --t-accent-soft: rgba(48, 98, 48, 0.18);
+  --t-border: #306230;
+  --t-track: #8bac0f;
+  --t-radius: 0;
+  --t-shadow: 4px 4px 0 #306230;
+  --t-font: "Press Start 2P", monospace;
+  --t-head-font: "Press Start 2P", monospace;
+}
+
+.app-shell[data-theme="portatil"] :is(img, .album-art-large > img, .featured-image) {
+  filter: grayscale(1) sepia(1) hue-rotate(40deg) saturate(2.4) contrast(1.15) brightness(0.8);
+  image-rendering: pixelated;
+}
+
+.app-shell[data-theme="portatil"] :is(h1) {
+  font-size: clamp(18px, 2.4vw, 30px);
+  line-height: 1.4;
+}
+
+/* ---------- Motor: Rally en la tierra ---------- */
+.app-shell[data-theme="rally"] {
+  --t-bg: #1a1510;
+  --t-veil: rgba(26, 21, 16, 0.45);
+  --t-chrome: rgba(28, 22, 16, 0.94);
+  --t-surface: rgba(40, 32, 24, 0.9);
+  --t-hover: rgba(0, 160, 230, 0.1);
+  --t-input: rgba(0, 0, 0, 0.3);
+  --t-muted: #cdbfa9;
+  --t-label: #ffcc00;
+  --t-accent: #00a0e6;
+  --t-accent-ink: #00141f;
+  --t-accent-soft: rgba(0, 160, 230, 0.14);
+  --t-border: rgba(255, 204, 0, 0.2);
+  --t-track: #3c3024;
+  --t-radius: 4px;
+  --t-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+  --t-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-head-font: Rajdhani, "Segoe UI", sans-serif;
+  --t-lyric: #fff6e2;
+}
+
+.app-shell[data-theme="rally"] :is(h1, h2) {
+  font-style: italic;
+  text-transform: uppercase;
+}
+
+.app-shell[data-theme="rally"] .theme-scene {
+  background: linear-gradient(180deg, #5a7fa0 0 34%, #b8956a 34% 38%, #7a5a36 38%, #3a2a18);
+}
+
+/* Polvo que levantan las ruedas */
+.app-shell[data-theme="rally"] .theme-scene i {
+  bottom: 8vh;
+  width: 26vw;
+  height: 18vh;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(210, 180, 130, 0.45), transparent 70%);
+  filter: blur(6px);
+  animation: dust-cloud 3.4s ease-out infinite;
+}
+
+.app-shell[data-theme="rally"] .theme-scene i:nth-child(1) { left: 10%; }
+.app-shell[data-theme="rally"] .theme-scene i:nth-child(2) { left: 32%; animation-delay: -0.6s; }
+.app-shell[data-theme="rally"] .theme-scene i:nth-child(3) { left: 54%; animation-delay: -1.2s; }
+.app-shell[data-theme="rally"] .theme-scene i:nth-child(4) { left: 76%; animation-delay: -1.8s; }
+.app-shell[data-theme="rally"] .theme-scene i:nth-child(5) { left: 20%; bottom: 20vh; animation-delay: -2.4s; }
+.app-shell[data-theme="rally"] .theme-scene i:nth-child(6) { left: 64%; bottom: 22vh; animation-delay: -3s; }
+
+@keyframes dust-cloud {
+  from { opacity: 0.9; transform: translateX(10vw) scale(0.4); }
+  to { opacity: 0; transform: translateX(-25vw) scale(1.6); }
+}
+
+/* Árboles del borde del camino pasando */
+.app-shell[data-theme="rally"] .theme-scene::before {
+  left: 0;
+  right: 0;
+  top: 22%;
+  height: 14vh;
+  background: repeating-linear-gradient(90deg, transparent 0 60px, #2f4a2a 60px 64px, transparent 64px 140px);
+  mask-image: linear-gradient(0deg, #000 30%, transparent);
+  animation: trees-pass 1.6s linear infinite;
+}
+
+@keyframes trees-pass {
+  to { background-position: -140px 0; }
+}
+
+/* ---------- Big Picture: paneles de los temas nuevos ---------- */
+.app-shell:is([data-theme="tormenta"], [data-theme="atardecer"], [data-theme="eclipse"], [data-theme="medusas"], [data-theme="reggae"], [data-theme="kpop"], [data-theme="techno"], [data-theme="glitch"], [data-theme="muertos"], [data-theme="egipto"], [data-theme="rally"]) :is(.big-picture-card, .big-picture-controls) {
+  border-color: var(--t-border);
+  background: color-mix(in srgb, var(--t-surface) 88%, transparent);
+}

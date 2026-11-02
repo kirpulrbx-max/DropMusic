@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DropMusic Pro — Comprar</title>
+  <meta name="description" content="Obtén DropMusic Pro: personalización total, canciones locales y el modo inmersivo por $5 al mes." />
+  <meta name="theme-color" content="#08080a" />
+  <link rel="icon" type="image/svg+xml" href="logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="site-nav" aria-label="Principal">
+    <div class="container">
+      <a class="brand" href="index.html"><img alt="" src="logo.svg" /><span>drop<span>music</span></span></a>
+      <div class="nav-links">
+        <a href="index.html#funciones">Funciones</a>
+        <a href="index.html#precios">Precios</a>
+        <a href="index.html#descargar">Descargas</a>
+        <a href="legal.html">Legal</a>
+      </div>
+      <a class="button button-primary button-small" href="index.html#descargar">Descargar</a>
+    </div>
+  </nav>
+
+  <main class="container checkout">
+    <div>
+      <p class="eyebrow">DropMusic Pro</p>
+      <h1>Desbloquea todo<br /><span class="gradient-text">por $<span data-price>5</span> al mes.</span></h1>
+      <div class="price-card price-card-pro">
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> <span><strong>Personalización total:</strong> 78 temas, 12 disposiciones, auras y portadas animadas</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> <span><strong>Tus canciones locales:</strong> súbelas y escúchalas sin internet</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> <span><strong>Modo inmersivo:</strong> el vinilo girando y el Pulso a pantalla completa</span></li>
+        </ul>
+      </div>
+      <p class="pricing-note" style="text-align:left;margin-left:0">Cada pago suma un mes de Pro a tu cuenta, sin renovaciones automáticas. Al volver a DropMusic, la app revisa tu plan sola. Nunca se cobra por la música.</p>
+    </div>
+
+    <section class="checkout-panel" aria-live="polite">
+      <!-- Mientras el servidor de cuentas no esté listo -->
+      <div id="checkout-soon" hidden>
+        <h2>Las compras abren muy pronto</h2>
+        <p>Estamos terminando de preparar las cuentas de DropMusic. Mientras tanto, la versión actual tiene todas las funciones Pro abiertas.</p>
+        <a class="button button-primary" href="index.html#descargar">Descargar DropMusic</a>
+      </div>
+
+      <!-- Inicio de sesión -->
+      <div id="checkout-login" hidden>
+        <h2>Entra con tu cuenta de DropMusic</h2>
+        <p>Usa la misma cuenta con la que entras en la app. Ahí queda guardado tu plan.</p>
+        <form class="checkout-form" id="login-form">
+          <div class="checkout-tabs" role="tablist" aria-label="Entrar o crear cuenta">
+            <button aria-selected="true" data-mode="entrar" role="tab" type="button">Iniciar sesión</button>
+            <button aria-selected="false" data-mode="crear" role="tab" type="button">Crear cuenta</button>
+          </div>
+          <label>Correo <input autocomplete="email" id="login-email" required type="email" placeholder="tu@correo.com" /></label>
+          <label id="password-field">Contraseña <input autocomplete="current-password" id="login-password" minlength="6" required type="password" /></label>
+          <button class="button button-primary" id="login-submit" type="submit">Iniciar sesión</button>
+          <button class="checkout-link" id="forgot" type="button">¿Olvidaste tu contraseña?</button>
+        </form>
+      </div>
+
+      <!-- Nueva contraseña (al abrir el enlace del correo) -->
+      <div id="checkout-recovery" hidden>
+        <h2>Crea tu contraseña nueva</h2>
+        <form class="checkout-form" id="recovery-form">
+          <label>Contraseña nueva <input autocomplete="new-password" id="recovery-password" minlength="6" required type="password" /></label>
+          <button class="button button-primary" type="submit">Guardar contraseña</button>
+        </form>
+      </div>
+
+      <!-- Pago -->
+      <div id="checkout-pay" hidden>
+        <div class="checkout-account">
+          <div><strong id="account-email"></strong><small id="account-plan"></small></div>
+          <button class="checkout-link" id="logout" type="button">Salir</button>
+        </div>
+        <div class="checkout-total"><span>DropMusic Pro · 1 mes</span><strong>$<span data-price>5</span> USD</strong></div>
+        <div id="paypal-buttons"></div>
+      </div>
+
+      <p class="checkout-message" hidden id="checkout-message"></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <a class="brand" href="index.html"><img alt="" src="logo.svg" /><span>drop<span>music</span></span></a>
+      <div class="footer-links">
+        <a href="legal.html">Términos y transparencia legal</a>
+        <a href="https://github.com/kirpulrbx-max/DropMusic">GitHub</a>
+      </div>
+      <p class="footer-note">© 2026 DropMusic · Un proyecto de Kirpul. Los pagos los procesa PayPal; DropMusic nunca ve los datos de tu tarjeta.</p>
+    </div>
+  </footer>
+
+  <script src="config.js"></script>
+  <script type="module" src="comprar.js"></script>
+</body>
+</html>

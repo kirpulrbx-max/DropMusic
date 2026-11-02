@@ -24,7 +24,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' data: blob: asset: http://asset.localhost https://is1-ssl.mzstatic.com https://i.scdn.co https://*.scdn.co https://usercontent.jamendo.com; media-src 'self' blob: data: https://audio-ssl.itunes.apple.com https://prod-1.storage.jamendo.com https://storage.jamendo.com https://*.spotify.com https://*.scdn.co; style-src 'self' 'unsafe-inline'; script-src 'self' https://sdk.scdn.co; worker-src blob:; frame-src https://sdk.scdn.co https://*.spotify.com; connect-src ipc: http://ipc.localhost https://*.spotify.com https://*.scdn.co wss://*.spotify.com"
+      "csp": "default-src 'self'; img-src 'self' data: blob: asset: http://asset.localhost https://is1-ssl.mzstatic.com https://i.scdn.co https://*.scdn.co https://usercontent.jamendo.com; media-src 'self' blob: data: https://audio-ssl.itunes.apple.com https://prod-1.storage.jamendo.com https://storage.jamendo.com https://*.spotify.com https://*.scdn.co; style-src 'self' 'unsafe-inline'; script-src 'self' https://sdk.scdn.co; worker-src blob:; frame-src https://sdk.scdn.co https://*.spotify.com; connect-src ipc: http://ipc.localhost https://*.spotify.com https://*.scdn.co wss://*.spotify.com https://*.supabase.co wss://*.supabase.co"
     }
   },
   "bundle": {
