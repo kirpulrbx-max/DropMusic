@@ -947,6 +947,119 @@ async fn spotify_get_album(client_id: String, album_id: String) -> Result<Spotif
     Ok(SpotifyAlbumPage { album, tracks })
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SpotifyPlaylist {
+    id: String,
+    name: String,
+    owner: String,
+    description: String,
+    image: String,
+    total_tracks: u32,
+    url: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SpotifyLibrary {
+    liked_tracks: Vec<SpotifyTrack>,
+    liked_total: u32,
+    albums: Vec<SpotifyAlbum>,
+    playlists: Vec<SpotifyPlaylist>,
+}
+
+#[derive(Serialize)]
+struct SpotifyPlaylistPage {
+    playlist: SpotifyPlaylist,
+    tracks: Vec<SpotifyTrack>,
+}
+
+// Spotify llama a las canciones de una playlist "tracks" en la API clásica e "items" en la nueva;
+// se aceptan las dos formas.
+fn playlist_entries(value: &serde_json::Value) -> Option<&serde_json::Value> {
+    value.get("tracks").or_else(|| value.get("items"))
+}
+
+fn parse_spotify_playlist(item: &serde_json::Value) -> Option<SpotifyPlaylist> {
+    let id = item.get("id")?.as_str()?;
+    Some(SpotifyPlaylist {
+        id: id.to_owned(),
+        name: item.get("name")?.as_str()?.to_owned(),
+        owner: item
+            .pointer("/owner/display_name")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .to_owned(),
+        description: json_str(item, "description"),
+        image: first_image_url(item).unwrap_or_default().to_owned(),
+        total_tracks: playlist_entries(item)
+            .and_then(|entries| entries.get("total"))
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0) as u32,
+        url: format!("https://open.spotify.com/playlist/{id}"),
+    })
+}
+
+// Cada elemento de una lista guardada envuelve la canción en "track" (o "item" en la API nueva).
+fn saved_track(entry: &serde_json::Value) -> Option<SpotifyTrack> {
+    let track = entry.get("track").or_else(|| entry.get("item"))?;
+    parse_spotify_track(track, None)
+}
+
+/// Tu biblioteca de Spotify: canciones que te gustan, álbumes guardados y playlists.
+#[tauri::command]
+async fn spotify_get_library(client_id: String) -> Result<SpotifyLibrary, String> {
+    let limit = [("limit", "50".to_owned())];
+    let liked = spotify_api_get(&client_id, "/me/tracks", &limit, "cargar tus me gusta").await?;
+    let albums = spotify_api_get(&client_id, "/me/albums", &limit, "cargar tus álbumes").await?;
+    let playlists =
+        spotify_api_get(&client_id, "/me/playlists", &limit, "cargar tus playlists").await?;
+    let items = |body: &serde_json::Value| {
+        body.get("items")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default()
+    };
+    Ok(SpotifyLibrary {
+        liked_tracks: items(&liked).iter().filter_map(saved_track).collect(),
+        liked_total: liked
+            .get("total")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0) as u32,
+        albums: items(&albums)
+            .iter()
+            .filter_map(|entry| parse_spotify_album(entry.get("album")?))
+            .collect(),
+        playlists: items(&playlists)
+            .iter()
+            .filter_map(parse_spotify_playlist)
+            .collect(),
+    })
+}
+
+#[tauri::command]
+async fn spotify_get_playlist(
+    client_id: String,
+    playlist_id: String,
+) -> Result<SpotifyPlaylistPage, String> {
+    validate_spotify_id(&playlist_id)?;
+    let body = spotify_api_get(
+        &client_id,
+        &format!("/playlists/{playlist_id}"),
+        &[],
+        "cargar la playlist",
+    )
+    .await?;
+    let playlist = parse_spotify_playlist(&body)
+        .ok_or_else(|| "Spotify devolvió una playlist inválida.".to_owned())?;
+    let tracks = playlist_entries(&body)
+        .and_then(|entries| entries.get("items"))
+        .and_then(serde_json::Value::as_array)
+        .map(|entries| entries.iter().filter_map(saved_track).collect())
+        .unwrap_or_default();
+    Ok(SpotifyPlaylistPage { playlist, tracks })
+}
+
 fn spotify_error_message(body: &serde_json::Value) -> Option<&str> {
     body.pointer("/error/message")
         .and_then(serde_json::Value::as_str)
@@ -2240,6 +2353,8 @@ pub fn run() {
             spotify_search_catalog,
             spotify_get_artist,
             spotify_get_album,
+            spotify_get_library,
+            spotify_get_playlist,
             spotify_get_top_artists,
             spotify_get_new_releases,
             lyrics_get,
@@ -2263,6 +2378,17 @@ pub fn run() {
                 app.handle()
                     .plugin(tauri_plugin_updater::Builder::new().build())?;
                 app.handle().plugin(tauri_plugin_process::init())?;
+                // Abrir al encender la PC: Windows lanza la app con --autostart y empieza minimizada.
+                app.handle().plugin(tauri_plugin_autostart::init(
+                    tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+                    Some(vec!["--autostart"]),
+                ))?;
+                if std::env::args().any(|arg| arg == "--autostart") {
+                    use tauri::Manager;
+                    if let Some(window) = app.get_webview_window("main") {
+                        let _ = window.minimize();
+                    }
+                }
             }
             if cfg!(debug_assertions) {
                 app.handle().plugin(

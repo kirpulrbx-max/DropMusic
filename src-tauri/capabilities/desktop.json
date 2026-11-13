@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "desktop",
-  "description": "Permisos solo de escritorio: actualizaciones automáticas, reinicio y efecto de cristal de la ventana.",
+  "description": "Permisos solo de escritorio: actualizaciones automáticas, reinicio, abrir al encender la PC y efecto de cristal de la ventana.",
   "platforms": [
     "windows",
     "linux",
@@ -13,6 +13,9 @@
   "permissions": [
     "updater:default",
     "process:allow-restart",
-    "core:window:allow-set-effects"
+    "core:window:allow-set-effects",
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled"
   ]
 }

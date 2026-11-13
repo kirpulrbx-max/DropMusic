@@ -133,3 +133,90 @@ export function writeCachedProfile(profile: Profile | null) {
     console.error('No se pudo guardar tu cuenta en este dispositivo.', error)
   }
 }
+
+// ---------- Playlists de la comunidad ----------
+// Cualquiera las ve; publicar pide una cuenta con sesión. Solo llevan canciones de Spotify.
+
+export type CommunityTrack = {
+  id: string
+  title: string
+  artist: string
+  album: string
+  duration: number
+  artwork: string
+  url: string
+  albumId: string
+  albumType: string
+  artists: { id: string; name: string }[]
+}
+
+export type CommunityPlaylist = {
+  id: string
+  ownerId: string
+  ownerName: string
+  name: string
+  description: string
+  cover: string
+  tracks: CommunityTrack[]
+  createdAt: string
+}
+
+type CommunityPlaylistRow = {
+  id: string
+  owner_id: string
+  owner_name: string
+  name: string
+  description: string
+  cover: string
+  tracks: CommunityTrack[]
+  created_at: string
+}
+
+function toCommunityPlaylist(row: CommunityPlaylistRow): CommunityPlaylist {
+  return {
+    id: row.id,
+    ownerId: row.owner_id,
+    ownerName: row.owner_name,
+    name: row.name,
+    description: row.description,
+    cover: row.cover,
+    tracks: Array.isArray(row.tracks) ? row.tracks : [],
+    createdAt: row.created_at,
+  }
+}
+
+function playlistError(error: { message?: string; code?: string } | null, fallback: string) {
+  // Sin la tabla (falta correr supabase/playlists.sql) Supabase responde que no existe.
+  if (error?.code === '42P01' || /community_playlists/i.test(error?.message ?? '')) return 'La comunidad de playlists todavía no está lista. Vuelve a intentarlo más tarde.'
+  return friendlyError(error, fallback)
+}
+
+export async function listCommunityPlaylists() {
+  const { data, error } = await supabase().from('community_playlists')
+    .select('id, owner_id, owner_name, name, description, cover, tracks, created_at')
+    .order('created_at', { ascending: false })
+    .limit(60)
+  if (error) throw new Error(playlistError(error, 'No se pudieron cargar las playlists de la comunidad.'))
+  return (data as CommunityPlaylistRow[]).map(toCommunityPlaylist)
+}
+
+export async function publishCommunityPlaylist(playlist: { ownerName: string; name: string; description: string; tracks: CommunityTrack[] }) {
+  const tracks = playlist.tracks.slice(0, 200)
+  const { data, error } = await supabase().from('community_playlists')
+    .insert({
+      owner_name: playlist.ownerName.trim().slice(0, 40) || 'Alguien de DropMusic',
+      name: playlist.name.trim().slice(0, 80),
+      description: playlist.description.trim().slice(0, 300),
+      cover: tracks[0]?.artwork ?? '',
+      tracks,
+    })
+    .select('id, owner_id, owner_name, name, description, cover, tracks, created_at')
+    .single()
+  if (error) throw new Error(playlistError(error, 'No se pudo publicar la playlist.'))
+  return toCommunityPlaylist(data as CommunityPlaylistRow)
+}
+
+export async function deleteCommunityPlaylist(id: string) {
+  const { error } = await supabase().from('community_playlists').delete().eq('id', id)
+  if (error) throw new Error(playlistError(error, 'No se pudo borrar la playlist.'))
+}

@@ -5455,3 +5455,39 @@ button.album-art-large:disabled {
     grid-template-columns: minmax(0, 1fr) 35px 27px 27px;
   }
 }
+
+/* Carrusel: al cambiar las siguientes (aleatorio), las nuevas entran repartidas desde la derecha
+   y las que se van se desvanecen. */
+.big-picture-card.big-picture-card-dealt {
+  animation: card-deal 520ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+.big-picture-card-dealt + .big-picture-card-dealt {
+  animation-delay: 90ms;
+}
+
+.big-picture-card.big-picture-card-leaving {
+  pointer-events: none;
+  animation: card-leave 420ms ease forwards;
+}
+
+@keyframes card-deal {
+  from {
+    opacity: 0;
+    translate: 160px 0;
+  }
+}
+
+@keyframes card-leave {
+  to {
+    opacity: 0;
+    translate: 0 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .big-picture-card.big-picture-card-dealt,
+  .big-picture-card.big-picture-card-leaving {
+    animation-duration: 1ms;
+  }
+}

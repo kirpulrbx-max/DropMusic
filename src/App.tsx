@@ -6,6 +6,7 @@ import { Effect, getCurrentWindow } from '@tauri-apps/api/window'
 import { getVersion } from '@tauri-apps/api/app'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { check, type Update } from '@tauri-apps/plugin-updater'
+import { disable as disableAutostart, enable as enableAutostart, isEnabled as isAutostartEnabled } from '@tauri-apps/plugin-autostart'
 import {
   deleteLocalTrack,
   formatBytes,
@@ -23,17 +24,22 @@ import {
   adminListProfiles,
   adminSetPlan,
   checkoutUrl,
+  deleteCommunityPlaylist,
   fetchProfile,
   getSession,
   hasPro,
+  listCommunityPlaylists,
   onSessionChange,
   proPrice,
+  publishCommunityPlaylist,
   readCachedProfile,
   sendPasswordReset,
   signIn,
   signOut,
   signUp,
   writeCachedProfile,
+  type CommunityPlaylist,
+  type CommunityTrack,
   type Plan,
   type Profile,
 } from './account'
@@ -91,7 +97,7 @@ import {
 } from 'lucide-react'
 
 type Provider = 'Spotify' | 'Apple Music' | 'YouTube Music'
-type Section = 'Escuchar' | 'Tu colección' | 'Favoritos' | 'Personalización' | 'Cuenta' | 'Ajustes'
+type Section = 'Escuchar' | 'Tu colección' | 'Playlists' | 'Favoritos' | 'Personalización' | 'Cuenta' | 'Ajustes'
 
 type ArtistRef = { id: string; name: string }
 
@@ -165,7 +171,15 @@ type AlbumPage = {
   tracks: Track[]
 }
 
-type Detail = { kind: 'artist' | 'album'; id: string }
+type Detail = { kind: 'artist' | 'album' | 'playlist' | 'community'; id: string }
+
+type SpotifyPlaylist = { id: string; name: string; owner: string; description: string; image: string; totalTracks: number; url: string }
+
+// Tu biblioteca real de Spotify: canciones que te gustan, álbumes guardados y playlists.
+type SpotifyLibrary = { likedTracks: Track[]; likedTotal: number; albums: Album[]; playlists: SpotifyPlaylist[] }
+
+// Una playlist abierta, sea tuya de Spotify o de la comunidad de DropMusic.
+type PlaylistPage = { id: string; kind: 'playlist' | 'community'; name: string; owner: string; ownerId?: string; description: string; image: string; url: string; tracks: Track[] }
 
 type SpotifySearchPage = {
   tracks: SpotifyTrackResult[]
@@ -562,11 +576,25 @@ function loadSpotifyPlaybackSdk() {
 const navigation: { label: Section; icon: LucideIcon }[] = [
   { label: 'Escuchar', icon: AudioLines },
   { label: 'Tu colección', icon: Library },
+  { label: 'Playlists', icon: ListMusic },
   { label: 'Favoritos', icon: Heart },
   { label: 'Personalización', icon: Palette },
   { label: 'Cuenta', icon: Crown },
   { label: 'Ajustes', icon: Settings2 },
 ]
+
+// Datos de cada canción favorita: así sigue apareciendo en Favoritos aunque ya no esté en la
+// búsqueda ni en las sugerencias que cargó la app.
+function readFavoriteTracks(): Record<string, Track> {
+  try {
+    const value: unknown = JSON.parse(window.localStorage.getItem('dropmusic-favorite-tracks') ?? '{}')
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return {}
+    return Object.fromEntries(Object.entries(value).filter(([, track]) =>
+      typeof track === 'object' && track !== null && typeof (track as Track).id === 'string' && typeof (track as Track).title === 'string'))
+  } catch {
+    return {}
+  }
+}
 
 function readRecentTracks(): Track[] {
   try {
@@ -617,6 +645,7 @@ const providers: { name: Provider; description: string; url: string; guide: stri
 const pages: Record<Section, { title: string; subtitle: string }> = {
   Escuchar: { title: 'Tu música, a tu manera.', subtitle: 'Un solo lugar para todo lo que te hace sentir.' },
   'Tu colección': { title: 'Todo lo que guardas.', subtitle: 'Álbumes, playlists y momentos que vuelven contigo.' },
+  Playlists: { title: 'Playlists para todos.', subtitle: 'Descubre lo que arma la comunidad de DropMusic y comparte las tuyas.' },
   Favoritos: { title: 'Lo que siempre vuelve.', subtitle: 'Tus canciones favoritas, reunidas en un solo lugar.' },
   Personalización: { title: 'Hazla tuya.', subtitle: 'Elige el estilo con el que se ve y se siente DropMusic.' },
   Cuenta: { title: 'Tu cuenta y tu plan.', subtitle: 'Inicia sesión, mira tu plan y desbloquea DropMusic Pro.' },
@@ -665,7 +694,7 @@ function readFavorites(): string[] {
     if (!stored) return []
     const value: unknown = JSON.parse(stored)
     if (!Array.isArray(value) || !value.every((id): id is string => typeof id === 'string')) return []
-    return value.filter((id) => id.startsWith('spotify:') || id.startsWith('jamendo:'))
+    return value.filter((id) => id.startsWith('spotify:') || id.startsWith('jamendo:') || id.startsWith('local:'))
   } catch (error) {
     console.error('No se pudieron leer los favoritos de DropMusic.', error)
     return []
@@ -693,6 +722,36 @@ function toSpotifyTrack(track: SpotifyTrackResult): Track {
     albumId: track.albumId,
     albumType: track.albumType,
     artists: track.artists,
+  }
+}
+
+// Lo que se guarda de cada canción al compartir una playlist: solo datos públicos de Spotify.
+function toCommunityTrack(track: Track): CommunityTrack {
+  return {
+    id: track.id.replace(/^spotify:/, ''),
+    title: track.title,
+    artist: track.artist,
+    album: track.album,
+    duration: track.duration,
+    artwork: track.artwork,
+    url: track.collectionUrl,
+    albumId: track.albumId ?? '',
+    albumType: track.albumType ?? '',
+    artists: track.artists ?? [],
+  }
+}
+
+function communityPlaylistPage(playlist: CommunityPlaylist): PlaylistPage {
+  return {
+    id: playlist.id,
+    kind: 'community',
+    name: playlist.name,
+    owner: playlist.ownerName,
+    ownerId: playlist.ownerId,
+    description: playlist.description,
+    image: playlist.cover,
+    url: '',
+    tracks: playlist.tracks.map(toSpotifyTrack),
   }
 }
 
@@ -1183,6 +1242,29 @@ function BigPicturePlayer({
   ].filter((card, index, list) => list.findIndex((item) => item.track.id === card.track.id) === index)
   const progress = track.duration ? Math.min(100, (elapsed / track.duration) * 100) : 0
 
+  // Si cambian las siguientes sin cambiar la canción (por ejemplo al activar aleatorio), las que se
+  // van se desvanecen y las nuevas entran repartidas desde la derecha, en vez de aparecer de golpe.
+  const upcomingKey = upcomingTracks.slice(0, 2).map((item) => item.id).join('|')
+  const shownRef = useRef({ trackId: track.id, upcomingKey, cards })
+  const [deal, setDeal] = useState<{ generation: number; leaving: typeof cards }>({ generation: 0, leaving: [] })
+  useEffect(() => {
+    const shown = shownRef.current
+    const reshuffled = shown.trackId === track.id && shown.upcomingKey !== upcomingKey
+    const leaving = shown.cards.filter((card) => card.offset > 0 && !cards.some((item) => item.track.id === card.track.id))
+    shownRef.current = { trackId: track.id, upcomingKey, cards }
+    if (!reshuffled) return
+    // Si la cola cambia dos veces seguidas, las que ya se estaban yendo siguen su salida.
+    setDeal((current) => ({
+      generation: current.generation + 1,
+      leaving: [...current.leaving, ...leaving].filter((card, index, list) =>
+        list.findIndex((item) => item.track.id === card.track.id) === index && !cards.some((item) => item.track.id === card.track.id)),
+    }))
+    const timer = window.setTimeout(() => setDeal((current) => ({ ...current, leaving: [] })), 450)
+    return () => window.clearTimeout(timer)
+  // cards se recalcula en cada render; basta con reaccionar a la canción y a las siguientes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [track.id, upcomingKey])
+
   return (
     <div aria-label="Reproductor Big Picture" aria-modal="true" className={`big-picture big-picture-mode-${mode}${isPlaying ? ' big-picture-playing' : ''}`} role="dialog">
       <div aria-hidden="true" className="big-picture-backdrop">
@@ -1272,11 +1354,18 @@ function BigPicturePlayer({
       ) : (
       <div className="big-picture-stage">
         {track.artwork && <img alt="" aria-hidden="true" className="big-picture-glow" key={`glow-${track.artwork}`} src={track.artwork} />}
+        {deal.leaving.map(({ track: item, offset }) => (
+          <span aria-hidden="true" className="big-picture-card big-picture-card-leaving" key={`leaving-${item.id}`} style={{ '--card-offset': offset, '--card-distance': Math.abs(offset) } as CSSProperties}>
+            <span className="big-picture-card-art">{item.artwork ? <img alt="" src={item.artwork} /> : <span className="big-picture-card-placeholder"><Music2 size={48} /></span>}</span>
+            <strong>{item.title}</strong>
+            <small>{item.artist}</small>
+          </span>
+        ))}
         {cards.map(({ track: item, offset }) => (
           <button
             aria-label={offset === 0 ? `${item.title} de ${item.artist}, sonando ahora` : `Reproducir ${item.title} de ${item.artist}`}
-            className={`big-picture-card${offset === 0 ? ' big-picture-card-current' : ''}`}
-            key={item.id}
+            className={`big-picture-card${offset === 0 ? ' big-picture-card-current' : ''}${offset > 0 && deal.generation > 0 ? ' big-picture-card-dealt' : ''}`}
+            key={offset > 0 ? `${item.id}-${deal.generation}` : item.id}
             onClick={() => {
               if (offset === 0) onTogglePlayback()
               else if (offset === -1 && previousTracks.length > 0) onSkip(-1)
@@ -1457,7 +1546,7 @@ function ProviderDialog({
       authorizeUrl.searchParams.set('code_challenge', codeChallenge)
       authorizeUrl.searchParams.set('code_challenge_method', 'S256')
       authorizeUrl.searchParams.set('scope', provider === 'Spotify'
-        ? 'user-read-private user-read-email user-read-playback-state user-modify-playback-state user-top-read streaming'
+        ? 'user-read-private user-read-email user-read-playback-state user-modify-playback-state user-top-read user-library-read playlist-read-private playlist-read-collaborative streaming'
         : 'openid profile')
       if (provider === 'YouTube Music') authorizeUrl.searchParams.set('prompt', 'select_account')
       if (provider === 'Spotify') authorizeUrl.searchParams.set('show_dialog', 'true')
@@ -1755,7 +1844,14 @@ function App() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [favoriteIds, setFavoriteIds] = useState(readFavorites)
-  const [shuffle, setShuffle] = useState(true)
+  const [favoriteTrackStore, setFavoriteTrackStore] = useState(readFavoriteTracks)
+  // Aleatorio se recuerda entre aperturas y empieza apagado. Las funciones de la cola leen
+  // shuffleRef: así una búsqueda de canciones que ya estaba en marcha no usa el valor viejo.
+  const [shuffle, setShuffle] = useState(() => {
+    try { return window.localStorage.getItem('dropmusic-shuffle') === '1' } catch { return false }
+  })
+  const shuffleRef = useRef(shuffle)
+  shuffleRef.current = shuffle
   const [repeat, setRepeat] = useState(false)
   const [search, setSearch] = useState('')
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
@@ -1799,6 +1895,16 @@ function App() {
   const [detailStack, setDetailStack] = useState<Detail[]>([])
   const [artistPage, setArtistPage] = useState<ArtistPage | null>(null)
   const [albumPage, setAlbumPage] = useState<AlbumPage | null>(null)
+  const [playlistPage, setPlaylistPage] = useState<PlaylistPage | null>(null)
+  // Abrir DropMusic al encender la PC (solo escritorio). null mientras se consulta.
+  const [autostart, setAutostart] = useState<boolean | null>(null)
+  const [spotifyLibrary, setSpotifyLibrary] = useState<SpotifyLibrary | null>(null)
+  const [spotifyLibraryError, setSpotifyLibraryError] = useState('')
+  const [spotifyLibraryLoading, setSpotifyLibraryLoading] = useState(false)
+  const spotifyLibraryLoadedAtRef = useRef(0)
+  const [communityPlaylists, setCommunityPlaylists] = useState<CommunityPlaylist[] | null>(null)
+  const [communityError, setCommunityError] = useState('')
+  const [playlistForm, setPlaylistForm] = useState({ name: '', description: '', ownerName: '', source: 'favoritos' as 'favoritos' | 'spotify', busy: false, message: '' })
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
   const [discographyFilter, setDiscographyFilter] = useState<'all' | 'album' | 'single'>('all')
@@ -1853,9 +1959,10 @@ function App() {
   const query = search.trim().toLowerCase()
   const isSearching = query.length >= 2
   const allTracks = useMemo(
-    () => [...tracks, ...localTracks, ...spotifySuggestedTracks, ...spotifyTracks, ...jamendoTracks]
+    () => [...tracks, ...localTracks, ...spotifySuggestedTracks, ...spotifyTracks, ...jamendoTracks, ...(spotifyLibrary?.likedTracks ?? []),
+      ...Object.values(favoriteTrackStore).filter((track) => track.source !== 'Local')]
       .filter((track, index, list) => list.findIndex((item) => item.id === track.id) === index),
-    [localTracks, spotifySuggestedTracks, spotifyTracks, jamendoTracks],
+    [localTracks, spotifySuggestedTracks, spotifyTracks, jamendoTracks, spotifyLibrary, favoriteTrackStore],
   )
   const configuredJamendoClientId = settings.jamendoClientId.trim() || defaultJamendoClientId
   const spotifyClientId = settings.spotifyClientId || builtInSpotifyClientId
@@ -1863,12 +1970,6 @@ function App() {
   const searchResults = useMemo(
     () => allTracks.filter((track) => `${track.title} ${track.artist} ${track.album}`.toLowerCase().includes(query)),
     [allTracks, query],
-  )
-  // La biblioteca de Spotify va aparte de los archivos locales para no mezclarlas.
-  const spotifyLibraryTracks = useMemo(() => allTracks.filter((track) => track.source === 'Spotify'), [allTracks])
-  const albums = useMemo(
-    () => spotifyLibraryTracks.filter((track, index, list) => list.findIndex((item) => item.album === track.album) === index),
-    [spotifyLibraryTracks],
   )
   const featuredTracks = useMemo(
     () => [...spotifySuggestedTracks, ...spotifyTracks, ...jamendoTracks, ...localTracks]
@@ -1942,10 +2043,11 @@ function App() {
   useEffect(() => {
     try {
       window.localStorage.setItem('dropmusic-favorites', JSON.stringify(favoriteIds))
+      window.localStorage.setItem('dropmusic-favorite-tracks', JSON.stringify(favoriteTrackStore))
     } catch (error) {
       console.error('No se pudieron guardar los favoritos de DropMusic.', error)
     }
-  }, [favoriteIds])
+  }, [favoriteIds, favoriteTrackStore])
 
   useEffect(() => {
     setFeaturedTrackIndex(Math.floor(Math.random() * Math.max(1, featuredTracks.length)))
@@ -2154,12 +2256,106 @@ function App() {
     return () => window.clearTimeout(timer)
   }, [connectedAccounts.Spotify, query, search, spotifyClientId])
 
+  // La primera vez que se abre en una PC, DropMusic queda configurado para abrirse al encenderla;
+  // después se respeta lo que elijas en Ajustes.
+  useEffect(() => {
+    if (!isTauri() || isAndroidApp) return
+    let active = true
+    void (async () => {
+      let firstRun = false
+      try { firstRun = window.localStorage.getItem('dropmusic-autostart-set') !== '1' } catch { firstRun = false }
+      if (firstRun) {
+        await enableAutostart()
+        try { window.localStorage.setItem('dropmusic-autostart-set', '1') } catch { /* se vuelve a intentar la próxima vez */ }
+      }
+      const enabled = await isAutostartEnabled()
+      if (active) setAutostart(enabled)
+    })().catch((error: unknown) => console.error('No se pudo consultar el inicio automático.', error))
+    return () => { active = false }
+  }, [])
+
+  function toggleAutostart(enabled: boolean) {
+    setAutostart(enabled)
+    void (enabled ? enableAutostart() : disableAutostart())
+      .then(() => { try { window.localStorage.setItem('dropmusic-autostart-set', '1') } catch { /* nada que guardar */ } })
+      .catch((error: unknown) => {
+        console.error('No se pudo cambiar el inicio automático.', error)
+        setAutostart(!enabled)
+      })
+  }
+
+  const loadSpotifyLibrary = useCallback(() => {
+    if (!connectedAccounts.Spotify || !isTauri() || !spotifyClientId) return
+    spotifyLibraryLoadedAtRef.current = Date.now()
+    setSpotifyLibraryLoading(true)
+    void invoke<{ likedTracks: SpotifyTrackResult[]; likedTotal: number; albums: Album[]; playlists: SpotifyPlaylist[] }>('spotify_get_library', { clientId: spotifyClientId })
+      .then((library) => {
+        setSpotifyLibrary({ ...library, likedTracks: library.likedTracks.map(toSpotifyTrack) })
+        setSpotifyLibraryError('')
+      })
+      .catch((error: unknown) => {
+        console.error('No se pudo cargar tu biblioteca de Spotify.', error)
+        const message = error instanceof Error ? error.message : String(error)
+        // Sin los permisos nuevos Spotify responde 403: hay que volver a autorizar la cuenta.
+        setSpotifyLibraryError(/403|scope/i.test(message)
+          ? 'Para ver tu biblioteca, ve a Ajustes y toca "Actualizar permisos Spotify".'
+          : message)
+      })
+      .finally(() => setSpotifyLibraryLoading(false))
+  }, [connectedAccounts.Spotify, spotifyClientId])
+
+  useEffect(() => {
+    if (!connectedAccounts.Spotify) {
+      setSpotifyLibrary(null)
+      return
+    }
+    loadSpotifyLibrary()
+    const timer = window.setInterval(loadSpotifyLibrary, 5 * 60 * 1000)
+    const onFocus = () => { if (Date.now() - spotifyLibraryLoadedAtRef.current > 60 * 1000) loadSpotifyLibrary() }
+    window.addEventListener('focus', onFocus)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [connectedAccounts.Spotify, loadSpotifyLibrary])
+
+  const loadCommunityPlaylists = useCallback(() => {
+    if (!accountsEnabled) return
+    setCommunityError('')
+    void listCommunityPlaylists()
+      .then(setCommunityPlaylists)
+      .catch((error: unknown) => {
+        setCommunityPlaylists([])
+        setCommunityError(error instanceof Error ? error.message : String(error))
+      })
+  }, [])
+
+  useEffect(() => {
+    if (activeSection === 'Playlists') loadCommunityPlaylists()
+  }, [activeSection, loadCommunityPlaylists])
+
   useEffect(() => {
     const requestId = ++detailRequestRef.current
-    if (!currentDetail || !spotifyClientId) return
+    if (!currentDetail) return
+    if (currentDetail.kind === 'community') {
+      const playlist = communityPlaylists?.find((item) => item.id === currentDetail.id)
+      setDetailError(playlist ? '' : 'Esta playlist ya no está disponible.')
+      if (playlist) setPlaylistPage(communityPlaylistPage(playlist))
+      return
+    }
+    if (!spotifyClientId) return
     setDetailLoading(true)
     setDetailError('')
-    const request = currentDetail.kind === 'artist'
+    const request = currentDetail.kind === 'playlist'
+      ? invoke<{ playlist: SpotifyPlaylist; tracks: SpotifyTrackResult[] }>('spotify_get_playlist', {
+        clientId: spotifyClientId,
+        playlistId: currentDetail.id,
+      }).then((page) => {
+        if (requestId !== detailRequestRef.current) return
+        const { playlist } = page
+        setPlaylistPage({ id: playlist.id, kind: 'playlist', name: playlist.name, owner: playlist.owner, description: playlist.description, image: playlist.image, url: playlist.url, tracks: page.tracks.map(toSpotifyTrack) })
+      })
+      : currentDetail.kind === 'artist'
       ? invoke<{ artist: Artist; topTracks: SpotifyTrackResult[]; albums: Album[] }>('spotify_get_artist', {
         clientId: spotifyClientId,
         artistId: currentDetail.id,
@@ -2176,12 +2372,12 @@ function App() {
       })
     void request.catch((error: unknown) => {
       if (requestId !== detailRequestRef.current) return
-      console.error(`No se pudo cargar ${currentDetail.kind === 'artist' ? 'el artista' : 'el álbum'}.`, error)
+      console.error(`No se pudo cargar ${currentDetail.kind === 'artist' ? 'el artista' : currentDetail.kind === 'playlist' ? 'la playlist' : 'el álbum'}.`, error)
       setDetailError(error instanceof Error ? error.message : String(error))
     }).finally(() => {
       if (requestId === detailRequestRef.current) setDetailLoading(false)
     })
-  }, [currentDetail, spotifyClientId])
+  }, [currentDetail, spotifyClientId, communityPlaylists])
 
   useEffect(() => {
     if (bigPictureMode !== 'lyrics' || !activeTrack.id || !isTauri()) return
@@ -2613,6 +2809,9 @@ function App() {
       // La repetición la maneja DropMusic; si Spotify tuviera la suya activa, la canción nunca terminaría.
       void invoke('spotify_set_playback_option', { clientId: spotifyClientId, deviceId, option: 'repeat', enabled: false })
         .catch((error: unknown) => console.error('No se pudo quitar la repetición de Spotify.', error))
+      // Lo mismo con el aleatorio de la cuenta de Spotify: si quedara activo, mezclaría por su cuenta.
+      void invoke('spotify_set_playback_option', { clientId: spotifyClientId, deviceId, option: 'shuffle', enabled: false })
+        .catch((error: unknown) => console.error('No se pudo quitar el aleatorio de Spotify.', error))
     }).catch((error: unknown) => {
       console.error(`No se pudo reproducir ${spotifyTrack.title} en DropMusic.`, error)
       setIsPlaying(false)
@@ -2645,7 +2844,7 @@ function App() {
     }
     const radio = createSpotifyRadio(seed)
     const rest = list.slice(index + 1).filter((item) => item.source === 'Spotify')
-    radio.upNext = shuffle ? shuffled(rest) : rest
+    radio.upNext = shuffleRef.current ? shuffled(rest) : rest
     spotifyRadioRef.current = radio
     setRadioSeed(radioSeedLabel(seed))
     syncRadioQueue()
@@ -2698,7 +2897,7 @@ function App() {
         radio.queue.push(...mixRadioBatch(
           [fresh(batch.sameArtist), fresh(batch.related), fresh(batch.genre)],
           last ? mainArtistKey(last) : '',
-          shuffle,
+          shuffleRef.current,
         ))
 
         if (radio.mainOffset > spotifyRadioMaxOffset) {
@@ -2724,7 +2923,7 @@ function App() {
     if (spotifyRadioRef.current !== radio) return
     // En aleatorio la siguiente sale de cualquier punto de la cola, no de la primera posición.
     const pool = radio.upNext.length > 0 ? radio.upNext : radio.queue
-    const next = pool.splice(shuffle ? Math.floor(Math.random() * pool.length) : 0, 1)[0]
+    const next = pool.splice(shuffleRef.current ? Math.floor(Math.random() * pool.length) : 0, 1)[0]
     syncRadioQueue()
     if (!next) {
       setIsPlaying(false)
@@ -2809,8 +3008,10 @@ function App() {
 
   function toggleShuffle() {
     // El aleatorio lo maneja DropMusic: al activarlo se mezcla lo que queda en la cola.
-    const enabled = !shuffle
+    const enabled = !shuffleRef.current
+    shuffleRef.current = enabled
     setShuffle(enabled)
+    try { window.localStorage.setItem('dropmusic-shuffle', enabled ? '1' : '0') } catch { /* sin almacenamiento: solo dura esta sesión */ }
     if (enabled) {
       const radio = spotifyRadioRef.current
       radio.upNext = shuffled(radio.upNext)
@@ -2875,7 +3076,7 @@ function App() {
     }
     const currentIndex = queue.findIndex((track) => track.id === activeTrackId)
     let nextIndex: number
-    if (shuffle && queue.length > 1) {
+    if (shuffleRef.current && queue.length > 1) {
       do {
         nextIndex = Math.floor(Math.random() * queue.length)
       } while (nextIndex === currentIndex)
@@ -3060,7 +3261,20 @@ function App() {
   }, [activeSection, isAdmin])
 
   function toggleFavorite(id: string) {
+    const removing = favoriteIds.includes(id)
     setFavoriteIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id])
+    setFavoriteTrackStore((current) => {
+      const next = { ...current }
+      if (removing) {
+        delete next[id]
+        return next
+      }
+      const track = [activeTrack, ...allTracks, ...radioQueue, ...(albumPage?.tracks ?? []), ...(artistPage?.topTracks ?? []), ...(playlistPage?.tracks ?? [])]
+        .find((item) => item.id === id)
+      // La dirección del audio local caduca al cerrar la app; se vuelve a pedir al reproducir.
+      if (track) next[id] = { ...track, audioUrl: track.source === 'Local' ? undefined : track.audioUrl }
+      return next
+    })
   }
 
   function selectPreset(name: string) {
@@ -3176,8 +3390,10 @@ function App() {
     if (detail.kind === 'artist') {
       setArtistPage(null)
       setDiscographyFilter('all')
-    } else {
+    } else if (detail.kind === 'album') {
       setAlbumPage(null)
+    } else {
+      setPlaylistPage(null)
     }
     setDetailStack((current) => [...current, detail])
   }
@@ -3423,12 +3639,148 @@ function App() {
     )
   }
 
+  function renderPlaylist() {
+    if (!playlistPage || playlistPage.id !== currentDetail?.id) return renderDetailStatus('la playlist')
+    const { name, owner, description, image, url, tracks: playlistTracks, kind } = playlistPage
+    const totalSeconds = playlistTracks.reduce((sum, track) => sum + track.duration, 0)
+    const seed = playlistTracks[0] ? seedFromTrack(playlistTracks[0]) : undefined
+    const mine = kind === 'community' && accountUser && (playlistPage.ownerId === accountUser.id || isAdmin)
+    return (
+      <>
+        <section className="detail-hero">
+          {image && <img alt="" aria-hidden="true" className="detail-hero-backdrop" src={image} />}
+          {image ? <img alt={`Portada de ${name}`} className="detail-hero-image" src={image} /> : <span className="detail-hero-image top-result-placeholder"><ListMusic size={48} /></span>}
+          <div className="detail-hero-copy">
+            <p className="eyebrow">{kind === 'community' ? 'PLAYLIST DE LA COMUNIDAD' : 'PLAYLIST'}</p>
+            <h1>{name}</h1>
+            {description && <p className="playlist-description">{description}</p>}
+            <p>{[owner && `De ${owner}`, `${playlistTracks.length} canciones`, `${Math.round(totalSeconds / 60)} min`].filter(Boolean).join(' · ')}</p>
+            <div className="detail-actions">
+              <button className="detail-play" disabled={playlistTracks.length === 0 || !seed} onClick={() => seed && playFromList(playlistTracks, playlistTracks[0].id, seed)} type="button"><Play fill="currentColor" size={16} /> Reproducir</button>
+              {url && <a className="secondary-button" href={url} rel="noreferrer" target="_blank">Abrir en Spotify <ArrowUpRight size={14} /></a>}
+              {mine && <button className="secondary-button" onClick={() => { void removeCommunityPlaylist(playlistPage.id) }} type="button"><Trash2 size={14} /> Borrar</button>}
+            </div>
+          </div>
+        </section>
+        <section aria-label="Canciones de la playlist" className="search-block">
+          {playlistTracks.length > 0
+            ? renderTracks(playlistTracks, { seed, showIndex: true })
+            : <p className="spotify-catalog-hint">Esta playlist no tiene canciones que se puedan reproducir.</p>}
+        </section>
+      </>
+    )
+  }
+
   function renderDetail() {
     return (
       <div className="detail-view">
         <button className="text-button back-button" onClick={goBack} type="button"><ArrowLeft size={15} /> Volver</button>
-        {currentDetail?.kind === 'artist' ? renderArtist() : renderAlbum()}
+        {currentDetail?.kind === 'artist' ? renderArtist() : currentDetail?.kind === 'album' ? renderAlbum() : renderPlaylist()}
       </div>
+    )
+  }
+
+  function renderPlaylistGrid(items: { key: string; name: string; detail: string; image: string; open: () => void }[]) {
+    return (
+      <div className="album-grid">
+        {items.map((item) => (
+          <button className="album-card" key={item.key} onClick={item.open} type="button">
+            <span className="album-card-art">
+              {item.image ? <img alt="" loading="lazy" src={item.image} /> : <span className="album-card-placeholder"><ListMusic size={30} /></span>}
+              <span><Play fill="currentColor" size={17} /></span>
+            </span>
+            <strong>{item.name}</strong>
+            <small>{item.detail}</small>
+          </button>
+        ))}
+      </div>
+    )
+  }
+
+  async function removeCommunityPlaylist(id: string) {
+    try {
+      await deleteCommunityPlaylist(id)
+      setCommunityPlaylists((current) => current?.filter((item) => item.id !== id) ?? null)
+      goBack()
+    } catch (error) {
+      setDetailError(error instanceof Error ? error.message : String(error))
+    }
+  }
+
+  async function shareCommunityPlaylist() {
+    const source = playlistForm.source === 'spotify' ? spotifyLibrary?.likedTracks ?? [] : favoriteTracks
+    const tracks = source.filter((track) => track.source === 'Spotify').map(toCommunityTrack)
+    if (!playlistForm.name.trim()) {
+      setPlaylistForm((current) => ({ ...current, message: 'Ponle un nombre a tu playlist.' }))
+      return
+    }
+    if (tracks.length === 0) {
+      setPlaylistForm((current) => ({ ...current, message: 'Esa lista no tiene canciones de Spotify para compartir.' }))
+      return
+    }
+    setPlaylistForm((current) => ({ ...current, busy: true, message: '' }))
+    try {
+      const playlist = await publishCommunityPlaylist({ ownerName: playlistForm.ownerName || connectedAccounts.Spotify?.name || '', name: playlistForm.name, description: playlistForm.description, tracks })
+      setCommunityPlaylists((current) => [playlist, ...(current ?? [])])
+      setPlaylistForm((current) => ({ ...current, name: '', description: '', busy: false, message: `Listo: "${playlist.name}" ya está en la comunidad.` }))
+    } catch (error) {
+      setPlaylistForm((current) => ({ ...current, busy: false, message: error instanceof Error ? error.message : String(error) }))
+    }
+  }
+
+  function renderPlaylistsPage() {
+    const shareable = (playlistForm.source === 'spotify' ? spotifyLibrary?.likedTracks ?? [] : favoriteTracks).filter((track) => track.source === 'Spotify')
+    const community = (communityPlaylists ?? []).filter((item) => `${item.name} ${item.ownerName} ${item.description}`.toLowerCase().includes(query))
+    return (
+      <>
+        <section aria-labelledby="community-heading" className="recent-section">
+          <div className="section-heading">
+            <div><p className="eyebrow">DE LA COMUNIDAD</p><h2 id="community-heading">Playlists de la comunidad</h2></div>
+            {accountsEnabled && <button className="secondary-button" onClick={loadCommunityPlaylists} type="button"><RefreshCw size={14} /> Actualizar</button>}
+          </div>
+          {!accountsEnabled
+            ? <div className="empty-search"><ListMusic size={20} /><p>Las playlists de la comunidad llegan con las cuentas de DropMusic.</p></div>
+            : communityError
+              ? <p className="spotify-catalog-error" role="status">{communityError}</p>
+              : communityPlaylists === null
+                ? <p className="spotify-catalog-hint">Cargando playlists…</p>
+                : community.length === 0
+                  ? <div className="empty-search"><ListMusic size={20} /><p>Todavía no hay playlists. ¡Comparte la primera!</p></div>
+                  : renderPlaylistGrid(community.map((item) => ({ key: item.id, name: item.name, detail: `De ${item.ownerName} · ${item.tracks.length} canciones`, image: item.cover, open: () => openDetail({ kind: 'community', id: item.id }) })))}
+        </section>
+
+        {accountsEnabled && (
+          <section aria-labelledby="share-heading" className="settings-panel playlist-share">
+            <div className="settings-panel-heading"><span className="settings-icon"><Plus size={17} /></span><div><h2 id="share-heading">Comparte una playlist</h2><p>Publica tus favoritos o tus me gusta de Spotify para que cualquiera en DropMusic los escuche.</p></div></div>
+            {!accountUser ? (
+              <button className="primary-button" onClick={() => setAuthDialog({ reason: 'Inicia sesión para compartir playlists con la comunidad.', skippable: false })} type="button">Iniciar sesión para compartir</button>
+            ) : (
+              <form className="playlist-form" onSubmit={(event) => { event.preventDefault(); void shareCommunityPlaylist() }}>
+                <label>Nombre<input maxLength={80} onChange={(event) => setPlaylistForm((current) => ({ ...current, name: event.target.value }))} placeholder="Para manejar de noche" required value={playlistForm.name} /></label>
+                <label>Descripción<input maxLength={300} onChange={(event) => setPlaylistForm((current) => ({ ...current, description: event.target.value }))} placeholder="Opcional" value={playlistForm.description} /></label>
+                <label>Tu nombre en la comunidad<input maxLength={40} onChange={(event) => setPlaylistForm((current) => ({ ...current, ownerName: event.target.value }))} placeholder={connectedAccounts.Spotify?.name ?? 'Cómo quieres que te vean'} value={playlistForm.ownerName} /></label>
+                <label>Canciones
+                  <select onChange={(event) => setPlaylistForm((current) => ({ ...current, source: event.target.value as 'favoritos' | 'spotify' }))} value={playlistForm.source}>
+                    <option value="favoritos">Tus favoritos de DropMusic</option>
+                    <option disabled={!spotifyLibrary} value="spotify">Tus me gusta de Spotify</option>
+                  </select>
+                </label>
+                <button className="primary-button" disabled={playlistForm.busy || shareable.length === 0} type="submit"><Upload size={15} /> {playlistForm.busy ? 'Publicando…' : `Publicar ${shareable.length} canciones`}</button>
+                {playlistForm.message && <p className="local-message" role="status">{playlistForm.message}</p>}
+              </form>
+            )}
+          </section>
+        )}
+
+        {spotifyLibrary && spotifyLibrary.playlists.length > 0 && (
+          <section aria-labelledby="my-playlists-heading" className="recent-section">
+            <div className="section-heading"><div><p className="eyebrow">DE TU SPOTIFY</p><h2 id="my-playlists-heading">Tus playlists</h2></div><span className="track-count">{spotifyLibrary.playlists.length} playlists</span></div>
+            {renderPlaylistGrid(spotifyLibrary.playlists
+              .filter((item) => `${item.name} ${item.owner}`.toLowerCase().includes(query))
+              .map((item) => ({ key: item.id, name: item.name, detail: `De ${item.owner || 'Spotify'} · ${item.totalTracks} canciones`, image: item.image, open: () => openDetail({ kind: 'playlist', id: item.id }) })))}
+          </section>
+        )}
+      </>
     )
   }
 
@@ -3452,10 +3804,53 @@ function App() {
     )
   }
 
+  // Accesos rápidos del inicio, como en Spotify: tus me gusta, tus canciones locales, los álbumes que
+  // sonaron hace poco y mezclas de tus artistas. Fichas pequeñas en dos filas.
+  function renderShortcuts() {
+    type Shortcut = { key: string; label: string; detail: string; image?: string; icon?: LucideIcon; onOpen: () => void }
+    const shortcuts: Shortcut[] = []
+    const liked = allTracks.filter((track) => favoriteIds.includes(track.id))
+    if (liked.length > 0) {
+      shortcuts.push({ key: 'liked', label: 'Tus me gusta', detail: `${liked.length} canciones`, icon: Heart, onOpen: () => playFromList(liked, liked[0].id, seedFromTrack(liked[0])) })
+    }
+    if (localTracks.length > 0) {
+      shortcuts.push({ key: 'local', label: 'Canciones locales', detail: `${localTracks.length} en este equipo`, icon: FolderOpen, onOpen: () => playTrack(localTracks[0].id) })
+    }
+    const recentAlbums = listeningHistory
+      .filter((track) => track.albumId)
+      .map(albumFromTrack)
+      .filter((album, index, list) => list.findIndex((item) => item.id === album.id) === index)
+    for (const album of recentAlbums.slice(0, 4)) {
+      shortcuts.push({ key: `album-${album.id}`, label: album.title, detail: album.artist, image: album.artwork, onOpen: () => openDetail({ kind: 'album', id: album.id }) })
+    }
+    for (const artist of topArtists) {
+      if (shortcuts.length >= 8) break
+      const seed: RadioSeed = { kind: 'artist', id: artist.id, name: artist.name }
+      shortcuts.push({ key: `mix-${artist.id}`, label: `Mix de ${artist.name}`, detail: 'Mezcla', image: artist.image, onOpen: () => { void startMix(seed) } })
+    }
+    // Si faltan fichas, se completan con canciones que escuchaste hace poco.
+    for (const track of listeningHistory) {
+      if (shortcuts.length >= 8) break
+      if (shortcuts.some((item) => item.key === `track-${track.id}`)) continue
+      shortcuts.push({ key: `track-${track.id}`, label: track.title, detail: track.artist, image: track.artwork, onOpen: () => playFromList(listeningHistory, track.id, seedFromTrack(track)) })
+    }
+    if (shortcuts.length === 0) return null
+    return (
+      <div className="shortcut-grid">
+        {shortcuts.slice(0, 8).map(({ key, label, detail, image, icon: Icon, onOpen }) => (
+          <button className={`shortcut-tile${key === 'liked' ? ' shortcut-liked' : ''}`} key={key} onClick={onOpen} title={label} type="button">
+            <span className="shortcut-art">{image ? <img alt="" loading="lazy" src={image} /> : Icon ? <Icon size={20} /> : <Music2 size={20} />}</span>
+            <span className="shortcut-copy"><strong>{label}</strong><small>{detail}</small></span>
+            <span aria-hidden="true" className="shortcut-play"><Play fill="currentColor" size={14} /></span>
+          </button>
+        ))}
+      </div>
+    )
+  }
+
   function renderHomeShelves() {
     if (!connectedAccounts.Spotify) return null
-    const suggestedIds = new Set(spotifySuggestedTracks.slice(0, 5).map((track) => track.id))
-    const moreSuggestions = spotifySuggestedTracks.filter((track) => !suggestedIds.has(track.id))
+    const moreSuggestions = spotifySuggestedTracks
     const likedAlbums = [...listeningHistory, ...spotifySuggestedTracks]
       .filter((track) => track.albumId && track.albumType === 'album')
       .map(albumFromTrack)
@@ -3719,9 +4114,9 @@ function App() {
   const upcomingTracks = activeTrack.source === 'Spotify'
     ? radioQueue
     : jamendoTracks.slice(jamendoTracks.findIndex((track) => track.id === activeTrackId) + 1)
-  const favoriteTracks = allTracks.filter((track) =>
-    favoriteIds.includes(track.id) && `${track.title} ${track.artist} ${track.album}`.toLowerCase().includes(query),
-  )
+  const favoriteTracks = favoriteIds
+    .map((id) => allTracks.find((track) => track.id === id) ?? favoriteTrackStore[id])
+    .filter((track): track is Track => Boolean(track) && `${track.title} ${track.artist} ${track.album}`.toLowerCase().includes(query))
 
   return (
     <div
@@ -3814,7 +4209,7 @@ function App() {
       <main className="main-content" id="inicio" ref={mainContentRef}>
         <header className="topbar">
           <button aria-expanded={menuOpen} aria-label="Abrir menú" className="icon-button menu-toggle" onClick={() => setMenuOpen(true)} type="button"><Menu size={22} /></button>
-          <div className="breadcrumbs"><span>DROP MUSIC</span><span className="breadcrumb-slash">/</span><span>{currentDetail ? (currentDetail.kind === 'artist' ? 'ARTISTA' : 'ÁLBUM') : isSearching ? 'BUSCAR' : activeSection.toUpperCase()}</span></div>
+          <div className="breadcrumbs"><span>DROP MUSIC</span><span className="breadcrumb-slash">/</span><span>{currentDetail ? ({ artist: 'ARTISTA', album: 'ÁLBUM', playlist: 'PLAYLIST', community: 'PLAYLIST' } as const)[currentDetail.kind] : isSearching ? 'BUSCAR' : activeSection.toUpperCase()}</span></div>
           <div className="topbar-actions">
             <label className="search-box">
               <Search size={16} />
@@ -3913,29 +4308,42 @@ function App() {
                 ) : (
                 <>
                 <section aria-label="Resumen de tu biblioteca de Spotify" className="collection-summary">
-                  <span className="collection-stat"><Disc3 size={18} /><strong>{albums.length}</strong><small>álbumes y EPs</small></span>
-                  <span className="collection-stat"><Music2 size={18} /><strong>{spotifyLibraryTracks.length}</strong><small>canciones de Spotify</small></span>
-                  <span className="collection-stat"><Heart size={18} /><strong>{favoriteIds.length}</strong><small>favoritos</small></span>
+                  <span className="collection-stat"><Heart size={18} /><strong>{spotifyLibrary?.likedTotal ?? 0}</strong><small>canciones que te gustan</small></span>
+                  <span className="collection-stat"><Disc3 size={18} /><strong>{spotifyLibrary?.albums.length ?? 0}</strong><small>álbumes guardados</small></span>
+                  <span className="collection-stat"><ListMusic size={18} /><strong>{spotifyLibrary?.playlists.length ?? 0}</strong><small>playlists</small></span>
+                  <button className="secondary-button library-refresh" disabled={spotifyLibraryLoading} onClick={loadSpotifyLibrary} type="button"><RefreshCw size={14} /> {spotifyLibraryLoading ? 'Actualizando…' : 'Actualizar'}</button>
                 </section>
-                <section aria-labelledby="collection-heading" className="recent-section">
-                  <div className="section-heading"><div><p className="eyebrow">TU BIBLIOTECA DE SPOTIFY</p><h2 id="collection-heading">{search ? 'Resultados' : 'Álbumes y sencillos'}</h2></div><span className="track-count">{albums.length} lanzamientos</span></div>
-                  <div className="album-grid">
-                    {albums.filter((album) => `${album.album} ${album.artist}`.toLowerCase().includes(query)).map((album) => (
-                      <button className="album-card" key={`${album.source ?? 'apple'}:${album.album}`} onClick={() => album.albumId ? openDetail({ kind: 'album', id: album.albumId }) : playTrack(album.id)} type="button">
-                        <span className="album-card-art"><img alt={`Portada de ${album.album}`} loading="lazy" src={album.artwork} /><span><Play fill="currentColor" size={17} /></span></span><strong>{album.album}</strong><small>{album.artist}</small>
-                      </button>
-                    ))}
-                  </div>
-                </section>
-                <section aria-labelledby="songs-heading" className="collection-songs">
-                  <div className="section-heading"><div><p className="eyebrow">DE SPOTIFY</p><h2 id="songs-heading">Canciones</h2></div><span className="track-count">{spotifyLibraryTracks.length} canciones</span></div>
-                  {spotifyLibraryTracks.length > 0
-                    ? renderTracks(spotifyLibraryTracks.filter((track) => `${track.title} ${track.artist} ${track.album}`.toLowerCase().includes(query)))
-                    : <div className="empty-search"><Library size={20} /><p>Tus canciones de Spotify aparecen aquí cuando terminen de cargar.</p></div>}
-                </section>
+                {spotifyLibraryError && <p className="spotify-catalog-error" role="status">{spotifyLibraryError}</p>}
+                {!spotifyLibrary && !spotifyLibraryError && <p className="spotify-catalog-hint">Cargando tu biblioteca de Spotify…</p>}
+                {spotifyLibrary && (
+                  <>
+                    {spotifyLibrary.playlists.length > 0 && (
+                      <section aria-labelledby="library-playlists-heading" className="recent-section">
+                        <div className="section-heading"><div><p className="eyebrow">TU BIBLIOTECA DE SPOTIFY</p><h2 id="library-playlists-heading">Playlists</h2></div><span className="track-count">{spotifyLibrary.playlists.length} playlists</span></div>
+                        {renderPlaylistGrid(spotifyLibrary.playlists
+                          .filter((item) => `${item.name} ${item.owner}`.toLowerCase().includes(query))
+                          .map((item) => ({ key: item.id, name: item.name, detail: `De ${item.owner || 'Spotify'} · ${item.totalTracks} canciones`, image: item.image, open: () => openDetail({ kind: 'playlist', id: item.id }) })))}
+                      </section>
+                    )}
+                    {spotifyLibrary.albums.length > 0 && (
+                      <section aria-labelledby="collection-heading" className="recent-section">
+                        <div className="section-heading"><div><p className="eyebrow">GUARDADOS</p><h2 id="collection-heading">Álbumes</h2></div><span className="track-count">{spotifyLibrary.albums.length} álbumes</span></div>
+                        {renderAlbumGrid(spotifyLibrary.albums.filter((album) => `${album.title} ${album.artist}`.toLowerCase().includes(query)))}
+                      </section>
+                    )}
+                    <section aria-labelledby="songs-heading" className="collection-songs">
+                      <div className="section-heading"><div><p className="eyebrow">TE GUSTAN</p><h2 id="songs-heading">Canciones que te gustan</h2></div><span className="track-count">{spotifyLibrary.likedTotal} canciones</span></div>
+                      {spotifyLibrary.likedTracks.length > 0
+                        ? renderTracks(spotifyLibrary.likedTracks.filter((track) => `${track.title} ${track.artist} ${track.album}`.toLowerCase().includes(query)), { seed: seedFromTrack(spotifyLibrary.likedTracks[0]) })
+                        : <div className="empty-search"><Library size={20} /><p>Las canciones que marques con el corazón en Spotify aparecen aquí.</p></div>}
+                    </section>
+                  </>
+                )}
                 </>
                 )}
               </>
+            ) : activeSection === 'Playlists' ? (
+              renderPlaylistsPage()
             ) : activeSection === 'Favoritos' ? (
               <section aria-labelledby="favorites-heading" className="favorites-page">
                 <div className="section-heading"><div><p className="eyebrow">GUARDADOS POR TI</p><h2 id="favorites-heading">Tu lista personal</h2></div><span className="track-count">{favoriteIds.length} canciones</span></div>
@@ -4019,6 +4427,12 @@ function App() {
                     <span><strong>Modo TV</strong><small>{isTvDevice ? 'Activado porque estás en un televisor.' : 'Letra y botones grandes para verlos de lejos, y navegación con las flechas del control remoto o el teclado.'}</small></span>
                     <label className="toggle-switch"><input aria-label="Modo TV" checked={tvMode} disabled={isTvDevice} onChange={(event) => updateSetting('tvMode', event.target.checked)} type="checkbox" /><span /></label>
                   </div>
+                  {isTauri() && !isAndroidApp && (
+                    <div className="setting-toggle-row">
+                      <span><strong>Abrir al encender la PC</strong><small>DropMusic se abre minimizado cuando inicias Windows, listo para sonar.</small></span>
+                      <label className="toggle-switch"><input aria-label="Abrir al encender la PC" checked={autostart ?? false} disabled={autostart === null} onChange={(event) => toggleAutostart(event.target.checked)} type="checkbox" /><span /></label>
+                    </div>
+                  )}
                 </section>
 
                 <section aria-labelledby="update-settings-heading" className="settings-panel">
@@ -4112,9 +4526,9 @@ function App() {
                 </section>
                 <section aria-labelledby="recent-heading" className="recent-section">
                   <div className="section-heading"><div><p className="eyebrow">DESCUBRE TU PRÓXIMA CANCIÓN</p><h2 id="recent-heading">Una selección para escuchar</h2></div></div>
-                  {searchResults.length > 0
+                  {renderShortcuts() ?? (searchResults.length > 0
                     ? renderTracks(searchResults.slice(0, 5))
-                    : <div className="spotify-suggestions-empty"><p>{!connectedAccounts.Spotify ? 'Conecta Spotify para escuchar música completa en DropMusic.' : spotifySuggestionsError || (spotifySuggestionsLoaded ? 'Busca una canción, un artista o un álbum para empezar.' : 'Cargando tus canciones de Spotify…')}</p>{!connectedAccounts.Spotify && <button className="secondary-button" onClick={() => connectProvider('Spotify')} type="button">Conectar Spotify <ArrowUpRight size={14} /></button>}</div>}
+                    : <div className="spotify-suggestions-empty"><p>{!connectedAccounts.Spotify ? 'Conecta Spotify para escuchar música completa en DropMusic.' : spotifySuggestionsError || (spotifySuggestionsLoaded ? 'Busca una canción, un artista o un álbum para empezar.' : 'Cargando tus canciones de Spotify…')}</p>{!connectedAccounts.Spotify && <button className="secondary-button" onClick={() => connectProvider('Spotify')} type="button">Conectar Spotify <ArrowUpRight size={14} /></button>}</div>)}
                 </section>
                 {renderHomeShelves()}
               </>
