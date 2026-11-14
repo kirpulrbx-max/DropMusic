@@ -267,8 +267,6 @@
   min-height: 72px;
   padding: 0 8px;
   border-bottom: 0;
-  background: none;
-  backdrop-filter: none;
 }
 
 .tv-mode .breadcrumbs {
@@ -362,9 +360,11 @@
   height: 46px;
 }
 
-/* Foco grande y visible: es lo único que guía al usar el control remoto */
-.tv-mode :is(button, a, input, select):focus {
-  position: relative;
+/*
+  Foco grande y visible: es lo único que guía al usar el control remoto. Solo con teclado o control
+  (:focus-visible): con el mouse, agrandar o mover el botón al presionarlo hacía que el clic se perdiera.
+*/
+.tv-mode :is(button, a, input, select):focus-visible {
   z-index: 2;
   outline: 4px solid var(--t-accent, #c7a6ff);
   outline-offset: 3px;
@@ -373,8 +373,8 @@
   transition: scale 160ms ease, box-shadow 160ms ease;
 }
 
-.tv-mode .nav-item:focus,
-.tv-mode .track-row:focus {
+.tv-mode .nav-item:focus-visible,
+.tv-mode .track-row:focus-visible {
   scale: 1.02;
 }
 
